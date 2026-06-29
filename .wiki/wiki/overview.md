@@ -1,53 +1,53 @@
 ---
-title: Project Overview
+title: Tổng quan dự án
 category: overview
-tags: [unity, 2d, war-game, three-kingdoms]
+tags: [unity, 2d, war-game, three-kingdoms, cong-thanh-xung-de]
 sources: []
 created: 2026-06-27
 updated: 2026-06-27
 ---
 
-# ctxd_client — Project Overview
+# ctxd_client — Tổng quan
 
-> [!info] Provenance
-> This overview was seeded from a read of the Unity project (`Assets/`, `Packages/manifest.json`, `ProjectSettings/`) on 2026-06-27. No Game Design Document has been ingested yet, so **genre, loop, and platform below are inferred from assets** and flagged. Drop a GDD into `raw/gdd/` and run an INGEST to confirm.
+`ctxd_client` là dự án **Unity 6.5** nhằm **dựng lại game Công Thành Xưng Đế** — bản Việt hóa của webgame chiến thuật Tam Quốc Trung Quốc **攻城掠地** (Gōngchéng lüèdì, "công thành lược địa"). Tên dự án chính là viết tắt **C**ông **T**hành **X**ưng **Đ**ế.
 
-## Game
-- **Engine**: Unity 6.5 (6000.5.1f1) — URP 17.5, full 2D toolchain (see [[claims#c-20260627-01]])
-- **Genre**: *(inferred)* 2D Three Kingdoms-style turn-based war/battle game — generals, troop units, skills, formations, and a rage meter
-- **Platform**: TBD *(no build target confirmed; 2D + UI-heavy asset set is consistent with mobile or PC)*
-- **Architecture**: *(inferred)* networked client — project is named `ctxd_client`, implying a separate backend (see [[open-questions#q-20260627-02]])
-- **Team size**: TBD
+- **Game gốc**: 攻城掠地 — NPH/NSX 傲世堂 (Aoshitang / Shanghai Game Reign), TQ公测 15/04/2013.
+- **Bản Việt**: Công Thành Xưng Đế — ra mắt ~31/10/2013 (NPH gốc Trí Tuệ Việt / TTV); về sau xuất hiện dưới VinixCorp (somo.vn), SohaGame, và bản mobile VGP.
+- **Thể loại**: SLG/chiến thuật Tam Quốc **theo lượt** — tướng (武将), binh chủng (兵种), trận pháp (阵法), chiến pháp & nộ khí (战法/怒气), công thành chiếm đất PvE (打天下), nội chính (内政), quốc chiến (国战).
+- **Engine**: Unity 6000.5.1f1, URP 17.5, bộ công cụ 2D (Aseprite/PSD/SpriteShape/Tilemap), Input System mới.
 
-## Core pillars
-<!-- 3-5 design pillars defining this game — populate from GDD -->
-> [!question] Not yet defined — awaiting a GDD ingest.
+> [!warning] Phân biệt 3 game cùng tên — đọc trước khi dùng dữ liệu
+> Có **ba** game dễ bị nhầm: (1) **攻城掠地** webgame 2013 — *mục tiêu chính, asset dự án khớp bản này*; (2) **Công Thành Xưng Đế Mobile** (2019, VGP) — game mobile khác; (3) **乱世曹操传** — game anh em cùng NPH. Nhiều dữ kiện trên mạng thuộc bản (2)/(3). Chi tiết & đề xuất phạm vi: [[decisions/game-version-scope]].
 
-## Current state
-Wiki initialized. The project is currently **asset-driven**: the codebase contains only TextMesh Pro example scripts, while `Assets/Resources/` holds the battle art for armies, generals, skills, effects, formations, and battle UI. Gameplay rules are not yet expressed in code or docs in-repo.
+## Tình trạng dự án
+Hiện **thiên về asset**: codebase mới chỉ có script ví dụ TextMesh Pro; toàn bộ nghệ thuật trận đánh (quân/tướng/kỹ năng/hiệu ứng/UI) nằm trong `Assets/Resources/`. Luật chơi chưa được thể hiện trong code. Wiki này phục dựng luật chơi từ nghiên cứu game gốc (xem [[sources/ctxd-web-research-2026-06-27]]).
 
-## Key systems
-*(inferred from asset folders — each becomes a `systems/` page once a GDD confirms the rules)*
-- **Army combat** — units with parallel attack/defense animation sets keyed by unit ID (see [[claims#c-20260627-02]])
-- **Skills** — `sprite/skill/{att,def}/skill_<id>` — attack & defense skill effects
-- **Formations** (阵 / formation) — `sprite/eff/formation/{att,def,doc}`
-- **Rage / Anger meter** (怒气) — `sprite/warFeatAnger`
-- **General special states** — `WuShenFuTi` (武神附体, "War God Possession"), `wujiangjuexing` (武将觉醒, "General Awakening")
-- **Buffs & battle states** — `sprite/warBuff`, `sprite/warState`
+## Vòng lặp cốt lõi (game gốc)
+Chinh phục phó bản/quốc chiến → EXP + lương + mảnh tướng + tướng + đồ → đội quân mạnh hơn → mở khóa tech/công trình/tướng theo cấp & NPC → chinh phục mục tiêu khó hơn.
 
-## Key entities
-*(inferred — needs a data table to resolve IDs to names; see [[open-questions#q-20260627-03]])*
-- **Generals / troop units** — numeric IDs (2, 10, 31, 33, 43, 67, 102, 1001) under `sprite/army/{att,def}/`
-- **Tactical general portraits** — `sprite/tacticalGeneralPicMax`
+## Các hệ thống
+- [[systems/battle-system]] — Chiến đấu theo lượt, hàng đợi 5 tướng, 3 thế trận khắc chế
+- [[systems/tactics-and-rage]] — Chiến pháp (战法) & sĩ khí/nộ khí (士气/怒气)
+- [[systems/troop-types]] — Binh chủng (兵种) & khắc chế
+- [[systems/general-system]] — Hệ tướng (武将): chiêu mộ, phẩm chất, giác tỉnh (觉醒)
+- [[systems/formation-system]] — Trận pháp (阵法) & binh thư
+- [[systems/city-conquest]] — Công thành chiếm đất PvE (打天下)
+- [[systems/economy-and-internal-affairs]] — Tài nguyên, công trình, khoa học kỹ thuật (内政/科技)
+- [[systems/equipment-and-gear]] — Trang bị, bộ đồ, bảo vật, thần binh, chiến mã
+- [[systems/multiplayer-and-endgame]] — Quốc chiến, liên server, thế giới BOSS
+- [[systems/progression-and-vip]] — Cấp Chủ Công, VIP, thương mại hóa
 
-## Technical
-- [[technical/asset-pipeline]] — How assets are laid out under `Assets/Resources/` and the 2D import toolchain
+## Thực thể & thế giới
+- [[entities/generals]] — Danh sách tướng tiêu biểu (Quan Vũ, Lữ Bố, Triệu Vân…)
+- [[world/world-map-and-campaign]] — Bản đồ 247 thành (Ngụy/Thục/Ngô) & chiến dịch sử thi
 
-## Open questions
-- [[open-questions#q-20260627-01]] — Core combat loop unknown
-- [[open-questions#q-20260627-02]] — Runtime code location & server component
-- [[open-questions#q-20260627-03]] — Mapping of numeric unit IDs to generals/troops
+## Kỹ thuật
+- [[technical/asset-pipeline]] — Bố cục `Assets/Resources/` & toolchain 2D
+- [[technical/asset-system-mapping]] — Ánh xạ thư mục asset ↔ hệ thống game
+
+## Câu hỏi mở lớn
+- [[open-questions]] — công thức sát thương, hình học chiến trường (5 hàng?), bảng VIP, số liệu nội chính, tên Việt hóa nội bộ, và **phiên bản nào để dựng lại** ([[decisions/game-version-scope]]).
 
 ---
 ## Backlinks
-- [[index]] — catalog entry
+- [[index]] — mục lục

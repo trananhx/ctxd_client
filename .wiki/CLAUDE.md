@@ -143,3 +143,13 @@ Maintained on ingest/lint.
 - Asset folder names use Chinese-origin slugs (e.g. `WuShenFuTi` 武神附体, `wujiangjuexing` 武将觉醒, `warFeatAnger` 怒气). Record the literal slug AND its meaning in the relevant page.
 - Custom gameplay C# is not yet present (only TextMesh Pro example scripts ship in `Assets/`). Until game scripts exist, document systems from assets + any ingested GDD, and flag the code gap with `> [!question]`.
 - Unity-specific notes (URP, Input System, 2D Animation/Aseprite import) go in `technical/`.
+
+### Working agreement (set by project owner, 2026-06-29) — MANDATORY
+1. **Record everything in the wiki** — whatever is done, document it here in `.wiki/`.
+2. **Do it yourself, autonomously** — do almost the entire build yourself. Hard Unity tasks → Unity MCP; when a tool can't finish, run the tool then do the remaining manual steps yourself (click/press).
+3. **Self-compile & self-verify** — compile the project yourself and check the running game against the owner's requirements before claiming done.
+4. **Always re-check the GDD** ([[GDD]]) before/while doing anything.
+5. **If context is thin, re-read the GDD and wiki** instead of guessing.
+
+> Build target & decisions: follow [[decisions/game-version-scope]] (somo-era). Battle/geometry: [[systems/battle-system]]. Architecture: [[technical/client-server-architecture]] (server-authoritative).
+> Unity MCP (v9.7.3) needs the Editor open + MCP connected to compile/run/drive; if disconnected, request reconnection before claiming compile/run results.

@@ -72,7 +72,11 @@ The same numeric IDs appear under both `att/` and `def/` (2, 10, 31, 33, 43, 67,
 - [[open-questions#q-20260627-01]] — combat loop the assets serve
 - [[open-questions#q-20260627-03]] — what the numeric unit IDs map to
 
+## See also
+- [[technical/asset-system-mapping]] — maps each asset folder to the game system it serves (battle screen, tactics, formations, awakening effects)
+
 ---
 ## Backlinks
 - [[index]] — catalog entry
 - [[overview]] — technical section
+- [[technical/asset-system-mapping]] — references this layout
