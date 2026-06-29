@@ -41,6 +41,12 @@ namespace Luzart
         [Header("Config")]
         [SerializeField] private UIRegistrySO registry;
 
+        [Header("Asset Provider")]
+        [Tooltip("Bat = dung AddressableUIAssetProvider (load UI qua Addressable address). " +
+                 "Tat = dung DirectPrefabUIAssetProvider (prefab drag-drop). " +
+                 "Neu bat nhung project KHONG cai package Addressables -> tu dong fallback ve DirectPrefab (khong loi).")]
+        [SerializeField] private bool useAddressables = false;
+
         [Header("Layer roots (gán 6 RectTransform tương ứng UILayer enum)")]
         [SerializeField] private RectTransform worldOverlayRoot;
         [SerializeField] private RectTransform screenRoot;
@@ -55,9 +61,9 @@ namespace Luzart
         [SerializeField] private bool preloadOnStart = true;
         [SerializeField] private bool logVerbose = false;
 
-        [Header("Boot preload labels (legacy)")]
-        [Tooltip("Khong dung khi provider la DirectPrefabUIAssetProvider (no-op). " +
-                 "Giu lai field de tuong thich neu sau nay swap sang Addressable provider.")]
+        [Header("Boot preload labels")]
+        [Tooltip("Addressable label se download truoc luc Start. CHI co tac dung voi " +
+                 "AddressableUIAssetProvider; voi DirectPrefabUIAssetProvider la no-op.")]
         [SerializeField] private string[] bootPreloadLabels;
 
         #endregion
@@ -119,7 +125,8 @@ namespace Luzart
             registry.BuildLookup();
             BuildStacks();
 
-            assetProvider ??= new DirectPrefabUIAssetProvider();
+            if (assetProvider == null)
+                assetProvider = CreateDefaultProvider();
             popupQueue = new UIPopupQueue(this);
         }
 
@@ -150,10 +157,41 @@ namespace Luzart
             }
             activeCts.Clear();
 
-            if (assetProvider is DirectPrefabUIAssetProvider direct)
-                direct.ReleaseAll();
+            assetProvider?.ReleaseAll();
 
             if (instance == this) instance = null;
+        }
+
+        /// <summary>
+        /// Inject custom asset provider (vd mock cho unit test, hoac provider custom).
+        /// Phai goi TRUOC Awake (vd tu bootstrap script co [DefaultExecutionOrder] am) thi moi
+        /// override duoc default provider o Awake.
+        /// </summary>
+        public void SetAssetProvider(IUIAssetProvider provider) => assetProvider = provider;
+
+        /// <summary>
+        /// Hook factory cho provider Addressables. Assembly LuzartUI.Addressables (CHI compile khi
+        /// project co package com.unity.addressables) tu dang ky factory nay qua
+        /// [RuntimeInitializeOnLoadMethod]. Core KHONG tham chieu truc tiep type Addressable nen
+        /// hoan toan doc lap voi package -> nem sang project khong co Addressables van compile.
+        /// </summary>
+        public static Func<IUIAssetProvider> AddressableProviderFactory;
+
+        /// <summary>
+        /// Tao provider mac dinh theo toggle useAddressables. Neu bat nhung khong co provider
+        /// Addressables (project khong cai package) -> fallback DirectPrefab + warning.
+        /// </summary>
+        private IUIAssetProvider CreateDefaultProvider()
+        {
+            if (useAddressables)
+            {
+                var factory = AddressableProviderFactory;
+                if (factory != null)
+                    return factory();
+                Debug.LogWarning("[LuzartUI] useAddressables = true nhung khong co AddressableUIAssetProvider " +
+                                 "(project khong cai package com.unity.addressables) → fallback DirectPrefab.");
+            }
+            return new DirectPrefabUIAssetProvider();
         }
 
         private void BuildStacks()

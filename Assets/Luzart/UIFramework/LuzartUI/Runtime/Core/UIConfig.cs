@@ -22,10 +22,19 @@ namespace Luzart
                  "Vi du: server gui {\"type\":\"quest_reward\"} -> map \"quest_reward\".")]
         public string StringId;
 
-        // Asset (required) - direct prefab reference, khong qua Addressable.
+        // Asset - chon 1 trong 2 tuy provider dang dung:
+        //   - DirectPrefabUIAssetProvider -> dung AssetRef (drag-drop prefab, khong qua Addressable).
+        //   - AddressableUIAssetProvider  -> dung AddressKey (Addressable address dang string).
+        // AddressKey chi la string nen UIConfig KHONG phu thuoc package Addressables -> framework
+        // van compile khi project khong cai com.unity.addressables.
         [Header("Asset")]
-        [Tooltip("Prefab UI. Root phai co component ke thua UIBase. Drag-drop tu Project window.")]
+        [Tooltip("Prefab UI cho DirectPrefabUIAssetProvider (drag-drop). Dung khi KHONG bat Addressables. " +
+                 "Root phai co component ke thua UIBase.")]
         public GameObject AssetRef;
+
+        [Tooltip("Addressable address (string) cho AddressableUIAssetProvider. Dung khi bat Addressables. " +
+                 "De trong neu chi dung Direct prefab.")]
+        public string AddressKey;
 
         // Routing (required)
         [Header("Routing")]
@@ -58,7 +67,9 @@ namespace Luzart
                  "Chi co hieu luc voi lane Popup/Screen. Cac lane khac bo qua.")]
         public bool PausableWhenOverlaid = true;
 
+        // Valid neu co prefab (Direct) HOAC address (Addressable). Provider dang dung se tu
+        // kiem tra field cua no va bao loi ro rang neu thieu dung field can thiet.
         public bool IsValid =>
-            Id != UIId.None && AssetRef != null;
+            Id != UIId.None && (AssetRef != null || !string.IsNullOrEmpty(AddressKey));
     }
 }

@@ -42,5 +42,11 @@ namespace Luzart
         /// DirectPrefab no-op.
         /// </summary>
         UniTask PreloadByLabelAsync(string label, System.IProgress<float> progress, CancellationToken ct);
+
+        /// <summary>
+        /// Giai phong toan bo asset/handle dang giu. Goi khi unload scene / game reset /
+        /// UIManager.OnDestroy. DirectPrefab chi clear cache; Addressable release tat ca handle.
+        /// </summary>
+        void ReleaseAll();
     }
 }
