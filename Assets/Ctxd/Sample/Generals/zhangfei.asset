@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb41b29e7c251424784ffef36646d655, type: 3}
+  m_Name: zhangfei
+  m_EditorClassIdentifier: Assembly-CSharp::Ctxd.Data.GeneralDefinition
+  _id: 
+  displayName: "Tr\u01B0\u01A1ng Phi"
+  quality: 1
+  portrait: {fileID: 21300000, guid: e77dfba8fb935b342b082f8c77f72da6, type: 3}
+  troopType: {fileID: 11400000, guid: 175df9e0cc8d9074796b1dca1c54cc0d, type: 2}
+  stats:
+    NormalAtk: 520
+    NormalDef: 320
+    TacticAtk: 460
+    TacticDef: 300
+    Strategy: 60
+    Resilience: 0.1
+  troopCapacity: 4000
+  rows: 4
+  skill1: {fileID: 0}
+  skill2: {fileID: 11400000, guid: 32a8e6695545e9a41963fed6cfee37b7, type: 2}
+  canAwaken: 0
+  startAwakened: 0
+  fiveStar: 0
+  defaultFormation: {fileID: 11400000, guid: cc1c79dc22a529547bcab99237e5b22d, type: 2}

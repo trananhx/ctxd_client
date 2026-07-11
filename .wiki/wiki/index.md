@@ -34,9 +34,19 @@ Master catalog. Read first to find relevant pages. Project = recreation of **Cô
 - [[world/world-map-and-campaign]] — Bản đồ 247 thành + 3 thành Man (魏蜀吴); chiến dịch sử thi (Khăn Vàng→Quan Độ→Xích Bích)
 
 ## Technical
+- [[technical/ctxd-architecture]] — **Kiến trúc client CTXD (SPEC + Trạng thái hiện thực)**: battle slice ĐÃ CHƠI ĐƯỢC (menu→trận→kết quả, HUD+bánh xe thế trận, VFX) ⭐
 - [[technical/client-server-architecture]] — **Kiến trúc Client/Server & phân việc** (server-authoritative)
 - [[technical/client-architecture-patterns]] — **Blueprint client**: Luzart + SO Architecture + design patterns + battle slice
-- [[technical/luzart-framework]] — Catalog framework Luzart (module, pattern, API, cảnh báo)
+- [[technical/luzart-framework]] — **Hub** framework Luzart (catalog + trỏ 9 trang chi tiết per-folder)
+- [[technical/luzart-di-core]] — Luzart `Content/DI`+`Universe`: Domain, EventBus, lifecycle, Bag/Manager (bootstrap)
+- [[technical/luzart-view]] — Luzart `Content/View`: `ViewT<T>`/`ViewChilding` = SO→prefab→spawn ⭐
+- [[technical/luzart-saveable]] — Luzart `Content/Saveable`: ISaveable/SaveItem/SaveService
+- [[technical/luzart-reactivevalues]] — Luzart `ReactiveValues`: INumber/IBool/IString + Runtime* (bind UI)
+- [[technical/luzart-ui]] — Luzart `UIFramework/LuzartUI`: UIManager/UIBase<T>/UIRegistrySO (async, lane)
+- [[technical/luzart-tween]] — Luzart `TweenAnimationPackage`: animation data-driven trên DOTween
+- [[technical/luzart-select]] — Luzart `NewBaseSelect`: Switch/Toggle đổi visual prefab bằng int/bool
+- [[technical/luzart-authoring]] — Luzart `Attributes`+`Editor`: attribute Inspector author SO ([ShowIf]/[Dropdown]/[Button])
+- [[technical/luzart-assetmodifier]] — Luzart `AssetModifier`: EditorWindow làm hàng loạt SO
 - [[technical/asset-pipeline]] — Bố cục `Assets/Resources/` & toolchain 2D
 - [[technical/asset-system-mapping]] — Ánh xạ thư mục asset ↔ hệ thống game
 

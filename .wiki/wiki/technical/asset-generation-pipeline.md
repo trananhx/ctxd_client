@@ -9,6 +9,8 @@ updated: 2026-06-29
 
 # AssetForge — sprite → Unity animation + prefab generator
 
+> [!warning] SUPERSEDED (2026-06-29) — code đã bị **discard** cùng `Assets/Ctxd`. Giữ làm tham khảo ý tưởng generator khi dựng lại. Pattern Luzart đúng: [[technical/luzart-view]] (SO→prefab), [[technical/luzart-framework]].
+
 **Task 1**: turn every sprite sequence under `Assets/Resources/sprite` into ready-to-use Unity assets — **frame-by-frame `AnimationClip`s + `AnimatorController`s + prefabs (SpriteRenderer + Animator + UnitView/EffectView) + visual ScriptableObjects**, with every reference wired in code. Implemented as `Ctxd.EditorTools.AssetForge` (`Assets/Ctxd/Editor/AssetForge.cs`).
 
 > [!info] Why a C# Editor generator (not hand-authored YAML)

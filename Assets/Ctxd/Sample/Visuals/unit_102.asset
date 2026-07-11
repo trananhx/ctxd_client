@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b00f1fe3ee093734a8b9170388c923e5, type: 3}
+  m_Name: unit_102
+  m_EditorClassIdentifier: Assembly-CSharp::Ctxd.Data.UnitVisualDefinition
+  _id: 
+  unitId: 102
+  attackUnit: {fileID: 5524378765861081770, guid: 6b48d7bc9a6de5e41b5bc563555cf8f5, type: 3}
+  defenseUnit: {fileID: 8746444819879675087, guid: ce377f70c48a1d14fba0cf2b234c122a, type: 3}
+  pixelsPerUnit: 100

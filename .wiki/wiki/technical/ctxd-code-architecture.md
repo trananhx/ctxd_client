@@ -9,6 +9,9 @@ updated: 2026-06-29
 
 # CTXD Game Code — Architecture
 
+> [!warning] SUPERSEDED (2026-06-29) — code đã bị chủ dự án **discard**
+> `Assets/Ctxd/` đã bị gỡ (chưa ưng kiểu dựng). Trang này giữ làm **tham khảo** cho lần dựng lại theo đúng pattern Luzart. Cách dùng Luzart đúng: [[technical/luzart-framework]] (hub) → [[technical/luzart-view]] (SO→prefab→spawn), [[technical/luzart-di-core]], [[technical/luzart-ui]]. Quyết định: [[decisions/ctxd-implementation-2026-06-29]].
+
 The first gameplay code for the client, under **`Assets/Ctxd/`** (namespace root `Ctxd`). Built on the surviving Luzart framework ([[technical/luzart-framework]]) and the owner's preference: **anything visual = a ScriptableObject → ref to a prefab → the prefab holds sprite/visual/animation → spawn the prefab.** Implements the battle vertical slice ([[systems/battle-system]]) end-to-end.
 
 > [!info] Build status (2026-06-29)

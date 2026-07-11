@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb41b29e7c251424784ffef36646d655, type: 3}
+  m_Name: ganning
+  m_EditorClassIdentifier: Assembly-CSharp::Ctxd.Data.GeneralDefinition
+  _id: 
+  displayName: Cam Ninh
+  quality: 1
+  portrait: {fileID: 21300000, guid: ca3d6326850f3c145a00e1729a848ae6, type: 3}
+  troopType: {fileID: 11400000, guid: bd96c9c0b002bcf46b4603a722c4a229, type: 2}
+  stats:
+    NormalAtk: 540
+    NormalDef: 300
+    TacticAtk: 470
+    TacticDef: 280
+    Strategy: 70
+    Resilience: 0.1
+  troopCapacity: 3900
+  rows: 4
+  skill1: {fileID: 0}
+  skill2: {fileID: 11400000, guid: dd9080c9f9965f24996fae775c5b5408, type: 2}
+  canAwaken: 0
+  startAwakened: 0
+  fiveStar: 0
+  defaultFormation: {fileID: 11400000, guid: cc1c79dc22a529547bcab99237e5b22d, type: 2}

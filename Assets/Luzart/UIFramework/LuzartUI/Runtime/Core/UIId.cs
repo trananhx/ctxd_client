@@ -25,5 +25,13 @@ namespace Luzart
         ForceUpdate = 4,
         Notice = 5,
         Toast = 6,
+
+        // --- CTXD Screen (1xxx) ---
+        MainMenu = 1001,
+        Result = 1002,
+
+        // --- CTXD Hud (3xxx) ---
+        BattleHud = 3001,
+        TestApiPanel = 3002,
     }
 }

@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7fb20ab820c362e4988d639ef65e84e6, type: 3}
+  m_Name: CtxdUIRegistry
+  m_EditorClassIdentifier: LuzartUI::Luzart.UIRegistrySO
+  entries:
+  - Id: 1001
+    StringId: 
+    AssetRef: {fileID: 5880353784661542446, guid: 3f669ac095ae2e943936ba23bcae8ca7, type: 3}
+    AddressKey: 
+    Lane: 1
+    CachePolicy: 2
+    PreloadOnBoot: 0
+    AllowMultiInstance: 0
+    DismissByEscape: 0
+    PausableWhenOverlaid: 0
+  - Id: 3002
+    StringId: 
+    AssetRef: {fileID: 6469181536747435437, guid: 36cb69b4607baf4499e5265328f9e734, type: 3}
+    AddressKey: 
+    Lane: 2
+    CachePolicy: 2
+    PreloadOnBoot: 0
+    AllowMultiInstance: 0
+    DismissByEscape: 0
+    PausableWhenOverlaid: 0
+  - Id: 3001
+    StringId: 
+    AssetRef: {fileID: 7003390220795504005, guid: dbecf22594cceca409e5732dab9aeba1, type: 3}
+    AddressKey: 
+    Lane: 2
+    CachePolicy: 2
+    PreloadOnBoot: 0
+    AllowMultiInstance: 0
+    DismissByEscape: 0
+    PausableWhenOverlaid: 0

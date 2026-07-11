@@ -9,7 +9,22 @@ updated: 2026-06-29
 
 # Framework Luzart — catalog module & cách dùng
 
-**Luzart** (`Assets/Luzart/`, ~130 file C#) là framework Unity cá nhân của chủ dự án, làm nền cho **ScriptableObject Architecture + nhiều design pattern** của client CTXD. Trang này là **catalog tham chiếu**: mỗi module cung cấp gì, thể hiện pattern nào, API, dùng vào đâu, và **cảnh báo đã xác minh từ code thật**. Cách ráp tất cả thành kiến trúc client: xem [[technical/client-architecture-patterns]].
+**Luzart** (`Assets/Luzart/`, ~96 file C#) là framework Unity cá nhân của chủ dự án, làm nền cho **ScriptableObject Architecture + nhiều design pattern** của client CTXD. Trang này là **hub/catalog**: tóm tắt mỗi module + trỏ tới trang chi tiết. Cách ráp thành kiến trúc client: xem [[technical/client-architecture-patterns]].
+
+> [!info] 📑 Ghi chú chi tiết từng folder (đọc trực tiếp từ code 2026-06-29)
+> - [[technical/luzart-di-core]] — `Content/DI` + `Content/Universe`: `Domain`, EventBus, `IContent`/`IService`, Abstract base, vòng đời, `ContentBag`/`ServiceBag` + Manager (bootstrap).
+> - [[technical/luzart-view]] ⭐ — `Content/View`: `ViewT<T>`/`ViewChilding` = **cơ chế SO → prefab → spawn**.
+> - [[technical/luzart-saveable]] — `Content/Saveable`: `ISaveable`/`SaveItem`/`SaveService`.
+> - [[technical/luzart-reactivevalues]] — `ReactiveValues`: `INumber/IBool/IString` + `Runtime*` (HP/nộ khí bind UI).
+> - [[technical/luzart-ui]] — `UIFramework/LuzartUI`: `UIManager`/`UIBase<T>`/`UIRegistrySO` (màn/popup/HUD async, lane).
+> - [[technical/luzart-tween]] — `TweenAnimationPackage`: animation data-driven trên DOTween (component trên prefab).
+> - [[technical/luzart-select]] — `NewBaseSelect`: Switch/Toggle đổi visual prefab bằng `int`/`bool`.
+> - [[technical/luzart-authoring]] — `Attributes` + `Editor`: attribute Inspector (`[ShowIf]`/`[Dropdown]`/`[Button]`…) để author SO.
+> - [[technical/luzart-assetmodifier]] — `AssetModifier`: EditorWindow làm hàng loạt SO (tạo/đổi tên/sửa-field/clone).
+
+> [!tip] Triết lý chủ dự án (xuyên suốt mọi module)
+> **Cái gì cũng là ScriptableObject; cái gì spawn visual thì visual là một *prefab* được gán bên trong SO; muốn sửa visual thì sửa trong prefab.** Hiện thực: **data** = SO (`AbstractScriptableContent`, nạp qua `ContentBag`→`Domain`); **visual** = SO giữ `GameObject prefab`, spawn = `Instantiate(prefab)` rồi gọi 1 method `Setup(data)` trên MonoBehaviour của prefab (KHÔNG cần `ViewT` — xem cảnh báo dưới); **UI** = prefab trỏ trong `UIConfig`/`UIRegistrySO` ([[technical/luzart-ui]]); **animation/look** = component Tween/Select trên chính prefab đó. ⇒ Sửa hình ảnh = mở prefab, không đụng code/SO.
+> ⚠️ **`ViewT`/`ViewChilding` ([[technical/luzart-view]]) hiện KHÔNG dùng được** (ViewChilding có `using UnityEditor;` không guard → vỡ build player; lại không nơi nào dùng). Đừng xây kiến trúc trên `ViewT` — dùng pattern prefab + `Setup()` thường.
 
 > [!warning] Mức độ hoàn thiện không đồng đều
 > Một số phần **đã chạy thật** (DI, EventBus, ReactiveValues, LuzartUI, Tween/Select), một số **là demo/pre-impl chưa xong** (`Content/ThanhDemo` calculators, `IChange.cs`, các file `Singleton`/`UniverseView`/`GameManagerData` được tham chiếu nhưng **chưa tồn tại**). Mỗi module ghi rõ ở "Cảnh báo". Code `.cs` là nguồn sự thật; doc UI (`luzart-ui-base-technical.md`, README) là proposal, **lệch** implementation.

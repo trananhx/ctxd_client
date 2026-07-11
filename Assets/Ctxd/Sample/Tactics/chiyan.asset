@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69fc73a2e691b794eaccaab8ff7e6491, type: 3}
+  m_Name: chiyan
+  m_EditorClassIdentifier: Assembly-CSharp::Ctxd.Data.TacticDefinition
+  _id: 
+  displayName: "X\xEDch Di\u1EC5m M\xEA Tr\u1EADn"
+  kind: 2
+  rowsHit: 4
+  power: 1
+  isAwakening: 0
+  fixedPower: 0
+  confusionTurns: 1
+  pushbackTroops: 0
+  castEffect: {fileID: 11400000, guid: ece7a4ac2d9b4a3438a28b98f38ee8e5, type: 2}
+  nameBanner: {fileID: 0}
+  casterPortrait: {fileID: 0}

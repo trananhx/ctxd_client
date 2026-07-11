@@ -9,6 +9,8 @@ updated: 2026-06-29
 
 ## CTXD battle vertical slice + asset pipeline — implementation decisions
 
+> [!warning] SUPERSEDED (2026-06-29) — chủ dự án **discard** code (`Assets/Ctxd`). Status đổi `active → superseded`. Giữ làm tham khảo; dựng lại theo [[technical/luzart-framework]] + [[technical/luzart-view]].
+
 **Date**: 2026-06-29
 **Decided by**: Claude (autonomous overnight build, per owner's two tasks) + owner's stated preferences
 **Status**: active

@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8e45b4acf0d3b548866b678e987fb94, type: 3}
+  m_Name: phongthi
+  m_EditorClassIdentifier: Assembly-CSharp::Ctxd.Data.FormationDefinition
+  _id: 
+  displayName: "Phong Th\u1EC9"
+  rows:
+  - defaultShape: 2
+    engagedShape: 1
+    anchor: {x: 0, y: 0}
+    groups: 3
+  - defaultShape: 2
+    engagedShape: 1
+    anchor: {x: 0, y: -0.5}
+    groups: 3
+  - defaultShape: 2
+    engagedShape: 1
+    anchor: {x: 0, y: -1}
+    groups: 3
+  - defaultShape: 2
+    engagedShape: 1
+    anchor: {x: 0, y: -1.5}
+    groups: 3
+  normalAtkMult: 1.05
+  normalDefMult: 0.95
+  tacticAtkMult: 1.05
+  tacticDefMult: 0.95
+  favouredTroops: 00000000
+  formationEffect: {fileID: 0}

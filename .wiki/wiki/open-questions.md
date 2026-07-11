@@ -2,7 +2,7 @@
 title: Open Questions
 category: meta
 created: 2026-06-27
-updated: 2026-06-27
+updated: 2026-06-30
 ---
 
 # Open Questions
@@ -10,6 +10,16 @@ updated: 2026-06-27
 Game design / tech questions the wiki cannot fully answer yet. Move entries to "Answered" when resolved.
 
 ## Open
+
+### q-20260630-01 — Battle-slice implementation follow-ups (deferred from the verified build)
+- **Why it matters**: The battle vertical slice is playable & reviewed ([[technical/ctxd-architecture]] §Trạng thái hiện thực), but several GDD rules / quality items are intentionally deferred.
+- **Items**:
+  1. **Skill1 (kỹ năng sĩ khí thấp)** — GDD §3.4 says generals have a low-morale tactic + the full-morale one. Sim only casts Skill2; `Combatant.Skill1` is loaded but never cast, and sample content never authors it. **Trigger condition is undefined in the GDD** (threshold? auto vs on-demand?) — needs a design decision before implementing in `BattleRunner.PerformAction`. See [[systems/tactics-and-rage]].
+  2. **AoE đa mục tiêu** — `AoeDamageEffect` currently only scales damage (rowFactor) onto the single active enemy general (queue is 1v1-active), not multiple entities. True multi-target needs a `TacticContext.Targets` list once more than one enemy is on-field.
+  3. **Pushback (đẩy lùi) semantics** — implemented as +PushbackTroops flat bonus damage; GDD describes repositioning rear troops. Decide fixed-vs-scaled-vs-queue-reorder.
+  4. **Cân bằng số liệu** — stance/morale/crit/terrain multipliers are placeholders; unverified vs the live game (blocked by [[#q-20260627-04]]).
+  5. **Quality**: object-pool floating text / effects (GC), pre-battle lineup + terrain selection UI, formation aura visuals.
+- **Status**: open (tracked for the next build pass).
 
 ### q-20260627-04 — What is the exact combat damage formula and how do bonuses stack?
 - **Why it matters**: Single biggest hole for a faithful recreation — combat cannot be tuned without it.
