@@ -7,125 +7,202 @@ namespace Luzart.Tweener
     public class SequenceTweenAnimation : TweenAnimationBase
     {
         [SerializeField] private List<TweenSequence> tweenSequences = new List<TweenSequence>();
-        [SerializeField] private TweenSequenceSettings sequenceSettings;
+        [SerializeField] private TweenSequenceSettings sequenceSettings = new TweenSequenceSettings();
 
-        private Sequence _sequenceTweener;
-        protected override void DoInitSetting(TweenAnimationSettings tweenAnimationSettings)
+        private Tween _root;
+        private Tween _delayGate;
+        private TweenCallback _invokeStart;
+        private TweenCallback _invokeComplete;
+
+        // Re-entrancy guards against circular sequence references (A contains B contains A),
+        // which would otherwise stack-overflow both playback and duration computation.
+        private static readonly HashSet<SequenceTweenAnimation> ShowStack = new HashSet<SequenceTweenAnimation>();
+        private static readonly HashSet<SequenceTweenAnimation> DurationStack = new HashSet<SequenceTweenAnimation>();
+
+        public override Tween Show()
         {
-            base.DoInitSetting(tweenAnimationSettings);
-            for (int i = 0; i < tweenSequences.Count; i++)
+            if (!ShowStack.Add(this))
             {
-                var tS = tweenSequences[i];
-                var tAB = tS.TweenAnimation;
-                ITweenAnimation iTA = tAB;
-                iTA.InitSetting(tweenAnimationSettings);
+                Debug.LogError($"SequenceTweenAnimation: circular reference detected at '{name}' — this entry is skipped.", this);
+                return null;
+            }
+            Sequence content = null;
+            try
+            {
+                Stop(); // kill the previous run so re-Show never leaves an orphaned timeline
 
+                content = DOTween.Sequence();
+                var used = new HashSet<TweenAnimationBase>();
+                for (int i = 0; i < tweenSequences.Count; i++)
+                {
+                    TweenSequence entry = tweenSequences[i];
+                    if (entry == null || entry.TweenAnimation == null)
+                    {
+                        continue;
+                    }
+                    if (entry.TweenAnimation == this)
+                    {
+                        Debug.LogError($"SequenceTweenAnimation: '{name}' references itself at entry {i} — skipped.", this);
+                        continue;
+                    }
+                    if (!used.Add(entry.TweenAnimation))
+                    {
+                        // A second Show() on the same component would silently orphan its already
+                        // nested tween (Kill on nested tweens is a no-op) and fight it per frame.
+                        Debug.LogError($"SequenceTweenAnimation: '{entry.TweenAnimation.name}' appears more than once " +
+                                       $"in '{name}' (entry {i}) — duplicate skipped. Use separate TweenAnimation components instead.", this);
+                        continue;
+                    }
+                    if (entry.TweenAnimation.GetTotalDuration() >= float.MaxValue)
+                    {
+                        Debug.LogWarning($"SequenceTweenAnimation: entry {i} ('{entry.TweenAnimation.name}') has an infinite loop — " +
+                                         "DOTween clamps nested infinite loops to 1. Use -1 only on the outermost animation.", this);
+                    }
+
+                    Tween tween = entry.TweenAnimation.Show();
+                    if (tween == null)
+                    {
+                        continue;
+                    }
+                    switch (entry.SequenceType)
+                    {
+                        case ESequenceType.Append:
+                            content.Append(tween);
+                            break;
+                        case ESequenceType.Join:
+                            content.Join(tween);
+                            break;
+                        case ESequenceType.Insert:
+                            content.Insert(entry.InsertTime, tween);
+                            break;
+                    }
+                    // Ownership of the child's root moved into `content` — the child must drop
+                    // its reference (DOTween ignores Kill() on nested tweens).
+                    entry.TweenAnimation.OnRootNestedIntoSequence();
+                }
+
+                TweenEventSettings events = sequenceSettings.Events;
+                TweenCallback onStart = null;
+                if (events != null && events.HasStart)
+                {
+                    onStart = _invokeStart ??= InvokeStartEvent;
+                }
+
+                _root = TweenTimeline.Build(content, sequenceSettings.Timing, sequenceSettings.Loop,
+                    sequenceSettings.IsIgnoreTimeScale, onStart, out _delayGate);
+
+                if (events != null && events.HasComplete)
+                {
+                    _root.OnComplete(_invokeComplete ??= InvokeCompleteEvent);
+                }
+                return _root;
+            }
+            catch
+            {
+                // A child Show threw mid-build — never leave a half-built timeline playing.
+                if (_root != null && _root.IsActive())
+                {
+                    _root.Kill();
+                    _root = null;
+                }
+                else if (content != null && content.IsActive())
+                {
+                    content.Kill();
+                }
+                throw;
+            }
+            finally
+            {
+                ShowStack.Remove(this);
             }
         }
-        protected override Tween DoShow()
+
+        private void InvokeStartEvent()
         {
-            _sequenceTweener = DOTween.Sequence();
+            if (!TweenTimeline.SuppressUserEvents)
+            {
+                sequenceSettings.Events?.OnTweenStart?.Invoke();
+            }
+        }
 
-            // Apply ignore time scale settings
-            _sequenceTweener.SetUpdate(sequenceSettings.IsIgnoreTimeScale);
+        private void InvokeCompleteEvent()
+        {
+            if (!TweenTimeline.SuppressUserEvents)
+            {
+                sequenceSettings.Events?.OnTweenComplete?.Invoke();
+            }
+        }
 
-            // Apply timing settings
-            if (sequenceSettings.Timing.DelayStart > 0)
-                _sequenceTweener.AppendInterval(sequenceSettings.Timing.DelayStart);
+        public override void Stop()
+        {
+            if (_delayGate != null)
+            {
+                if (_delayGate.IsActive())
+                {
+                    _delayGate.Kill();
+                }
+                _delayGate = null;
+            }
+            if (_root != null)
+            {
+                if (_root.IsActive())
+                {
+                    _root.Kill(); // children are nested inside — killed together
+                }
+                _root = null;
+            }
+        }
 
-            // Create the main sequence
-            Sequence mainSequence = DOTween.Sequence();
-            // Apply ignore time scale to main sequence as well
-            mainSequence.SetUpdate(sequenceSettings.IsIgnoreTimeScale);
+        public override void OnRootNestedIntoSequence()
+        {
+            // This sequence's root now belongs to an outer sequence — drop control of it.
+            _root = null;
+            _delayGate = null;
+        }
 
+        public override float GetTotalDuration()
+        {
+            if (!DurationStack.Add(this))
+            {
+                Debug.LogError($"SequenceTweenAnimation: circular reference detected at '{name}' while computing duration.", this);
+                return 0f;
+            }
+            try
+            {
+                return TweenTimeline.ComputeTotalDuration(sequenceSettings.Timing, sequenceSettings.Loop, ComputeBaseDuration());
+            }
+            finally
+            {
+                DurationStack.Remove(this);
+            }
+        }
+
+        /// <summary>Editor/preview helper — enumerates the wired child animations.</summary>
+        public IEnumerable<TweenAnimationBase> GetChildren()
+        {
             for (int i = 0; i < tweenSequences.Count; i++)
             {
-                var tweenSequence = tweenSequences[i];
-                ITweenAnimation tweenAnimation = tweenSequence.TweenAnimation;
-                var tween = tweenAnimation.Show();
-                if (tween != null)
+                TweenSequence entry = tweenSequences[i];
+                if (entry != null && entry.TweenAnimation != null)
                 {
-                    if (tweenSequence.SequenceType == ESequenceType.Append)
-                    {
-                        mainSequence.Append(tween);
-                    }
-                    else if (tweenSequence.SequenceType == ESequenceType.Join)
-                    {
-                        mainSequence.Join(tween);
-                    }
-                    else if (tweenSequence.SequenceType == ESequenceType.Insert)
-                    {
-                        mainSequence.Insert(tweenSequence.InsertTime, tween);
-                    }
+                    yield return entry.TweenAnimation;
                 }
             }
-
-            // Apply loop settings
-            if (sequenceSettings.Loop.IsLoop)
-            {
-                Sequence loopSequence = DOTween.Sequence();
-                // Apply ignore time scale to loop sequence
-                loopSequence.SetUpdate(sequenceSettings.IsIgnoreTimeScale);
-
-                if (sequenceSettings.Timing.TimeDelayPreLoop > 0)
-                    loopSequence.AppendInterval(sequenceSettings.Timing.TimeDelayPreLoop);
-
-                loopSequence.Append(mainSequence);
-
-                if (sequenceSettings.Timing.TimeDelayAfterLoop > 0)
-                    loopSequence.AppendInterval(sequenceSettings.Timing.TimeDelayAfterLoop);
-
-                loopSequence.SetLoops(sequenceSettings.Loop.LoopCount, sequenceSettings.Loop.LoopType);
-                _sequenceTweener.Append(loopSequence);
-            }
-            else
-            {
-                _sequenceTweener.Append(mainSequence);
-            }
-
-            return _sequenceTweener;
-        }
-
-        protected override void DoDispose()
-        {
-            _sequenceTweener?.Kill(true);
-            _sequenceTweener = null;
-        }
-
-        private void OnValidate()
-        {
-            InitTweenSettings();
-        }
-        [ContextMenu("Init Tween Settings")]
-        private void InitTweenSettings()
-        {
-            if (sequenceSettings == null)
-            {
-                sequenceSettings = new TweenSequenceSettings();
-            }
-            sequenceSettings.InitDuration(ComputeBaseDuration());
-        }
-
-        public override ITweenSettings GetTweenAnimationSettings()
-        {
-            TweenSequenceSettings sq = sequenceSettings.Clone();
-            sq.InitDuration(ComputeBaseDuration());
-            return sq;
         }
 
         private float ComputeBaseDuration()
         {
-            float duration = 0;
-            float lastAppendStart = 0;
+            float duration = 0f;
+            float lastAppendStart = 0f;
 
-            foreach (var entry in tweenSequences)
+            for (int i = 0; i < tweenSequences.Count; i++)
             {
-                if (entry == null || entry.TweenAnimation == null)
+                TweenSequence entry = tweenSequences[i];
+                if (entry == null || entry.TweenAnimation == null || entry.TweenAnimation == this)
                 {
                     continue;
                 }
-                ITweenSettings tweenSettings = entry.TweenAnimation.GetTweenAnimationSettings();
-                float dur = Mathf.Max(0f, tweenSettings.Duration);
+                float dur = Mathf.Max(0f, entry.TweenAnimation.GetTotalDuration());
 
                 switch (entry.SequenceType)
                 {
@@ -161,6 +238,66 @@ namespace Luzart.Tweener
             return duration;
         }
 
+        private void OnValidate()
+        {
+#if UNITY_EDITOR
+            if (sequenceSettings == null)
+            {
+                sequenceSettings = new TweenSequenceSettings();
+            }
+            float baseDuration = ComputeBaseDuration();
+            if (float.IsInfinity(baseDuration))
+            {
+                baseDuration = float.MaxValue;
+            }
+            if (!Mathf.Approximately(sequenceSettings.DisplayDuration, baseDuration))
+            {
+                sequenceSettings.SetDisplayDuration(baseDuration);
+            }
+            ValidateEntries();
+#endif
+        }
+
+#if UNITY_EDITOR
+        private void ValidateEntries()
+        {
+            var seen = new HashSet<TweenAnimationBase>();
+            for (int i = 0; i < tweenSequences.Count; i++)
+            {
+                TweenSequence entry = tweenSequences[i];
+                if (entry == null || entry.TweenAnimation == null)
+                {
+                    continue;
+                }
+                if (entry.TweenAnimation == this)
+                {
+                    Debug.LogError($"SequenceTweenAnimation: '{name}' references itself at entry {i}.", this);
+                    continue;
+                }
+                if (!seen.Add(entry.TweenAnimation))
+                {
+                    Debug.LogError($"SequenceTweenAnimation: '{entry.TweenAnimation.name}' appears more than once in '{name}' " +
+                                   $"(entry {i}) — only the first entry will play. Use separate TweenAnimation components.", this);
+                    continue;
+                }
+                if (entry.TweenAnimation.GetTotalDuration() >= float.MaxValue)
+                {
+                    Debug.LogWarning($"SequenceTweenAnimation: entry {i} ('{entry.TweenAnimation.name}') loops infinitely — " +
+                                     "inside a Sequence it will play only ONCE (DOTween clamps nested -1 loops). " +
+                                     "Set -1 only on the outermost animation.", this);
+                }
+                if (entry.TweenAnimation is TweenAnimation child &&
+                    child.Settings?.General != null &&
+                    child.Settings.General.IsIgnoreTimeScale != sequenceSettings.IsIgnoreTimeScale)
+                {
+                    Debug.LogWarning($"SequenceTweenAnimation: entry {i} ('{child.name}') has IsIgnoreTimeScale = " +
+                                     $"{child.Settings.General.IsIgnoreTimeScale} but the sequence uses {sequenceSettings.IsIgnoreTimeScale}. " +
+                                     "DOTween applies only the ROOT setting to nested tweens — the child setting is ignored.", this);
+                }
+            }
+        }
+#endif
+
         [System.Serializable]
         class TweenSequence
         {
@@ -169,6 +306,7 @@ namespace Luzart.Tweener
             [ShowIf("SequenceType", ESequenceType.Insert)]
             public float InsertTime;
         }
+
         public enum ESequenceType
         {
             Append,
@@ -179,10 +317,11 @@ namespace Luzart.Tweener
 
     // Minimal settings for sequence animations with IgnoreTimeScale option
     [System.Serializable]
-    public class TweenSequenceSettings : ITweenSettings
+    public class TweenSequenceSettings
     {
         [ReadOnly]
         [SerializeField]
+        [Tooltip("Computed content length (one pass, without this sequence's own delay/loops). Display only.")]
         private float _duration = 0f;
 
         public bool IsIgnoreTimeScale = false;
@@ -191,47 +330,13 @@ namespace Luzart.Tweener
 
         public TweenLoopSettings Loop;
 
-        TweenTimingSettings ITweenSettings.Timing => Timing;
-        TweenLoopSettings ITweenSettings.Loop => Loop;
+        public TweenEventSettings Events = new TweenEventSettings();
 
-        float ITweenSettings.Duration
-        {
-            get
-            {
-                if (Loop.IsLoop)
-                {
-                    if (Loop.LoopCount < 0)
-                    {
-                        return float.MaxValue;
-                    }
-                    return Timing.DelayStart + (_duration + Timing.TimeDelayPreLoop + Timing.TimeDelayAfterLoop) * Loop.LoopCount;
-                }
-                else
-                {
-                    return Timing.DelayStart + _duration;
-                }
-            }
-        }
+        public float DisplayDuration => _duration;
 
-        bool ITweenSettings.IgnoreTimeScale => IsIgnoreTimeScale;
-
-        public TweenSequenceSettings()
+        public void SetDisplayDuration(float duration)
         {
-            Timing = new TweenTimingSettings();
-            Loop = new TweenLoopSettings();
-        }
-        public void InitDuration(float dur)
-        {
-            _duration = dur;
-        }
-        public TweenSequenceSettings Clone()
-        {
-            TweenSequenceSettings clone = new TweenSequenceSettings();
-            clone._duration = this._duration;
-            clone.IsIgnoreTimeScale = this.IsIgnoreTimeScale;
-            clone.Timing = this.Timing;
-            clone.Loop = this.Loop;
-            return clone;
+            _duration = duration;
         }
     }
 }

@@ -1,328 +1,392 @@
 using DG.Tweening;
-using System;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Luzart.Tweener
 {
-    public abstract class TweenAnimationWorker : ITweenAnimation
+    /// <summary>
+    /// Shared timeline math + builder implementing the canonical formula:
+    /// DelayStart + LoopCount × (TimeDelayPreLoop + content + TimeDelayAfterLoop).
+    /// Builds the flattest structure DOTween allows — a bare Tweener whenever possible.
+    /// </summary>
+    public static class TweenTimeline
     {
-        protected Sequence _tweener;
-        protected TweenAnimationSettings _settings;
-        protected TweenAnimationSettings Settings => _settings;
+        /// <summary>
+        /// Set by the editor Preview so designer-wired UnityEvents never fire in edit mode.
+        /// Checked by every user-event invocation in the workers.
+        /// </summary>
+        public static bool SuppressUserEvents;
 
-        ITweenSettings ITweenAnimation.Settings => Settings;
-
-        void ITweenAnimation.InitSetting(TweenAnimationSettings settings)
+        public static float ComputeTotalDuration(in TweenTimingSettings timing, in TweenLoopSettings loop, float baseDuration)
         {
-            DoInitSetting(settings);
-        }
-
-        Tween ITweenAnimation.Show()
-        {
-            return DoShow();
-        }
-
-        void IDisposable.Dispose()
-        {
-            DoDispose();
-        }
-
-        protected virtual Tween DoShow()
-        {
-            return null;
-        }
-
-        protected virtual void DoInitSetting(TweenAnimationSettings settings)
-        {
-            this._settings = settings;
-        }
-
-        protected virtual void DoDispose()
-        {
-            _tweener?.Kill(true);
-            _tweener = null;
-        }
-
-        protected Sequence CreateBaseTween()
-        {
-            var sequence = DOTween.Sequence();
-            sequence.SetUpdate(Settings.General.IsIgnoreTimeScale);
-            if (Settings.Timing.DelayStart > 0)
-                sequence.AppendInterval(Settings.Timing.DelayStart);
-            return sequence;
-        }
-
-        protected void AppendTweenToSequence(Tween tween)
-        {
-            if (Settings.Loop.IsLoop)
+            if (loop.IsLoop)
             {
-                Sequence loopTween = DOTween.Sequence();
-                if (Settings.Timing.TimeDelayPreLoop > 0)
-                    loopTween.AppendInterval(Settings.Timing.TimeDelayPreLoop);
-                loopTween.Append(tween);
-                if (Settings.Timing.TimeDelayAfterLoop > 0)
-                    loopTween.AppendInterval(Settings.Timing.TimeDelayAfterLoop);
-                loopTween.SetLoops(Settings.Loop.LoopCount, Settings.Loop.LoopType);
-                _tweener.Append(loopTween);
+                if (loop.LoopCount < 0)
+                {
+                    return float.MaxValue;
+                }
+                int count = Mathf.Max(1, loop.LoopCount);
+                return timing.DelayStart + (baseDuration + timing.TimeDelayPreLoop + timing.TimeDelayAfterLoop) * count;
             }
-            else
-            {
-                _tweener.Append(tween);
-            }
+            return timing.DelayStart + baseDuration;
         }
 
         /// <summary>
-        /// High-performance method to get target component with smart casting
+        /// Wraps <paramref name="content"/> with delay/loop per the formula and returns the root tween.
+        /// DOTween constraints honored here:
+        /// - infinite loops (-1) are only legal on the ROOT tween (Sequence.Append silently clamps them to 1),
+        /// - Tweener.SetDelay fires once even with loops, but Sequence.SetDelay repeats per loop
+        ///   (this DOTween version has no one-shot overload for sequences), hence the delayGate fallback.
+        /// <paramref name="delayGate"/> is a helper tween the caller must kill together with the root; usually null.
+        /// <paramref name="onStart"/> (optional) is guaranteed to fire AFTER DelayStart in every branch —
+        /// interval-realized delays are timeline content, so a plain OnStart on the root would fire at t=0 there.
         /// </summary>
-        protected T GetTargetComponent<T>() where T : Component
+        public static Tween Build(Tween content, in TweenTimingSettings timing, in TweenLoopSettings loop, bool ignoreTimeScale, TweenCallback onStart, out Tween delayGate)
         {
-            var targetObject = Settings?.General?.Target;
-            if (targetObject == null) return null;
+            delayGate = null;
+            float delay = Mathf.Max(0f, timing.DelayStart);
+            Tween root;
+            bool delayIsInterval = false;
 
-            // Fast path: Direct cast if target is already the desired type
-            if (targetObject is T directCast)
+            if (!loop.IsLoop)
             {
-                return directCast;
-            }
-
-            // Get GameObject reference efficiently
-            GameObject gameObject = null;
-            if (targetObject is GameObject go)
-            {
-                gameObject = go;
-            }
-            else if (targetObject is Component comp)
-            {
-                gameObject = comp.gameObject;
-            }
-
-            // Get component from GameObject
-            return gameObject?.GetComponent<T>();
-        }
-
-        /// <summary>
-        /// Get existing component or add it if not found (used for CanvasGroup)
-        /// </summary>
-        protected T GetOrAddTargetComponent<T>() where T : Component
-        {
-            var existingComponent = GetTargetComponent<T>();
-            if (existingComponent != null) return existingComponent;
-
-            // If component doesn't exist, try to add it
-            var targetObject = Settings?.General?.Target;
-            if (targetObject == null) return null;
-
-            GameObject gameObject = null;
-            if (targetObject is GameObject go)
-            {
-                gameObject = go;
-            }
-            else if (targetObject is Component comp)
-            {
-                gameObject = comp.gameObject;
-            }
-            if (gameObject == null)
-            {
-                Debug.LogError("GameObject in this is null");
-                return null;
-            }
-            if (gameObject.TryGetComponent<T>(out T componentGet))
-            {
-                return componentGet;
+                if (delay > 0f)
+                {
+                    // SetDelay on a Sequence is version-dependent in DOTween (ignored on older builds) —
+                    // PrependInterval is the explicit, always-correct equivalent when there is no loop.
+                    if (content is Sequence seq)
+                    {
+                        seq.PrependInterval(delay);
+                        delayIsInterval = true;
+                    }
+                    else
+                    {
+                        content.SetDelay(delay);
+                    }
+                }
+                root = content;
             }
             else
             {
-                var component = gameObject.AddComponent<T>();
-                return component;
+                int count = loop.LoopCount < 0 ? -1 : Mathf.Max(1, loop.LoopCount);
+                bool hasLoopDelays = timing.TimeDelayPreLoop > 0f || timing.TimeDelayAfterLoop > 0f;
+
+                if (!hasLoopDelays && content is not Sequence)
+                {
+                    // Bare Tweener root: loops (incl. -1) and one-shot delay are both legal here.
+                    content.SetLoops(count, loop.LoopType);
+                    if (delay > 0f)
+                    {
+                        content.SetDelay(delay);
+                    }
+                    root = content;
+                }
+                else
+                {
+                    Sequence block;
+                    if (hasLoopDelays)
+                    {
+                        block = DOTween.Sequence();
+                        if (timing.TimeDelayPreLoop > 0f)
+                        {
+                            block.AppendInterval(timing.TimeDelayPreLoop);
+                        }
+                        block.Append(content);
+                        if (timing.TimeDelayAfterLoop > 0f)
+                        {
+                            block.AppendInterval(timing.TimeDelayAfterLoop);
+                        }
+                    }
+                    else
+                    {
+                        block = (Sequence)content;
+                    }
+                    block.SetLoops(count, loop.LoopType);
+
+                    if (delay <= 0f)
+                    {
+                        root = block;
+                    }
+                    else if (count > 0)
+                    {
+                        // Finite loops nest fine — delay once, then the looping block.
+                        Sequence wrap = DOTween.Sequence();
+                        wrap.AppendInterval(delay);
+                        wrap.Append(block);
+                        root = wrap;
+                        delayIsInterval = true;
+                    }
+                    else
+                    {
+                        // Infinite loops must stay on the root, so the delay is a separate gate tween.
+                        block.Pause();
+                        Sequence gated = block;
+                        delayGate = DOVirtual.DelayedCall(delay, () =>
+                        {
+                            if (gated.IsActive())
+                            {
+                                gated.Play();
+                            }
+                        }, ignoreTimeScale);
+                        root = block;
+                    }
+                }
             }
+
+            root.SetUpdate(ignoreTimeScale);
+
+            if (onStart != null)
+            {
+                if (delayIsInterval)
+                {
+                    // The delay is timeline content here — root "starts" at t=0, so anchor the
+                    // callback at the delay position instead. Roots in these branches never loop,
+                    // so the inserted callback fires exactly once.
+                    ((Sequence)root).InsertCallback(delay, onStart);
+                }
+                else
+                {
+                    // Real delay (Tweener SetDelay) or gated Play — OnStart fires after the delay.
+                    root.OnStart(onStart);
+                }
+            }
+            return root;
         }
     }
 
     /// <summary>
-    /// Generic base class for tween animations that reduces code duplication
+    /// Strategy worker building the DOTween timeline for one animation type.
+    /// One instance is cached per TweenAnimation component and reused across Show() calls.
     /// </summary>
-    /// <typeparam name="T">The component type to animate</typeparam>
+    public abstract class TweenAnimationWorker
+    {
+        protected TweenAnimationSettings _settings;
+        private Tween _root;
+        private Tween _delayGate;
+        private TweenCallback _invokeStart;
+        private TweenCallback _invokeComplete;
+
+        public Tween Show(TweenAnimationSettings settings)
+        {
+            Dispose(); // kill the previous run (if still playing) so tweens never fight over one target
+            _settings = settings;
+
+            Tween content = BuildContent();
+            if (content == null)
+            {
+                return null;
+            }
+
+            TweenEventSettings events = settings.Events;
+            TweenCallback onStart = null;
+            if (events != null && events.HasStart)
+            {
+                onStart = _invokeStart ??= InvokeStartEvent;
+            }
+
+            _root = TweenTimeline.Build(content, settings.Timing, settings.Loop, settings.General.IsIgnoreTimeScale, onStart, out _delayGate);
+            OnRootBuilt(_root);
+
+            if (events != null && events.HasComplete)
+            {
+                _root.OnComplete(_invokeComplete ??= InvokeCompleteEvent);
+            }
+            return _root;
+        }
+
+        private void InvokeStartEvent()
+        {
+            if (!TweenTimeline.SuppressUserEvents)
+            {
+                _settings.Events?.OnTweenStart?.Invoke();
+            }
+        }
+
+        private void InvokeCompleteEvent()
+        {
+            if (!TweenTimeline.SuppressUserEvents)
+            {
+                _settings.Events?.OnTweenComplete?.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// Drops the root reference WITHOUT killing — called when the root was nested into a
+        /// parent Sequence (ownership moved to the parent; Kill on nested tweens is a silent
+        /// no-op in DOTween). An orphaned delay gate is harmless: Play() on a nested tween is
+        /// a guarded no-op in DOTween, and the gate auto-kills itself after firing.
+        /// </summary>
+        public void ReleaseRoot()
+        {
+            _root = null;
+            _delayGate = null;
+        }
+
+        /// <summary>Kills the current timeline in place (no completion, no callbacks).</summary>
+        public void Dispose()
+        {
+            if (_delayGate != null)
+            {
+                if (_delayGate.IsActive())
+                {
+                    _delayGate.Kill();
+                }
+                _delayGate = null;
+            }
+            if (_root != null)
+            {
+                if (_root.IsActive())
+                {
+                    _root.Kill();
+                }
+                _root = null;
+            }
+        }
+
+        /// <summary>Build the animation content tween (without delay/loop wrapping). Null aborts Show.</summary>
+        protected abstract Tween BuildContent();
+
+        protected virtual void OnRootBuilt(Tween root) { }
+
+        protected static T ResolveComponent<T>(Object source) where T : Component
+        {
+            if (source == null)
+            {
+                return null;
+            }
+            if (source is T direct)
+            {
+                return direct;
+            }
+            GameObject go = source as GameObject;
+            if (go == null && source is Component comp)
+            {
+                go = comp.gameObject;
+            }
+            if (go == null)
+            {
+                return null;
+            }
+            go.TryGetComponent(out T found);
+            return found;
+        }
+
+        protected static T ResolveOrAddComponent<T>(Object source) where T : Component
+        {
+            T existing = ResolveComponent<T>(source);
+            if (existing != null)
+            {
+                return existing;
+            }
+            GameObject go = source as GameObject;
+            if (go == null && source is Component comp)
+            {
+                go = comp.gameObject;
+            }
+            return go == null ? null : go.AddComponent<T>();
+        }
+    }
+
+    /// <summary>
+    /// Worker for animations driven by a target component. Resolves and caches the target,
+    /// handles From/To override semantics shared by all typed workers.
+    /// </summary>
     public abstract class TweenAnimationWorker<T> : TweenAnimationWorker where T : Component
     {
-        /// <summary>
-        /// True when the current phase matches the configured Timing.
-        /// Eager + isRuntime=false → true (init phase).
-        /// Lazy + isRuntime=true → true (runtime callback phase).
-        /// </summary>
-        protected bool IsTimingPhase(bool isRuntime)
-        {
-            bool lazy = Settings.Values.Timing == EValueTiming.Lazy;
-            return isRuntime == lazy;
-        }
-
         private T _target;
+        private Object _targetSource;
+        private TweenCallback _lazyFromSnap;
 
-        /// <summary>
-        /// Cached target component with lazy initialization
-        /// </summary>
-        protected T Target
+        protected T Target => _target;
+
+        protected sealed override Tween BuildContent()
         {
-            get
+            Object source = _settings.General.Target;
+            if (!ReferenceEquals(source, _targetSource) || _target == null)
             {
-                if (_target == null)
-                {
-                    _target = GetTargetComponent();
-                }
-                return _target;
+                _targetSource = source;
+                _target = ResolveTarget(source);
             }
-        }
-
-        /// <summary>
-        /// Get the target component. Override if you need GetOrAddTargetComponent behavior
-        /// </summary>
-        protected virtual T GetTargetComponent()
-        {
-            return base.GetTargetComponent<T>();
-        }
-
-        protected override void DoInitSetting(TweenAnimationSettings settings)
-        {
-            base.DoInitSetting(settings);
-            SetDefaultValues(false);
-            ApplyFromValue(false);
-        }
-
-        protected override void DoDispose()
-        {
-            base.DoDispose();
-            _target = null; // Clear cached target reference
-        }
-
-        protected override Tween DoShow()
-        {
-            if (Target == null)
+            if (_target == null)
             {
-                Debug.LogWarning($"{GetType().Name}: Target {typeof(T).Name} is null");
+                Debug.LogWarning($"{GetType().Name}: target {typeof(T).Name} could not be resolved from '{source}'");
                 return null;
             }
 
-            _tweener = CreateBaseTween();
+            // Order matters: To must capture the CURRENT value before any From snap moves the target.
+            ResolveToValue();
 
-            // Create the specific tween sequence
-            Sequence tweenSequence = DOTween.Sequence();
-            tweenSequence.AppendCallback(() =>
-            {
-                SetDefaultValues(true);
-                ApplyFromValue(true);
-            });
+            bool overrideFrom = _settings.Values.OverrideFrom;
+            bool lazy = _settings.Values.Timing == EValueTiming.Lazy;
 
-            // Add the specific animation tween
-            var animationTween = CreateAnimationTween();
-            if (animationTween != null)
+            if (overrideFrom && !lazy)
             {
-                tweenSequence.Append(animationTween);
+                // Eager: snap now, before DelayStart — target sits at From while waiting.
+                ApplyFromValue();
             }
 
-            AppendTweenToSequence(tweenSequence);
-            _tweener.SetTarget(Target);
-            return _tweener;
+            Tween anim = CreateAnimationTween();
+            if (anim == null)
+            {
+                return null;
+            }
+            anim.SetEase(_settings.General.Easing);
+
+            if (overrideFrom && lazy)
+            {
+                // Lazy: snap right when this tween's turn arrives (fires again on every loop pass).
+                _lazyFromSnap ??= ApplyFromValue;
+                Sequence seq = DOTween.Sequence();
+                seq.AppendCallback(_lazyFromSnap);
+                seq.Append(anim);
+                return seq;
+            }
+            // OverrideFrom = false needs no snap at all: DOTween natively captures the start value
+            // when the tween begins playing (inherently lazy).
+            return anim;
         }
 
-        /// <summary>
-        /// Create the specific animation tween (DOMove, DOScale, etc.)
-        /// </summary>
+        protected sealed override void OnRootBuilt(Tween root)
+        {
+            root.SetTarget(_target);
+        }
+
+        protected virtual T ResolveTarget(Object source) => ResolveComponent<T>(source);
+
+        /// <summary>Capture the To value (explicit or current) into worker state.</summary>
+        protected abstract void ResolveToValue();
+
+        /// <summary>Snap the target to the explicit From value.</summary>
+        protected abstract void ApplyFromValue();
+
+        /// <summary>Create the value tween towards the resolved To (DOMove, DOFade, ...).</summary>
         protected abstract Tween CreateAnimationTween();
-
-        /// <summary>
-        /// Set default values based on current component state
-        /// </summary>
-        protected abstract void SetDefaultValues(bool isRuntime);
-
-        /// <summary>
-        /// Apply the 'from' value to the component if needed
-        /// </summary>
-        protected abstract void ApplyFromValue(bool isRuntime);
     }
 
-    /// <summary>
-    /// Base class for Vector3-based animations (position, scale, rotation, etc.)
-    /// </summary>
-    /// <typeparam name="T">The component type to animate</typeparam>
+    /// <summary>Base for Vector3-driven animations (position, scale, rotation, rect properties).</summary>
     public abstract class Vector3TweenAnimationWorker<T> : TweenAnimationWorker<T> where T : Component
     {
-        protected override void SetDefaultValues(bool isRuntime)
+        private Vector3 _resolvedTo;
+
+        protected sealed override void ResolveToValue()
         {
-            // From: resolved at the configured Timing phase
-            if (!Settings.Values.OverrideFrom && IsTimingPhase(isRuntime))
-            {
-                Settings.Values.Vector3From = GetCurrentVector3Value();
-            }
-            // To: always resolved at init (isRuntime=false), because DOTween bakes targetValue
-            // at tween-creation time in DoShow (which runs before the runtime callback fires).
-            if (!Settings.Values.OverrideTo && !isRuntime)
-            {
-                Settings.Values.Vector3To = GetCurrentVector3Value();
-            }
+            TweenValueSettings values = _settings.Values;
+            _resolvedTo = values.OverrideTo ? values.Vector3To : GetCurrentVector3Value();
         }
 
-        protected override void ApplyFromValue(bool isRuntime)
+        protected sealed override void ApplyFromValue()
         {
-            // No snap needed when From is not overridden — it equals the current value already.
-            if (!Settings.Values.OverrideFrom) return;
-            if (IsTimingPhase(isRuntime))
-            {
-                SetVector3Value(Settings.Values.GetVector3From());
-            }
+            SetVector3Value(_settings.Values.Vector3From);
         }
 
-        protected override Tween CreateAnimationTween()
+        protected sealed override Tween CreateAnimationTween()
         {
-            return CreateVector3Tween(Settings.Values.GetVector3To(), Settings.General.Duration)
-                .SetEase(Settings.General.Easing);
+            return CreateVector3Tween(_resolvedTo, _settings.General.Duration);
         }
 
-        /// <summary>
-        /// Get the current Vector3 value from the component (position, scale, etc.)
-        /// </summary>
         protected abstract Vector3 GetCurrentVector3Value();
-
-        /// <summary>
-        /// Set the Vector3 value on the component
-        /// </summary>
         protected abstract void SetVector3Value(Vector3 value);
-
-        /// <summary>
-        /// Create the specific Vector3 tween (DOMove, DOScale, etc.)
-        /// </summary>
         protected abstract Tween CreateVector3Tween(Vector3 targetValue, float duration);
-    }
-
-    public static class TweenSettingsHelper
-    {
-        public static Sequence CreateBaseTween(ITweenSettings settings, bool ignoreTimeScale = false)
-        {
-            var sequence = DOTween.Sequence();
-            sequence.SetUpdate(ignoreTimeScale);
-            if (settings.Timing.DelayStart > 0)
-                sequence.AppendInterval(settings.Timing.DelayStart);
-            return sequence;
-        }
-
-        public static void AppendTweenToSequence(Sequence mainSequence, Tween tween, ITweenSettings settings)
-        {
-            if (settings.Loop.IsLoop)
-            {
-                Sequence loopTween = DOTween.Sequence();
-                if (settings.Timing.TimeDelayPreLoop > 0)
-                    loopTween.AppendInterval(settings.Timing.TimeDelayPreLoop);
-                loopTween.Append(tween);
-                if (settings.Timing.TimeDelayAfterLoop > 0)
-                    loopTween.AppendInterval(settings.Timing.TimeDelayAfterLoop);
-                loopTween.SetLoops(settings.Loop.LoopCount, settings.Loop.LoopType);
-                mainSequence.Append(loopTween);
-            }
-            else
-            {
-                mainSequence.Append(tween);
-            }
-        }
     }
 
     #region Vector3 Based Animations
@@ -364,7 +428,7 @@ namespace Luzart.Tweener
         protected override Vector3 GetCurrentVector3Value() => Target.eulerAngles;
         protected override void SetVector3Value(Vector3 value) => Target.eulerAngles = value;
         protected override Tween CreateVector3Tween(Vector3 targetValue, float duration) =>
-            Target.DORotate(targetValue, duration);
+            Target.DORotate(targetValue, duration, _settings.General.RotateMode);
     }
 
     public class TweenAnimationSizeDelta : Vector3TweenAnimationWorker<RectTransform>
@@ -397,36 +461,24 @@ namespace Luzart.Tweener
 
     public class TweenAnimationFade : TweenAnimationWorker<CanvasGroup>
     {
-        protected override CanvasGroup GetTargetComponent()
+        private float _resolvedTo;
+
+        protected override CanvasGroup ResolveTarget(Object source) => ResolveOrAddComponent<CanvasGroup>(source);
+
+        protected override void ResolveToValue()
         {
-            return GetOrAddTargetComponent<CanvasGroup>();
+            TweenValueSettings values = _settings.Values;
+            _resolvedTo = values.OverrideTo ? values.FloatTo : Target.alpha;
         }
 
-        protected override void SetDefaultValues(bool isRuntime)
+        protected override void ApplyFromValue()
         {
-            if (!Settings.Values.OverrideFrom && IsTimingPhase(isRuntime))
-            {
-                Settings.Values.FloatFrom = Target.alpha;
-            }
-            if (!Settings.Values.OverrideTo && !isRuntime)
-            {
-                Settings.Values.FloatTo = Target.alpha;
-            }
-        }
-
-        protected override void ApplyFromValue(bool isRuntime)
-        {
-            if (!Settings.Values.OverrideFrom) return;
-            if (IsTimingPhase(isRuntime))
-            {
-                Target.alpha = Settings.Values.GetFloatFrom();
-            }
+            Target.alpha = _settings.Values.FloatFrom;
         }
 
         protected override Tween CreateAnimationTween()
         {
-            return Target.DOFade(Settings.Values.GetFloatTo(), Settings.General.Duration)
-                .SetEase(Settings.General.Easing);
+            return Target.DOFade(_resolvedTo, _settings.General.Duration);
         }
     }
 
@@ -436,72 +488,77 @@ namespace Luzart.Tweener
 
     public class TweenAnimationTextMeshPro : TweenAnimationWorker<TextMeshProUGUI>
     {
-        protected override void SetDefaultValues(bool isRuntime)
+        private string _resolvedTo;
+
+        protected override void ResolveToValue()
         {
-            if (!Settings.Values.OverrideFrom && IsTimingPhase(isRuntime))
-            {
-                Settings.Values.StringFrom = Target.text;
-            }
-            if (!Settings.Values.OverrideTo && !isRuntime)
-            {
-                Settings.Values.StringTo = Target.text;
-            }
+            TweenValueSettings values = _settings.Values;
+            _resolvedTo = values.OverrideTo ? values.StringTo : Target.text;
         }
 
-        protected override void ApplyFromValue(bool isRuntime)
+        protected override void ApplyFromValue()
         {
-            if (!Settings.Values.OverrideFrom) return;
-            if (IsTimingPhase(isRuntime))
-            {
-                Target.text = Settings.Values.GetStringFrom();
-            }
+            Target.text = _settings.Values.StringFrom;
         }
 
         protected override Tween CreateAnimationTween()
         {
-            return Target.DOText(Settings.Values.GetStringTo(), Settings.General.Duration)
-                .SetEase(Settings.General.Easing);
+            return Target.DOText(_resolvedTo, _settings.General.Duration);
         }
     }
 
     #endregion
 
-    #region Float Based Animations
+    #region Virtual Animations (no target component)
 
     public class TweenAnimationFloat : TweenAnimationWorker
     {
-        protected override Tween DoShow()
+        private TweenCallback<float> _onUpdate;
+
+        protected override Tween BuildContent()
         {
-            _tweener = CreateBaseTween();
+            _onUpdate ??= InvokeUpdate;
+            return DOVirtual.Float(
+                    _settings.Values.FloatFrom,
+                    _settings.Values.FloatTo,
+                    _settings.General.Duration,
+                    _onUpdate)
+                .SetEase(_settings.General.Easing);
+        }
 
-            var animationTween = DOVirtual.Float(
-                Settings.Values.GetFloatFrom(),
-                Settings.Values.GetFloatTo(),
-                Settings.General.Duration,
-                value => Settings.Values.OnFloatUnityEventInvoke?.Invoke(value))
-                .SetEase(Settings.General.Easing);
-
-            AppendTweenToSequence(animationTween);
-            return _tweener;
+        private void InvokeUpdate(float value)
+        {
+            if (!TweenTimeline.SuppressUserEvents)
+            {
+                _settings.Values.OnFloatUnityEventInvoke?.Invoke(value);
+            }
         }
     }
 
-    #endregion
-
-    #region UnityEvent Based Animations
-
     public class TweenAnimationUnityEvent : TweenAnimationWorker
     {
-        protected override Tween DoShow()
+        private TweenCallback _invoke;
+
+        protected override Tween BuildContent()
         {
-            _tweener = CreateBaseTween();
+            _invoke ??= InvokeEvent;
+            // Sequence + AppendCallback (instead of DelayedCall.OnComplete) so the event
+            // fires on EVERY loop pass, matching the timeline formula.
+            Sequence seq = DOTween.Sequence();
+            if (_settings.General.Duration > 0f)
+            {
+                seq.AppendInterval(_settings.General.Duration);
+            }
+            seq.AppendCallback(_invoke);
+            return seq;
+        }
 
-            var animationTween = DOVirtual.DelayedCall(
-                Settings.General.Duration,
-                () => Settings.Values.OnUnityEventInvoke?.Invoke());
-
-            AppendTweenToSequence(animationTween);
-            return _tweener;
+        private void InvokeEvent()
+        {
+            if (!TweenTimeline.SuppressUserEvents)
+            {
+                _settings.Values.OnUnityEventInvoke?.Invoke();
+            }
         }
     }
 

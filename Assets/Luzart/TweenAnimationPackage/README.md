@@ -1,157 +1,99 @@
 # Luzart TweenAnimation Package
 
-Tween/animation framework cho Unity dựa trên DOTween, kèm bộ attribute + property drawer tự build (ShowIf/HideIf/EnableIf/DisableIf/ReadOnly/Dropdown/Slider/ProgressBar/InfoBox/Button/ShowInInspector) và một editor utility `ResetParentKeepScale`.
+Tween/animation framework cho Unity dựa trên DOTween — cấu hình toàn bộ bằng Inspector, không cần code. Hỗ trợ tween đơn lẻ (`TweenAnimation`), chuỗi tween (`SequenceTweenAnimation`), auto-trigger (`TweenAnimationCaller`) và **Preview ngay trong Edit Mode**.
 
 ## Yêu cầu
 
-- Unity 2021.3+ (dùng C# 9 features: pattern matching, switch expression, target-typed `new`)
-- **DOTween** (hoặc DOTween Pro). Sử dụng `DG.Tweening` namespace, bao gồm `DOText`, `DOFade`, `DOVirtual`, v.v.
-- **TextMeshPro** (bắt buộc — có trong Unity Package Manager)
-
-Các dependency khác của bản gốc (ví dụ `LocalizedText`) **đã được gỡ** để code chạy standalone.
+- Unity 2021.3+ (C# 9: pattern matching, switch expression, target-typed `new`)
+- **DOTween** (hoặc DOTween Pro) — namespace `DG.Tweening`
+- **TextMeshPro**
+- Attribute drawers `ShowIf`/`ShowIfAll`/`ReadOnly`: trong project này nằm ở `Assets/Luzart/Main/Attributes/` + `Assets/Luzart/Main/Editor/` (KHÔNG nằm trong package — khi copy package sang project khác phải copy kèm 2 folder đó).
 
 ## Cấu trúc
 
 ```
 TweenAnimationPackage/
 ├── Runtime/
-│   ├── TweenAnimationBase.cs          # Abstract base + ITweenAnimation interface
-│   ├── TweenAnimation.cs              # Component chính + factory + settings
-│   ├── TweenAnimationWorker.cs        # Strategy workers (Move/Scale/Fade/Float/Text/UnityEvent/...)
-│   ├── SequenceTweenAnimation.cs      # Composer Append/Join/Insert
+│   ├── TweenAnimationBase.cs          # Base component: Show() / Stop() / GetTotalDuration()
+│   ├── TweenAnimation.cs              # Component tween đơn + toàn bộ settings/enums
+│   ├── TweenAnimationWorker.cs        # TweenTimeline builder + strategy workers
+│   ├── SequenceTweenAnimation.cs      # Composer Append/Join/Insert + validation
 │   ├── TweenAnimationCaller.cs        # Auto-trigger Awake/Start/OnEnable
-│   └── Attributes/
-│       ├── ConditionalAttributes.cs   # ShowIf/HideIf/EnableIf/DisableIf/ReadOnly/Button/ShowInInspector
-│       └── ExtendedAttributes.cs      # InfoBox/ProgressBar/Foldout/ColorPicker/Dropdown/Slider
+│   └── DOTweenTMPExtensions.cs        # DOText kiểu typewriter (maxVisibleCharacters, zero-alloc per frame)
 └── Editor/
-    ├── ConditionalPropertyDrawer.cs   # Drawer cho ShowIf/HideIf/EnableIf/DisableIf (+ ShowIfAny/All)
-    ├── ReadOnlyPropertyDrawer.cs
-    ├── InfoBoxPropertyDrawer.cs
-    ├── ProgressBarPropertyDrawer.cs
-    ├── DropdownPropertyDrawer.cs
-    ├── SliderPropertyDrawer.cs
-    ├── ShowInInspectorEditor.cs       # Custom editor cho mọi MonoBehaviour (Button + ShowInInspector)
-    └── ResetParentKeepScale.cs        # Menu: Luzart/Reset Parent Scale & Keep Child Size
+    └── TweenAnimationPreviewEditor.cs # Nút ▶ Preview / ■ Stop trong Inspector (Edit Mode)
 ```
 
-## Cách copy sang project khác
+## Công thức timeline (chuẩn cho cả tween đơn và sequence)
 
-1. Copy toàn bộ folder `TweenAnimationPackage/` vào trong `Assets/` của project mới (ví dụ `Assets/Luzart/TweenAnimationPackage/`).
-2. Cài DOTween từ Asset Store hoặc Package Manager.
-3. Đảm bảo có TextMeshPro (File → Import TMP Essential Resources nếu Unity hỏi).
-4. Unity sẽ auto-compile. Thư mục `Editor/` được Unity nhận diện tự động.
+```
+DelayStart + LoopCount × (TimeDelayPreLoop + Duration + TimeDelayAfterLoop)
+```
 
-> **Lưu ý về namespace**: Tất cả nằm trong `namespace Luzart`. Nếu project khác đã có namespace trùng, dùng find-replace để đổi (ví dụ `MyCompany.Tweens`).
+- `DelayStart` chạy đúng **1 lần** (không lặp theo loop).
+- `LoopCount = -1` = vô hạn — **chỉ hợp lệ ở animation ngoài cùng**. Đặt -1 cho child bên trong Sequence sẽ bị DOTween ép về 1 vòng (framework sẽ log warning cả trong OnValidate lẫn runtime).
+- `LoopType`: Restart / Yoyo / Incremental như DOTween. Lưu ý Yoyo đảo cả thứ tự delay trong vòng ngược.
 
 ## Sử dụng
 
-### 1. Animation đơn lẻ
-Gắn component `TweenAnimation` + `TweenAnimationCaller` lên GameObject. Chọn `EAnimation` (Move/Scale/Fade/Text/Float/UnityEvent/...) và cấu hình `Duration`, `Ease`, `Loop`...
+### 1. Tween đơn lẻ
+Gắn `TweenAnimation` (+ `TweenAnimationCaller` nếu muốn auto-play). Chọn `EAnimation`, cấu hình Duration/Ease/Loop/Delay/Target.
 
 ```csharp
-// Từ code:
 var tween = GetComponent<TweenAnimation>();
-tween.Show();   // play
-tween.Stop();   // kill
+Tween t = tween.Show();   // play (tự kill lần chạy trước nếu còn)
+tween.Stop();             // dừng TẠI CHỖ — không snap về cuối, không fire OnComplete
+float len = tween.GetTotalDuration();  // float.MaxValue nếu loop vô hạn
 ```
 
-### 2. Sequence animation
-Gắn `SequenceTweenAnimation` → drag các `TweenAnimation` khác vào list. Chọn `SequenceType` cho từng entry:
+### 2. Sequence
+Gắn `SequenceTweenAnimation` → kéo các `TweenAnimation`/`SequenceTweenAnimation` khác vào list:
 - `Append`: nối tiếp sau entry trước
-- `Join`: chạy song song với entry Append gần nhất
+- `Join`: chạy song song với entry Append/Insert gần nhất
 - `Insert`: chèn tại `InsertTime` tuyệt đối
 
-> **Quan trọng**: children của Sequence mà cần `From=current-at-my-turn` (ví dụ `Move về vị trí hiện tại`) phải đặt `Values.Timing = Lazy` và `OverrideFrom=false`. Nếu để `Eager` (default), `From` sẽ bị cache ngay khi `Sequence.Show()` gọi (trước khi các child chạy).
+Sequence lồng sequence thoải mái — có guard chống tham chiếu vòng (A chứa B chứa A sẽ báo lỗi thay vì treo editor).
 
 ### 3. Auto-trigger
-`TweenAnimationCaller` cho phép tự gọi `Show()` tại `Awake` / `Start` / `OnEnable`.
+`TweenAnimationCaller`: chọn `Awake` / `Start` / `OnEnable`. `OnDisable` tự kill tween — vòng đời tween bám theo GameObject.
 
-### 4. Attributes cho code của bạn
-```csharp
-public class Example : MonoBehaviour
-{
-    public bool useAdvanced;
+### 4. Events
+Mục `Events` trên mỗi tween/sequence:
+- `OnTweenStart` — fire khi timeline bắt đầu chạy thật (sau DelayStart)
+- `OnTweenComplete` — fire khi chạy xong toàn bộ (không fire nếu loop vô hạn hoặc bị Stop)
 
-    [ShowIf(nameof(useAdvanced), true)]
-    public float advancedSetting;
+Callback chỉ được attach khi có wire trong Inspector (zero overhead nếu không dùng). Muốn listen bằng code → subscribe trên `Tween` mà `Show()` trả về.
 
-    [ReadOnly]
-    public int computedValue;
+### 5. Preview trong Edit Mode
+Chọn GameObject có `TweenAnimation`/`SequenceTweenAnimation` → bấm **▶ Preview** trong Inspector. Trạng thái target (transform, rect, alpha, text) được snapshot và khôi phục khi **■ Stop**. Giới hạn: UnityEvents không fire trong preview; case "DelayStart + loop vô hạn + pre/after delay" không mô phỏng delay.
 
-    [Slider(0f, 100f)]
-    public float health = 75f;
-
-    [ProgressBar("HP", 0f, 100f)]
-    public float hp = 80f;
-
-    [Dropdown("Easy", "Normal", "Hard")]
-    public string difficulty = "Normal";
-
-    [InfoBox("Tooltip hiển thị trong Inspector", InfoBoxType.Warning)]
-    public string note;
-
-    [Button("Reset Stats")]
-    private void ResetStats() { health = 100f; }
-
-    [ShowInInspector]
-    private int _privateCounter = 42;
-}
-```
-
-### 5. Editor menu
-- `Luzart/Reset Parent Scale & Keep Child Size` — chọn một hoặc nhiều `RectTransform` → localScale về (1,1,1) nhưng giữ nguyên size visual của children (kể cả font size TMP/UGUI).
-
-## Các loại animation support (EAnimation enum)
-
-| Enum | Worker | Target component | Value |
-|---|---|---|---|
-| Move | TweenAnimationMove | Transform | Vector3 (world pos) |
-| MoveLocal | TweenAnimationMoveLocal | Transform | Vector3 (local pos) |
-| MoveAnchors | TweenAnimationMoveAnchors | RectTransform | Vector3 (anchored) |
-| Scale | TweenAnimationScale | Transform | Vector3 (localScale) |
-| Euler | TweenAnimationEuler | Transform | Vector3 (eulerAngles) |
-| SizeDelta | TweenAnimationSizeDelta | RectTransform | Vector3 |
-| AnchorMin | TweenAnimationAnchorMin | RectTransform | Vector3 |
-| AnchorMax | TweenAnimationAnchorMax | RectTransform | Vector3 |
-| FadeByCanvasGroup | TweenAnimationFade | CanvasGroup (auto-add) | float alpha |
-| TextMeshProDOText | TweenAnimationTextMeshPro | TextMeshProUGUI | string |
-| Float | TweenAnimationFloat | (none — DOVirtual) | float + UnityEvent<float> |
-| UnityEvent | TweenAnimationUnityEvent | (none — DOVirtual) | UnityEvent (fire sau Duration) |
-
-## Phụ thuộc về source
-
-Code trong bundle này **chỉ** phụ thuộc vào:
-- `UnityEngine` / `UnityEditor`
-- `DG.Tweening` (DOTween)
-- `TMPro` (TextMeshPro)
-
-Không còn phụ thuộc `LocalizedText` hay bất cứ util nào của Luzart codebase gốc.
-
-## API giá trị From/To — quan trọng
-
-`TweenValueSettings` có 3 field chính điều khiển hành vi From/To:
+## From/To — semantics
 
 | Field | Ý nghĩa |
 |---|---|
-| `Timing` (EValueTiming) | `Eager` (default): resolve + snap ngay khi `Show()` được gọi. `Lazy`: hoãn đến khi tween thật sự chạy. |
-| `OverrideFrom` (bool) | `false` (default): From = giá trị hiện tại của target. `true`: From = giá trị user nhập. |
-| `OverrideTo` (bool) | `true` (default): To = giá trị user nhập. `false`: To = giá trị hiện tại (hiếm). |
+| `OverrideFrom` | `false` (default): tween chạy từ giá trị hiện tại — DOTween tự capture **đúng lúc tween bắt đầu chạy** (lazy tự nhiên, chuẩn cho cả Sequence). `true`: target bị snap về giá trị From nhập tay. |
+| `Timing` | Chỉ có tác dụng khi `OverrideFrom = true` — quyết định **thời điểm snap**: `Eager` = ngay khi `Show()` (trước DelayStart — dùng cho popup cần đứng ở From trong lúc chờ); `Lazy` = đúng lúc tween tới lượt chạy (dùng cho child trong Sequence không được đụng target trước lượt mình). |
+| `OverrideTo` | `true` (default): To = giá trị nhập tay. `false`: To = giá trị hiện tại tại thời điểm `Show()` (luôn resolve sớm — DOTween bake end value lúc tạo tween). |
 
-### Khi nào dùng `Eager` vs `Lazy`?
+## Các loại animation (EAnimation)
 
-**Eager (default)** — Dùng cho animation standalone:
-- Popup scale-in (0→1): object snap về (0,0,0) ngay khi `Show()` gọi, rồi chờ `DelayStart`, rồi tween lên (1,1,1). Suốt thời gian delay, object vô hình (scale=0) — đúng ý.
-- Move from current to target: `OverrideFrom=false` → From auto-resolve ngay lúc Show() → tween từ vị trí lúc gọi Show.
+| Enum | Target | Value | Ghi chú |
+|---|---|---|---|
+| Move / MoveLocal | Transform | Vector3 | world / local position |
+| MoveAnchors | RectTransform | Vector3 | anchoredPosition (z bị bỏ qua) |
+| Scale | Transform | Vector3 | localScale |
+| Euler | Transform | Vector3 | có option `RotateMode` — dùng `FastBeyond360` cho vòng quay 360°/720° |
+| SizeDelta / AnchorMin / AnchorMax | RectTransform | Vector3 | |
+| FadeByCanvasGroup | CanvasGroup (auto-add) | float | |
+| TextMeshProDOText | TextMeshProUGUI | string | typewriter qua maxVisibleCharacters |
+| Float | (none) | float + UnityEvent\<float\> | From/To luôn dùng giá trị nhập tay |
+| UnityEvent | (none) | UnityEvent | fire sau Duration, **mỗi vòng loop** |
 
-**Lazy** — Dùng cho Sequence children cần "From = vị trí khi tới lượt":
-- Sequence: `[A: Move tới X] → [B: Move về current]`. B phải đặt `Timing=Lazy` và `OverrideFrom=false` để resolve "current" ngay khi B bắt đầu play (chứ không phải lúc Sequence.Show gọi, khi đó A chưa play).
+## Ghi chú hiệu năng & hành vi
 
-### Lưu ý về `To`
-
-**To luôn resolve ở Eager phase** (bất kể `Timing`). Lý do: DOTween (ví dụ `DOMove`) bake `targetValue` ngay khi tween được tạo — không thể defer. Nếu cần "To=current lúc play", pattern hiện không support trực tiếp; workaround: tạo một tween riêng ở `AppendCallback` (thay vì phụ thuộc setting tự động).
-
-## Ghi chú khi fork/chỉnh
-
-- `_duration` trong `TweenSequenceSettings` chỉ là display field (`[ReadOnly]`). Getter `Duration` của interface tự cộng `DelayStart` và nhân `LoopCount`.
-- `IsTimingPhase(isRuntime)` ở `TweenAnimationWorker<T>` là helper duy nhất quyết định "phase hiện tại có phải phase đã chọn?". Muốn thêm worker type mới, dùng helper này để đồng nhất hành vi.
-- Không còn sentinel `-1` cho "chưa set". Thay bằng `OverrideFrom/OverrideTo` bool tường minh. An toàn với mọi giá trị số (kể cả âm).
+- Worker được cache theo component — `Show()` lặp lại không cấp phát worker mới, không GetComponent lại.
+- Case phổ biến (không delay/loop, hoặc loop không pre/after delay) trả về **Tweener trần** — 1 object DOTween mỗi Show.
+- `Stop()` / destroy = `Kill(false)`: dừng tại chỗ. Không snap, không callback.
+- Gọi `Show()` khi đang chạy = kill sạch lần trước rồi chạy lần mới (không còn 2 tween đánh nhau trên 1 target).
+- Validation tự động (editor): cảnh báo child loop -1 trong sequence, cảnh báo `IsIgnoreTimeScale` của child lệch với sequence (DOTween chỉ áp dụng setting của root cho tween lồng), báo lỗi tham chiếu vòng, báo lỗi một `TweenAnimation` xuất hiện 2 lần trong cùng sequence (DOTween không cho một tween nằm ở 2 vị trí — dùng 2 component riêng).
+- Một `TweenAnimation` đang nằm trong sequence chạy dở thì `Stop()` của riêng nó là no-op (quyền sở hữu tween thuộc về sequence cha — stop sequence thay vì stop child).

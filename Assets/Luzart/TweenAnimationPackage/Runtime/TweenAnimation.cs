@@ -1,9 +1,6 @@
 using DG.Tweening;
-using System;
-using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.UI;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -14,17 +11,27 @@ namespace Luzart.Tweener
     {
         [SerializeField] private EAnimation typeAnimation;
         [SerializeField] private TweenAnimationSettings tweenAnimationSettings = new TweenAnimationSettings();
-        private ITweenAnimation _currentTweenAnimation;
+
+        // Worker is cached per component: allocated on first Show(), reused afterwards so its
+        // resolved-target cache survives across plays. Rebuilt only if typeAnimation changes.
+        private TweenAnimationWorker _worker;
+        private EAnimation _workerType;
+
+        public TweenAnimationSettings Settings => tweenAnimationSettings;
+        public EAnimation TypeAnimation => typeAnimation;
+
+        // Referenced by ShowIf/ShowIfAll string paths in TweenValueSettings — keep names stable.
         public bool IsAnimationVector3 => typeAnimation == EAnimation.Move ||
-                                                typeAnimation == EAnimation.MoveLocal ||
-                                                typeAnimation == EAnimation.MoveAnchors ||
-                                                typeAnimation == EAnimation.Scale ||
-                                                typeAnimation == EAnimation.Euler ||
-                                                typeAnimation == EAnimation.SizeDelta ||
-                                                typeAnimation == EAnimation.AnchorMin ||
-                                                typeAnimation == EAnimation.AnchorMax;
+                                          typeAnimation == EAnimation.MoveLocal ||
+                                          typeAnimation == EAnimation.MoveAnchors ||
+                                          typeAnimation == EAnimation.Scale ||
+                                          typeAnimation == EAnimation.Euler ||
+                                          typeAnimation == EAnimation.SizeDelta ||
+                                          typeAnimation == EAnimation.AnchorMin ||
+                                          typeAnimation == EAnimation.AnchorMax;
+
         public bool IsAnimationFloat => typeAnimation == EAnimation.FadeByCanvasGroup ||
-            typeAnimation == EAnimation.Float;
+                                        typeAnimation == EAnimation.Float;
 
         /// <summary>
         /// True for animation types whose From/To values can be either user-provided (Override=true)
@@ -37,31 +44,46 @@ namespace Luzart.Tweener
             || typeAnimation == EAnimation.Float
             || typeAnimation == EAnimation.TextMeshProDOText;
 
-        protected override Tween DoShow()
+        public override Tween Show()
         {
-            var tweenAnimation = GetTweenAnimation();
-            if (tweenAnimation == null)
+            if (_worker != null && _workerType != typeAnimation)
             {
-                Debug.LogError("Tween Animation Type not found: " + typeAnimation.ToString());
-                return null;
+                _worker.Dispose();
+                _worker = null;
             }
+            if (_worker == null)
+            {
+                _worker = CreateWorker();
+                if (_worker == null)
+                {
+                    Debug.LogError($"TweenAnimation: unknown animation type '{typeAnimation}' on '{name}'", this);
+                    return null;
+                }
+                _workerType = typeAnimation;
+            }
+
             if (tweenAnimationSettings.General.Target == null)
             {
-                tweenAnimationSettings.General.Target = this.gameObject;
+                tweenAnimationSettings.General.Target = gameObject;
             }
 
-            tweenAnimation.InitSetting(tweenAnimationSettings);
-            _currentTweenAnimation = tweenAnimation;
-            return tweenAnimation.Show();
+            // Worker.Show kills its previous timeline (if any still runs) before building the new one.
+            return _worker.Show(tweenAnimationSettings);
         }
 
-        protected override void DoDispose()
+        public override void Stop()
         {
-            _currentTweenAnimation?.Dispose();
-            _currentTweenAnimation = null;
+            _worker?.Dispose();
         }
 
-        private ITweenAnimation GetTweenAnimation()
+        public override void OnRootNestedIntoSequence()
+        {
+            _worker?.ReleaseRoot();
+        }
+
+        public override float GetTotalDuration() => tweenAnimationSettings.TotalDuration;
+
+        private TweenAnimationWorker CreateWorker()
         {
             return typeAnimation switch
             {
@@ -84,7 +106,18 @@ namespace Luzart.Tweener
         private void OnValidate()
         {
 #if UNITY_EDITOR
-            if (tweenAnimationSettings == null || tweenAnimationSettings.General == null || tweenAnimationSettings.General.Target == null)
+            if (tweenAnimationSettings == null || tweenAnimationSettings.General == null)
+            {
+                return;
+            }
+            // Float has no "current value" to pull From/To from — force explicit values so the
+            // From/To fields stay visible and the worker never animates from an unset 0.
+            if (typeAnimation == EAnimation.Float && tweenAnimationSettings.Values != null)
+            {
+                tweenAnimationSettings.Values.OverrideFrom = true;
+                tweenAnimationSettings.Values.OverrideTo = true;
+            }
+            if (tweenAnimationSettings.General.Target == null)
             {
                 return;
             }
@@ -100,7 +133,13 @@ namespace Luzart.Tweener
             {
                 return;
             }
-            AddTweenAnimation();
+            // Never structurally mutate prefab ASSETS from a validate callback — the change either
+            // fails or silently reverts on every import, looping forever. Scene instances only.
+            if (EditorUtility.IsPersistent(this))
+            {
+                return;
+            }
+            EnsureCanvasGroupTarget();
         }
 #endif
 
@@ -110,10 +149,10 @@ namespace Luzart.Tweener
             {
                 tweenAnimationSettings.General.Target = gameObject;
             }
-            AddTweenAnimation();
+            EnsureCanvasGroupTarget();
         }
 
-        private void AddTweenAnimation()
+        private void EnsureCanvasGroupTarget()
         {
             if (typeAnimation != EAnimation.FadeByCanvasGroup)
             {
@@ -141,71 +180,55 @@ namespace Luzart.Tweener
 
             if (!go.TryGetComponent(out CanvasGroup canvas))
             {
-                canvas = go.AddComponent<CanvasGroup>();
+#if UNITY_EDITOR
+                if (!Application.isPlaying)
+                {
+                    // Structural edits on prefab ASSETS are only legal inside Prefab Mode —
+                    // attempting them from a validate callback silently reverts on every import.
+                    if (EditorUtility.IsPersistent(go))
+                    {
+                        Debug.LogError($"TweenAnimation: Target of '{name}' is a prefab asset without a CanvasGroup — " +
+                                       "open the prefab in Prefab Mode to add it, or reference a scene object instead.", this);
+                        return;
+                    }
+                    canvas = Undo.AddComponent<CanvasGroup>(go);
+                }
+                else
+#endif
+                {
+                    canvas = go.AddComponent<CanvasGroup>();
+                }
             }
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                Undo.RecordObject(this, "Set Tween Target");
+                tweenAnimationSettings.General.Target = canvas;
+                EditorUtility.SetDirty(this);
+                return;
+            }
+#endif
             tweenAnimationSettings.General.Target = canvas;
-        }
-
-        public override ITweenSettings GetTweenAnimationSettings()
-        {
-            return tweenAnimationSettings;
         }
     }
 
     #region Data Structures
 
-    // Interface for all settings types
-    public interface ITweenSettings
-    {
-        public float Duration { get; }
-        public bool IgnoreTimeScale { get; }
-        TweenTimingSettings Timing { get; }
-        TweenLoopSettings Loop { get; }
-    }
-
     // Full settings for individual animations
     [System.Serializable]
-    public class TweenAnimationSettings : ITweenSettings
+    public class TweenAnimationSettings
     {
-        public TweenGeneralSettings General;
+        public TweenGeneralSettings General = new TweenGeneralSettings();
 
         public TweenTimingSettings Timing;
 
         public TweenLoopSettings Loop;
 
-        public TweenValueSettings Values;
+        public TweenValueSettings Values = new TweenValueSettings();
 
-        TweenTimingSettings ITweenSettings.Timing => Timing;
-        TweenLoopSettings ITweenSettings.Loop => Loop;
+        public TweenEventSettings Events = new TweenEventSettings();
 
-        float ITweenSettings.Duration
-        {
-            get
-            {
-                if (Loop.IsLoop)
-                {
-                    if (Loop.LoopCount < 0)
-                    {
-                        return float.MaxValue;
-                    }
-                    return Timing.DelayStart + (General.Duration + Timing.TimeDelayPreLoop + Timing.TimeDelayAfterLoop) * Loop.LoopCount;
-                }
-                else
-                {
-                    return Timing.DelayStart + General.Duration;
-                }
-            }
-        }
-
-        public bool IgnoreTimeScale => General.IsIgnoreTimeScale;
-
-        public TweenAnimationSettings()
-        {
-            General = new TweenGeneralSettings();
-            Timing = new TweenTimingSettings();
-            Loop = new TweenLoopSettings();
-            Values = new TweenValueSettings();
-        }
+        public float TotalDuration => TweenTimeline.ComputeTotalDuration(Timing, Loop, General.Duration);
     }
 
     [System.Serializable]
@@ -215,6 +238,12 @@ namespace Luzart.Tweener
         public float Duration = 1f;
         public Ease Easing = Ease.Linear;
         public bool IsIgnoreTimeScale = false;
+
+        [Tooltip("Euler only. Fast = shortest path (0→360 does not move!). " +
+                 "FastBeyond360 = rotates the full requested degrees (e.g. 360, 720). " +
+                 "LocalAxisAdd/WorldAxisAdd = additive rotation around local/world axes.")]
+        [ShowIf("../../typeAnimation", EAnimation.Euler)]
+        public RotateMode RotateMode = RotateMode.Fast;
     }
 
     [System.Serializable]
@@ -232,6 +261,8 @@ namespace Luzart.Tweener
     {
         public bool IsLoop;
         public LoopType LoopType;
+        [Tooltip("-1 = infinite (only valid on a standalone animation or the OUTERMOST sequence — " +
+                 "DOTween silently clamps infinite loops nested inside a Sequence to 1).")]
         public int LoopCount;
     }
 
@@ -239,21 +270,20 @@ namespace Luzart.Tweener
     public class TweenValueSettings
     {
         [Tooltip(
-            "Eager: From is resolved and snapped immediately when Show() is called (before DelayStart). " +
-            "Use this for standalone animations.\n\n" +
-            "Lazy: resolution and snap are deferred until the tween actually starts playing " +
-            "(inside the sequence callback, after DelayStart and after previous Sequence entries). " +
-            "Use this for Sequence children that need 'From = my current position at my turn'.\n\n" +
-            "Note: To value is ALWAYS resolved at Eager phase regardless of this setting, " +
-            "because DOTween bakes the target value at tween-creation time.")]
+            "Only relevant when OverrideFrom = true — controls WHEN the target snaps to the From value:\n\n" +
+            "Eager: snap immediately when Show() is called (before DelayStart). " +
+            "Use for popups that must sit at From (e.g. scale 0) while waiting for their delay/turn.\n\n" +
+            "Lazy: snap right when the tween starts playing (after DelayStart / after previous Sequence entries).\n\n" +
+            "When OverrideFrom = false, DOTween natively captures From at play time (always lazy), " +
+            "so this setting has no effect.")]
         public EValueTiming Timing = EValueTiming.Eager;
 
-        [Tooltip("If false, From is auto-pulled from the target's current value (resolved at the Timing phase). " +
-                 "If true, use the explicit From value below.")]
+        [Tooltip("If false, the animation starts from the target's current value (captured by DOTween when the tween starts playing). " +
+                 "If true, the target snaps to the explicit From value below (see Timing for when).")]
         [ShowIf("../../SupportsValueOverride", true)]
         public bool OverrideFrom = false;
 
-        [Tooltip("If false, To is auto-pulled from the target's current value (resolved at Eager phase). " +
+        [Tooltip("If false, To = the target's current value at Show() time (rare). " +
                  "If true, use the explicit To value below.")]
         [ShowIf("../../SupportsValueOverride", true)]
         public bool OverrideTo = true;
@@ -280,29 +310,35 @@ namespace Luzart.Tweener
         public UnityEvent<float> OnFloatUnityEventInvoke;
         [ShowIf("../../typeAnimation", EAnimation.UnityEvent)]
         public UnityEvent OnUnityEventInvoke;
+    }
 
-        // Helper methods to get type-specific values
-        public Vector3 GetVector3From() => Vector3From;
-        public Vector3 GetVector3To() => Vector3To;
-        public float GetFloatFrom() => FloatFrom;
-        public float GetFloatTo() => FloatTo;
-        public string GetStringFrom() => StringFrom;
-        public string GetStringTo() => StringTo;
+    [System.Serializable]
+    public class TweenEventSettings
+    {
+        [Tooltip("Invoked when the timeline actually starts playing (after DelayStart).")]
+        public UnityEvent OnTweenStart;
+
+        [Tooltip("Invoked when the whole timeline completes (all loops finished). " +
+                 "Never fires for infinite loops or when the animation is stopped/killed.")]
+        public UnityEvent OnTweenComplete;
+
+        // Callbacks are attached only when something is wired in the inspector — zero overhead otherwise.
+        // Runtime AddListener users should subscribe on the Tween returned by Show() instead.
+        public bool HasStart => OnTweenStart != null && OnTweenStart.GetPersistentEventCount() > 0;
+        public bool HasComplete => OnTweenComplete != null && OnTweenComplete.GetPersistentEventCount() > 0;
     }
 
     /// <summary>
-    /// When From value is resolved (if not overridden) and snapped onto the target.
+    /// When the target snaps to the From value (only used when OverrideFrom = true).
     /// </summary>
     public enum EValueTiming
     {
-        /// <summary>
-        /// At the moment Show() is called (before DelayStart). Good for standalone animations.
-        /// </summary>
+        /// <summary>At the moment Show() is called (before DelayStart). Good for standalone animations.</summary>
         Eager = 0,
 
         /// <summary>
         /// When the tween actually starts playing (after DelayStart / after previous Sequence entries).
-        /// Good for Sequence children that need "From = my position at my turn".
+        /// Good for Sequence children that must not touch the target until their turn.
         /// </summary>
         Lazy = 1,
     }
@@ -329,17 +365,6 @@ namespace Luzart.Tweener
         FadeByCanvasGroup = 9,
         TextMeshProDOText = 10,
         UnityEvent = 11,
-    }
-
-    #endregion
-
-    #region Base Classes and Interface
-
-    public interface ITweenAnimation : IDisposable
-    {
-        ITweenSettings Settings { get; }
-        void InitSetting(TweenAnimationSettings settings);
-        Tween Show();
     }
 
     #endregion

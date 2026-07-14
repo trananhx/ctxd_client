@@ -1,61 +1,41 @@
 using DG.Tweening;
-using System;
 using UnityEngine;
 
 namespace Luzart.Tweener
 {
-    #region Base Classes and Interface
-    // Implements ITweenAnimation and provides base functionality for tween animations
-    public abstract class TweenAnimationBase : MonoBehaviour, ITweenAnimation
+    /// <summary>
+    /// Base MonoBehaviour for all tween-animation components (single tween or sequence).
+    /// </summary>
+    public abstract class TweenAnimationBase : MonoBehaviour
     {
-        ITweenSettings ITweenAnimation.Settings => GetTweenAnimationSettings();
-        public abstract ITweenSettings GetTweenAnimationSettings();
-        Tween ITweenAnimation.Show()
-        {
-            return DoShow();
-        }
+        /// <summary>
+        /// Builds and plays the timeline, returning its root tween.
+        /// Calling Show() while a previous timeline is still running kills the old one first.
+        /// </summary>
+        public abstract Tween Show();
 
-        protected virtual Tween DoShow()
-        {
-            return null;
-        }
+        /// <summary>
+        /// Kills the current timeline in place — no snap to end values, no OnComplete fired.
+        /// </summary>
+        public abstract void Stop();
 
-        void ITweenAnimation.InitSetting(TweenAnimationSettings tweenAnimationSettings)
-        {
-            DoInitSetting(tweenAnimationSettings);
-        }
+        /// <summary>
+        /// Total timeline length: DelayStart + LoopCount × (PreLoop + duration + AfterLoop).
+        /// Returns float.MaxValue for infinite loops.
+        /// </summary>
+        public abstract float GetTotalDuration();
 
-        protected virtual void DoInitSetting(TweenAnimationSettings tweenAnimationSettings)
-        {
-        }
+        /// <summary>
+        /// Called by SequenceTweenAnimation right after this animation's root tween was nested
+        /// into the parent sequence. Ownership transfers to the parent: DOTween silently ignores
+        /// Kill() on nested tweens, so the component must drop its reference instead of holding
+        /// a root it can no longer control.
+        /// </summary>
+        public virtual void OnRootNestedIntoSequence() { }
 
-        void IDisposable.Dispose()
+        protected virtual void OnDestroy()
         {
-            DoDispose();
-        }
-
-        protected virtual void DoDispose()
-        {
-        }
-
-        private void OnDestroy()
-        {
-            ITweenAnimation tweenAnimation = this;
-            tweenAnimation.Dispose();
-        }
-
-        // Public API for manual control
-        public virtual Tween Show()
-        {
-            ITweenAnimation iTweenAnimation = this;
-            return iTweenAnimation.Show();
-        }
-
-        public virtual void Stop()
-        {
-            DoDispose();
+            Stop();
         }
     }
-
-    #endregion
 }
