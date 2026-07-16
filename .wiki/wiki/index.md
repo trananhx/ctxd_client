@@ -52,6 +52,7 @@ Master catalog. Read first to find relevant pages. Project = recreation of **Cô
 
 ## Decisions
 - [[decisions/game-version-scope]] — Phiên bản nào để dựng lại (đề xuất: webgame 2013)
+- [[decisions/unity-downgrade-6000.2.8-2026-07-15]] — Hạ Unity xuống 6000.2.8f1 (đã verify biên dịch)
 
 ## Meta / Provenance
 - [[claims]] — 18 luận điểm có trích nguồn

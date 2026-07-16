@@ -189,3 +189,16 @@ Chronological record of all wiki operations.
 - **Phản hồi vòng 2 (cùng ngày)**: chủ dự án chỉ thêm — tướng to đùng ở **hàng đầu** + đợt sửa 1 **nén hàng** làm khối co từ sau ⇒ nhìn như "hàng sau chết trước". (Bước trung gian: bỏ nén, tướng ra sau — `herofix_*.png`. SAU ĐÓ bị vòng 3 sửa lại.)
 - **Phản hồi vòng 3 (cùng ngày) — chốt mô hình "dạng tướng"**: chủ dự án làm rõ — (a) **các hàng sống VẪN TIẾN LÊN cho tới hết** (mình xoá nén ở vòng 2 là SAI, phục hồi lại); (b) **1 tướng = DẠNG thể hiện** của nó (vài hàng quân / chỉ 1 con tướng / kết hợp; phó tướng = hàng "x" của tướng khác), **chết khi dạng chết hết** — KHÔNG phải 1 figure to riêng gắn kèm. Sửa (`BattleSideField.cs`): **bỏ figure tướng to riêng** (dạng "vài hàng quân" ⇒ render thuần các hàng, tướng chính là các hàng); **phục hồi nén hàng** (`rowSlot`) ⇒ hàng đầu chết trước, hàng sau tiến lên; thêm nhánh dạng **"1 con tướng"** (render 1 đơn vị lớn khi không có hàng — để sẵn cho data-driven). Verify Play: units/phe giảm (hết hero), KillRow ATT `r0`→0 rồi `r1`→0, hàng sống nén tiến lên (`form_v3_00/01/02_advance.png`).
 - Pages: [[log]], [[decisions/battle-geometry-server-model-2026-06-30]] (thêm mục Correction).
+
+## [2026-07-15] chore | Hạ phiên bản project → Unity 6000.2.8f1
+- **Yêu cầu chủ dự án**: sửa để dùng được ở Unity **6000.2.8f1** (6.2). Trước đó `ProjectVersion.txt = 6000.3.14f1`, cache lẫn vết 6000.5.1f1.
+- **Điều tra**: 18 package đọc min-Unity từ `Library/PackageCache` → tất cả ≤ 6000.2 (tương thích). Code không có guard/API riêng 6.3. Revision editor `c9992ac36c34`.
+- **Sửa**: `ProjectVersion.txt` → 6000.2.8f1; `manifest.json` hạ ugui 2.5.0→2.0.0, test-framework 1.7.0→1.6.0, multiplayer.center 1.0.1→1.0.0; **xóa** 2 module 6.3-only `modules.adaptiveperformance` + `modules.vectorgraphics` (không code nào dùng) khỏi manifest+lock. `ProjectSettings.asset` được Editor tự chuẩn hóa (bỏ 4 field 6.3-only, giữ define DOTWEEN).
+- **VERIFY (headless 6000.2.8f1, `-batchmode -nographics -quit`)**: exit 0, resolve sạch (hết "invalid dependencies"), **0 lỗi CS**, Tundra build success 34.77s, sinh đủ 5 assembly (Assembly-CSharp*, LuzartUI*). `OverflowException` của APIUpdater là lành tính (đọc cache graph bản cũ thất bại rồi tạo lại).
+- Pages: [[log]], [[decisions/unity-downgrade-6000.2.8-2026-07-15]].
+
+## [2026-07-15] bugfix | Sprite tím rịm (magenta) — thiếu material dùng chung
+- **Triệu chứng**: sau khi mở bằng 6000.2.8f1, mọi sprite tím rịm; chủ dự án yêu cầu built-in, không URP.
+- **Root cause (đã chứng minh)**: render pipeline đã là Built-in sẵn (không URP/SRP). Test quét material ref trong `Assets/Ctxd`: đúng **1 guid thiếu** `a97c105638bdf8b4a8650670310a4cd3` — material sprite dùng chung của 19 prefab (`unit_*`,`fx_*`) + `BattleServer.unity`. Là material 2D-default của URP gán tự động khi còn URP, thành tham chiếu chết khi URP bị gỡ ⇒ magenta. Guid chưa từng là `.mat` được commit.
+- **Fix**: tạo `Assets/Ctxd/Visual/UnitSprite.mat` (+meta guid khớp) dùng shader built-in `Sprites/Default` (fileID 10753) ⇒ 1 asset resolve cả 20 ref. Verify cấp tham chiếu: 0 material thiếu. Trực quan: chờ focus Editor (Assets→Refresh).
+- Memory: `ctxd-sprite-material` (mới). Pages: [[log]], [[bugs/magenta-sprites-missing-material-2026-07-15]].

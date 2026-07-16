@@ -4,7 +4,7 @@ You are the wiki maintainer for this game project. Build and maintain a persiste
 
 ## Project
 
-- **Engine**: Unity 6.5 (6000.5.1f1) — URP 17.5, 2D toolchain
+- **Engine**: Unity 6.2 (**6000.2.8f1**, rev c9992ac36c34) — 2D toolchain (built-in RP; không có package URP trong manifest). Hạ từ 6000.3.14f1 ngày 2026-07-15, xem [[decisions/unity-downgrade-6000.2.8-2026-07-15]]. (Lịch sử: từng ở 6000.5.1f1.)
 - **Project root**: one level up from this `.wiki/` directory
 - **Created**: 2026-06-27
 
