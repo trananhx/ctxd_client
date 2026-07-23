@@ -146,6 +146,38 @@ namespace Ctxd.Battle.Sim
             return killed;
         }
 
+        /// <summary>Instantly zero each group (soldiers→0); one GroupKilled per group. Returns soldiers removed.</summary>
+        public static int KillGroups(Combatant c, List<Group> groups, int round, List<BattleEvent> ev)
+        {
+            if (groups == null || groups.Count == 0) return 0;
+            int killed = 0;
+            foreach (var g in groups)
+            {
+                if (g.Soldiers <= 0) continue;
+                int lost = g.Soldiers; g.Soldiers = 0; killed += lost;
+                if (ev != null) ev.Add(GroupKilledEvent(c, g, round, lost));
+            }
+            c.SyncTroops();
+            return killed;
+        }
+
+        /// <summary>Set each group to max(1, round(MaxSoldiers*pct)), never above current. Returns soldiers removed.</summary>
+        public static int SetGroupsToHpPct(Combatant c, List<Group> groups, double pct, int round, List<BattleEvent> ev)
+        {
+            if (groups == null || groups.Count == 0) return 0;
+            if (pct < 0) pct = 0; if (pct > 1) pct = 1;
+            int removed = 0;
+            foreach (var g in groups)
+            {
+                int target = (int)System.Math.Round(g.MaxSoldiers * pct);
+                if (target < 1) target = 1;
+                if (target >= g.Soldiers) continue;
+                removed += g.Soldiers - target; g.Soldiers = target;
+            }
+            c.SyncTroops();
+            return removed;
+        }
+
         /// <summary>Refill soldiers across the formation (heal), front-most damaged group first, capped at MaxSoldiers.</summary>
         public static void HealFront(Combatant c, int amount)
         {
