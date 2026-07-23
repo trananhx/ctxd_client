@@ -123,7 +123,7 @@ namespace Ctxd.Battle.Sim
             TacticEffects.Get(tactic.Kind).Apply(new TacticContext
             {
                 Actor = actor, Target = target, Tactic = tactic, Awakened = awakened, StanceMult = stanceMult,
-                Terrain = State.Terrain, Round = State.Round, Rng = Rng, Cfg = _cfg, Events = ev,
+                Terrain = State.Terrain, Round = State.Round, Rng = Rng, Cfg = _cfg, Events = ev, State = State,
             });
         }
 

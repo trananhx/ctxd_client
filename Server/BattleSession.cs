@@ -114,7 +114,7 @@ namespace Ctxd.Server
             TacticEffects.Get(tactic.Kind).Apply(new TacticContext
             {
                 Actor = actor, Target = target, Tactic = tactic, Awakened = awakened,
-                StanceMult = 1.0, Terrain = _terrain, Round = St.Round, Rng = _runner.Rng, Cfg = _cfg, Events = ev,
+                StanceMult = 1.0, Terrain = _terrain, Round = St.Round, Rng = _runner.Rng, Cfg = _cfg, Events = ev, State = St,
             });
             actor.Morale = _cfg.MoraleAfterTacticReset;
 
