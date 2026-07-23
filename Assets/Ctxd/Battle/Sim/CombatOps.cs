@@ -39,23 +39,7 @@ namespace Ctxd.Battle.Sim
                 // các nhóm trong hàng hao cùng nhau và TAN NGUYÊN HÀNG một lượt — KHÔNG chết lẻ từng nhóm rồi mới tới nhóm sau.
                 int rowSoldiers = row.Soldiers;                                    // > 0 (FrontRow luôn còn sống)
                 int hitRow = remaining < rowSoldiers ? remaining : rowSoldiers;    // không vượt máu hàng
-                int distributed = 0;
-                foreach (var g in row.Groups)
-                {
-                    if (!g.Alive) continue;
-                    int share = (int)((long)hitRow * g.Soldiers / rowSoldiers);    // sàn theo tỉ lệ máu nhóm
-                    if (share > g.Soldiers) share = g.Soldiers;
-                    g.Soldiers -= share; distributed += share;
-                }
-                // phần dư do làm tròn xuống: dồn nốt vào các nhóm còn sống cho đủ hitRow
-                for (int i = 0; i < row.Groups.Count && distributed < hitRow; i++)
-                {
-                    var g = row.Groups[i];
-                    if (!g.Alive) continue;
-                    int take = hitRow - distributed;
-                    if (take > g.Soldiers) take = g.Soldiers;
-                    g.Soldiers -= take; distributed += take;
-                }
+                SpreadEven(row.Groups, hitRow);                                    // rải ĐỀU theo tỉ lệ máu (đã tách hàm dùng chung)
                 remaining -= hitRow; killed += hitRow;
 
                 if (!row.Alive)
@@ -73,6 +57,92 @@ namespace Ctxd.Battle.Sim
                 else break; // hàng đầu hấp thụ hết sát thương còn lại
             }
             target.SyncTroops();
+            return killed;
+        }
+
+        /// <summary>Locate a group's (rowIndex, groupIndex) inside a combatant's formation (-1,-1 if absent).</summary>
+        private static (int row, int grp) Locate(Combatant c, Group g)
+        {
+            for (int r = 0; r < c.Formation.Count; r++)
+            {
+                var row = c.Formation[r];
+                for (int i = 0; i < row.Groups.Count; i++)
+                    if (ReferenceEquals(row.Groups[i], g)) return (r, i);
+            }
+            return (-1, -1);
+        }
+
+        private static BattleEvent GroupKilledEvent(Combatant c, Group g, int round, int killedInGroup)
+        {
+            var (row, grp) = Locate(c, g);
+            return new BattleEvent
+            {
+                Round = round, Type = BattleEventType.GroupKilled, Side = c.Faction, ActorId = c.Id,
+                Amount = g.MaxSoldiers, RowIndex = row, GroupIndex = grp, Troop = g.Troop, SoldiersKilled = killedInGroup,
+                Text = $"{c.DisplayName}: 1 nhóm {g.Troop} tan",
+            };
+        }
+
+        /// <summary>Proportional even spread of <paramref name="hit"/> across living groups; returns actually removed.</summary>
+        private static int SpreadEven(List<Group> groups, int hit)
+        {
+            int total = 0; foreach (var g in groups) if (g.Alive) total += g.Soldiers;
+            if (total <= 0 || hit <= 0) return 0;
+            if (hit > total) hit = total;
+            int distributed = 0;
+            foreach (var g in groups)
+            {
+                if (!g.Alive) continue;
+                int share = (int)((long)hit * g.Soldiers / total);
+                if (share > g.Soldiers) share = g.Soldiers;
+                g.Soldiers -= share; distributed += share;
+            }
+            for (int i = 0; i < groups.Count && distributed < hit; i++)
+            {
+                var g = groups[i];
+                if (g.Soldiers <= 0) continue;
+                int take = hit - distributed;
+                if (take > g.Soldiers) take = g.Soldiers;
+                g.Soldiers -= take; distributed += take;
+            }
+            return distributed;
+        }
+
+        /// <summary>
+        /// Apply <paramref name="amount"/> to an arbitrary set of groups (capped at their living total).
+        /// EvenByHp = proportional; FocusFrontFirst = deplete list order. Emits one GroupKilled per group that dies.
+        /// Does NOT emit RowAdvanced (front-row-only concept) and does NOT spill beyond the given groups.
+        /// </summary>
+        public static int ApplyDamageToGroups(Combatant c, List<Group> groups, int amount, Distribution dist,
+                                              int round, List<BattleEvent> ev)
+        {
+            if (groups == null || groups.Count == 0 || amount <= 0) return 0;
+            var before = new int[groups.Count];
+            for (int i = 0; i < groups.Count; i++) before[i] = groups[i].Soldiers;
+
+            int killed;
+            if (dist == Distribution.FocusFrontFirst)
+            {
+                int remaining = amount, done = 0;
+                foreach (var g in groups)
+                {
+                    if (remaining <= 0) break;
+                    if (!g.Alive) continue;
+                    int take = remaining < g.Soldiers ? remaining : g.Soldiers;
+                    g.Soldiers -= take; remaining -= take; done += take;
+                }
+                killed = done;
+            }
+            else killed = SpreadEven(groups, amount);
+
+            if (ev != null)
+                for (int i = 0; i < groups.Count; i++)
+                {
+                    var g = groups[i];
+                    int lost = before[i] - g.Soldiers;
+                    if (lost > 0 && !g.Alive) ev.Add(GroupKilledEvent(c, g, round, lost));
+                }
+            c.SyncTroops();
             return killed;
         }
 

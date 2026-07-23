@@ -18,6 +18,12 @@ namespace Ctxd.Battle.Sim
         public string Text;
         public BattleOutcome Outcome;
 
+        // Optional structured addressing (additive; wire ignores absent/default via NullValueHandling).
+        public int RowIndex = -1;
+        public int GroupIndex = -1;
+        public TroopType Troop;
+        public int SoldiersKilled;
+
         public override string ToString()
             => $"[R{Round}] {Type} {Side} {ActorId}->{TargetId} amt={Amount:0} {(Crit ? "CRIT " : "")}{Text}".Trim();
     }
