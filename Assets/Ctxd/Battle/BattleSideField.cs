@@ -16,6 +16,7 @@ namespace Ctxd.Battle
     public sealed class BattleSideField : MonoBehaviour
     {
         private readonly List<UnitVisual> _units = new List<UnitVisual>();
+        private readonly List<RowHealthBar> _bars = new List<RowHealthBar>();
         private Vector3 _lungeDir;
         private Coroutine _lunge;
 
@@ -79,6 +80,17 @@ namespace Ctxd.Battle
                         _units.Add(uv);
                     }
                 }
+
+                // Per-row HP bar (snapshot-driven): fill = rowSoldiers / rowMaxSoldiers, above the row.
+                int rowMax = 0; foreach (var gg in row.Groups) rowMax += gg.MaxSoldiers;
+                Vector2 rowCenter = rowAxis * rowSlot;
+                var barPos = new Vector3(rowCenter.x, rowCenter.y + 0.55f, 0f);
+                var bar = RowHealthBar.Create(transform, barPos, 0.9f);
+                bar.SetRatio(rowMax > 0 ? (float)rowSoldiers / rowMax : 0f);
+                int barOrder = 700 - Mathf.RoundToInt((transform.position.y + barPos.y) * 50f);
+                bar.SetSortingOrder(barOrder);
+                _bars.Add(bar);
+
                 rowSlot++;
             }
 
@@ -133,6 +145,8 @@ namespace Ctxd.Battle
             transform.localPosition = Vector3.zero;
             foreach (var u in _units) if (u != null) Destroy(u.gameObject);
             _units.Clear();
+            foreach (var b in _bars) if (b != null) Destroy(b.gameObject);
+            _bars.Clear();
         }
     }
 }
