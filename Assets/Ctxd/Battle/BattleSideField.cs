@@ -60,9 +60,10 @@ namespace Ctxd.Battle
 
                     int cols = Mathf.Max(1, g.SpriteCols), srows = Mathf.Max(1, g.SpriteRows);
                     int capacity = cols * srows;
-                    int alive = g.MaxSoldiers > 0
-                        ? Mathf.Clamp(Mathf.CeilToInt(capacity * (float)g.Soldiers / g.MaxSoldiers), 0, capacity)
-                        : 0;
+                    // Nhóm còn sống → vẽ ĐỦ sprite; chết → 0. Máu vơi thể hiện qua thanh máu (RowHealthBar),
+                    // KHÔNG rụng lẻ từng sprite. ⇒ đòn thường: hàng đầu còn nguyên tới khi HP=0 rồi tan CÙNG LÚC;
+                    // skill nhắm nhóm/loại quân mới làm nhóm đó tan riêng (Soldiers nhóm đó về 0).
+                    int alive = g.Soldiers > 0 ? capacity : 0;
 
                     int idx = 0;
                     for (int sr = 0; sr < srows; sr++)
