@@ -21,6 +21,7 @@ namespace Ctxd.Battle.Sim
         public DeterministicRng Rng;
         public BattleConfig Cfg;
         public List<BattleEvent> Events;
+        public BattleState State;   // full battle state, for rule targeting (scope beyond the single Target)
 
         /// <summary>Awakening tactics ignore the stance triangle.</summary>
         public double EffMult => Awakened ? 1.0 : StanceMult;
