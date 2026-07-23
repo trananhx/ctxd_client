@@ -20,6 +20,7 @@ namespace Ctxd.Battle.Sim
             Register(new PushbackEffect());
             Register(new BuffEffect());
             Register(new HealEffect());
+            Register(new RuleEffect());
         }
 
         public static void Register(ITacticEffect effect) => _map[effect.Kind] = effect;
