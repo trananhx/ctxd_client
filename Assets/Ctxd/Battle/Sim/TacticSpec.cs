@@ -15,6 +15,7 @@ namespace Ctxd.Battle.Sim
         public double FixedPower;
         public int ConfusionTurns = 1;
         public int PushbackTroops;
+        public TacticProgram Program;   // non-null only when Kind == TacticEffectKind.Rule
         public string SkillAnimId, NameBannerId; // presentation refs (sim ignores)
     }
 }

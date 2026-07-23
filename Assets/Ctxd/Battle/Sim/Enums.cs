@@ -12,8 +12,15 @@ namespace Ctxd.Battle.Sim
     /// <summary>Effect family of a tactic (战法). Maps to an <see cref="ITacticEffect"/> Strategy via the registry.</summary>
     public enum TacticEffectKind
     {
-        Damage, AoeDamage, Confusion, InstantTo1Hp, Pushback, Buff, Heal,
+        Damage, AoeDamage, Confusion, InstantTo1Hp, Pushback, Buff, Heal, Rule,
     }
+
+    // ── Rule-engine enums (data-driven skill targeting) ──────────────────────
+    public enum TargetScope { EnemyActive, EnemyAll, AllySelf, AllyActive, AllyAll }
+    public enum RowMode { FrontRow, FrontNRows, AllRows, RowIndex }
+    public enum Distribution { EvenByHp, FocusFrontFirst }
+    public enum ConditionKind { Always, TargetHpBelowPct, TargetHpAbovePct, ActorMoraleFull, TerrainIs, TargetTroopPresent, Chance }
+    public enum ActionKind { Damage, InstantKill, SetToHpPct, Confuse, Pushback, Heal, Buff }
 
     public enum BattleEventType
     {
