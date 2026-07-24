@@ -12,9 +12,14 @@ Thư mục này nằm **ngoài `Assets/`** nên Unity không import/biên dịch
 | `decompiled/` | **Toàn bộ 1115 file Lua** đã decompile, cây tên gốc (`lua/game/battle/*`, `lua/layer/*`, …) |
 | `decompiled/res/lang_zh_cn.lua` | Bảng bản địa hoá **tiếng Việt** `[textId] = "..."` — tra tên hệ thống/item/chiến pháp |
 | `decompiled/_unmapped/` | 417 file chưa khôi phục được tên (giữ tên hash) — vẫn đọc được |
-| `tooling/hash2path.tsv` | Map `hash → đường-dẫn-module` (698 file đã đặt tên) |
+| [`assets/`](assets/ASSET-MANIFEST.md) | **2032 asset phi-Lua** trích từ APK: 1832 ảnh (PNG/JPEG), 142 plist atlas, audio, texture. 710 file khôi phục tên vào cây `res/`, còn lại ở `assets/_unmapped/`. Ảnh route qua **Git LFS**. |
+| [`assets/ASSET-MANIFEST.md`](assets/ASSET-MANIFEST.md) | Báo cáo asset: thống kê theo loại, phương pháp khôi phục tên, chỉ mục atlas (sprite-frame) |
+| `assets/res.lua` | `data_res_info`: manifest resource gốc (`hash → {content-md5, size}`) toàn bộ file tải về |
+| `assets/hash2asset.tsv` | Map `md5(path) → path` đã khôi phục cho asset (710 entry) |
+| `tooling/hash2path.tsv` | Map `hash → đường-dẫn-module` (698 file Lua đã đặt tên) |
 | `tooling/resolve.py` | Tra `textId → tiếng Việt`: `python tooling/resolve.py 190083 490727` |
 | `tooling/extract_strings.py` | Trích chuỗi UTF-8 từ bytecode (dùng khi chạy lại pipeline) |
+| `tooling/extract_assets.py` | Khôi phục tên & trích asset phi-Lua từ APK (sinh ra `assets/`) |
 
 ## Nguồn & bối cảnh
 
