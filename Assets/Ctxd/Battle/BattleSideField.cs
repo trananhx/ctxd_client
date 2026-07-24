@@ -8,15 +8,18 @@ using Ctxd.Visual;
 
 namespace Ctxd.Battle
 {
-    /// <summary>Marker on a group's anchor so a click raycast can identify which (field,row,group) was hit.</summary>
-    public sealed class GroupClickTarget : MonoBehaviour
-    {
-        public BattleSideField field;
-        public int rowIndex, groupIndex;
-    }
 
     /// <summary>HP + placement of a clicked row/group, for the on-demand HP bar.</summary>
     public struct HpTarget { public int soldiers, max; public Vector3 top; public float width; }
+
+    /// <summary>Tunable field spacing (from the director's Inspector). Multipliers on the base ISO layout.</summary>
+    public struct FieldLayout
+    {
+        public float rowSpacing;    // ↑ = rows further apart (fix overlapping rows)
+        public float groupSpacing;  // ↑ = groups within a row further apart
+        public float unitScale;     // per-sprite scale
+        public static FieldLayout Default => new FieldLayout { rowSpacing = 1.5f, groupSpacing = 1.1f, unitScale = 0.7f };
+    }
 
     /// <summary>
     /// One active general's army, rendered from a server <see cref="CombatantSnapshot"/> as PERSISTENT groups of
@@ -49,6 +52,7 @@ namespace Ctxd.Battle
         private Vector2 _rowAxis, _groupAxis, _spriteCol, _spriteRow;
         private float _unitScale;
         private Vector3 _lungeDir;
+        private FieldLayout _layout = FieldLayout.Default;
         private Coroutine _lunge, _idleCo;
 
         private const float DieDuration = 0.4f;
@@ -58,9 +62,9 @@ namespace Ctxd.Battle
         public string CombatantId => _snap != null ? _snap.Id : null;
 
         // ── build / update ─────────────────────────────────────────────────────────
-        public void Build(CombatantSnapshot snap, Faction faction, CtxdGameDatabase db)
+        public void Build(CombatantSnapshot snap, Faction faction, CtxdGameDatabase db, FieldLayout layout)
         {
-            _db = db; _faction = faction;
+            _db = db; _faction = faction; _layout = layout;
             ConfigureLayout(faction);
             ApplyStateInternal(snap, initial: true);
         }
@@ -71,12 +75,16 @@ namespace Ctxd.Battle
         private void ConfigureLayout(Faction faction)
         {
             bool offense = faction == Faction.Offense;
-            // Chiến trường ISO: Công (dưới-trái) ↔ Thủ (trên-phải). Hàng lùi theo "/"; nhóm trải theo "\".
-            _rowAxis   = offense ? new Vector2(-0.62f, -0.34f) : new Vector2(0.62f, 0.34f);
-            _groupAxis = new Vector2(0.80f, -0.40f);
+            // Hướng ISO cơ sở; khoảng cách hàng/nhóm NHÂN theo config (Inspector) để tách cho đỡ dính.
+            Vector2 rowDir   = offense ? new Vector2(-0.62f, -0.34f) : new Vector2(0.62f, 0.34f);
+            Vector2 groupDir = new Vector2(0.80f, -0.40f);
+            float rs = _layout.rowSpacing   > 0f ? _layout.rowSpacing   : 1f;
+            float gs = _layout.groupSpacing > 0f ? _layout.groupSpacing : 1f;
+            _rowAxis   = rowDir * rs;              // giãn cách HÀNG (chỗ đang bị đè lên nhau)
+            _groupAxis = groupDir * gs;           // giãn cách NHÓM trong một hàng
             _spriteCol = new Vector2(0.16f, -0.08f);
-            _spriteRow = _rowAxis * 0.16f;
-            _unitScale = 0.7f;
+            _spriteRow = rowDir * 0.16f;          // độ sâu cụm giữ nguyên (hướng cơ sở, không nhân) → cụm vẫn gọn
+            _unitScale = _layout.unitScale > 0f ? _layout.unitScale : 0.7f;
             _lungeDir  = offense ? new Vector3(0.5f, 0.28f, 0f) : new Vector3(-0.5f, -0.28f, 0f);
         }
 
