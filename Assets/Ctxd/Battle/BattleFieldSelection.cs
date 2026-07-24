@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Ctxd.Visual;
 
 namespace Ctxd.Battle
@@ -28,10 +29,12 @@ namespace Ctxd.Battle
 
         private void Update()
         {
-            if (!Input.GetMouseButtonDown(0)) return;
+            var pointer = Pointer.current;                     // mouse or touch (new Input System)
+            if (pointer == null || !pointer.press.wasPressedThisFrame) return;
             var c = Cam();
             if (c == null) return;
-            Vector3 wp = c.ScreenToWorldPoint(Input.mousePosition); wp.z = 0f;
+            Vector2 sp = pointer.position.ReadValue();
+            Vector3 wp = c.ScreenToWorldPoint(new Vector3(sp.x, sp.y, 0f)); wp.z = 0f;
             var hit = Physics2D.OverlapPoint(wp);
             var target = hit != null ? hit.GetComponent<GroupClickTarget>() : null;
             if (target == null || target.field == null) { Hide(); return; }

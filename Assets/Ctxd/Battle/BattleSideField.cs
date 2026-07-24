@@ -35,6 +35,7 @@ namespace Ctxd.Battle
             public Transform anchor;                 // child of field; sprites + collider live here
             public readonly List<UnitVisual> sprites = new List<UnitVisual>();
             public Vector2 slotPos;                  // anchor target/current local position
+            public int rowSlot;                      // render slot among LIVING rows (0 = front, engages)
             public bool dying;
             public Coroutine moveCo;
         }
@@ -112,7 +113,8 @@ namespace Ctxd.Battle
                     Vector2 target = _rowAxis * rowSlot + _groupAxis * (gi - (row.Groups.Count - 1) * 0.5f);
                     if (cell == null)
                     {
-                        _cells[key] = SpawnCell(g, r, gi, target);
+                        cell = SpawnCell(g, r, gi, target);
+                        _cells[key] = cell;
                     }
                     else
                     {
@@ -121,6 +123,7 @@ namespace Ctxd.Battle
                             MoveCell(cell, target);       // hàng sau tiến lên → tween Move
                         else if (initial) { cell.slotPos = target; if (cell.anchor != null) cell.anchor.localPosition = target; }
                     }
+                    cell.rowSlot = rowSlot;
                 }
             }
         }
@@ -221,8 +224,13 @@ namespace Ctxd.Battle
         // ── whole-general action animations (attack lunge, hurt) ─────────────────────
         public void PlayAction(UnitAction action)
         {
+            // Mặc định CHỈ hàng đầu (rowSlot 0) giao chiến → diễn Attack/Hurt; hàng sau đứng Idle chờ tiến lên.
+            // (Điểm mở rộng: sau này có thể cho phép hàng cụ thể được config cùng đánh — vd cung binh bắn từ sau.)
             foreach (var cell in _cells.Values)
+            {
+                if (cell.rowSlot != 0) continue;
                 foreach (var uv in cell.sprites) if (uv != null) uv.Play(action);
+            }
 
             if (action == UnitAction.Attack && isActiveAndEnabled)
             {
@@ -240,8 +248,11 @@ namespace Ctxd.Battle
         {
             yield return new WaitForSeconds(delay);
             foreach (var cell in _cells.Values)
+            {
+                if (cell.rowSlot != 0) continue;
                 foreach (var uv in cell.sprites)
                     if (uv != null && uv.Current != UnitAction.Move && uv.Current != UnitAction.Die) uv.PlayIdle();
+            }
         }
 
         private IEnumerator LungeCo()
