@@ -50,6 +50,7 @@ namespace Ctxd.Battle
         private void Start()
         {
             if (database != null) database.BuildIndex(true);
+            gameObject.AddComponent<BattleFieldSelection>();   // click a row/group → on-demand HP bar
 
             _offRoot = new GameObject("OffenseRoot").transform; _offRoot.SetParent(transform, false); _offRoot.localPosition = new Vector3(-1.9f, -1.25f, 0f);
             _defRoot = new GameObject("DefenseRoot").transform; _defRoot.SetParent(transform, false); _defRoot.localPosition = new Vector3(1.9f, 1.25f, 0f);
@@ -179,10 +180,18 @@ namespace Ctxd.Battle
             if (_state == null) return;
             var off = Active(_state.Offense);
             var def = Active(_state.Defense);
-            _offField = Rebuild(_offField, _offRoot, off, Faction.Offense);
-            _defField = Rebuild(_defField, _defRoot, def, Faction.Defense);
+            _offField = Reconcile(_offField, _offRoot, off, Faction.Offense);
+            _defField = Reconcile(_defField, _defRoot, def, Faction.Defense);
             ActiveGeneralsChanged?.Invoke(off, def);
             if (_hud != null) _hud.SetActiveGenerals(off, def);
+        }
+
+        /// <summary>Same active general → diff/animate in place; different general (or first) → hard rebuild.</summary>
+        private BattleSideField Reconcile(BattleSideField existing, Transform root, CombatantSnapshot c, Faction faction)
+        {
+            if (c == null) { if (existing != null) Destroy(existing.gameObject); return null; }
+            if (existing != null && existing.CombatantId == c.Id) { existing.ApplyState(c); return existing; }
+            return Rebuild(existing, root, c, faction);
         }
 
         private BattleSideField Rebuild(BattleSideField existing, Transform root, CombatantSnapshot c, Faction faction)

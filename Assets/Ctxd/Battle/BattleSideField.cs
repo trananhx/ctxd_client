@@ -8,119 +8,240 @@ using Ctxd.Visual;
 
 namespace Ctxd.Battle
 {
+    /// <summary>Marker on a group's anchor so a click raycast can identify which (field,row,group) was hit.</summary>
+    public sealed class GroupClickTarget : MonoBehaviour
+    {
+        public BattleSideField field;
+        public int rowIndex, groupIndex;
+    }
+
+    /// <summary>HP + placement of a clicked row/group, for the on-demand HP bar.</summary>
+    public struct HpTarget { public int soldiers, max; public Vector3 top; public float width; }
+
     /// <summary>
-    /// One active general's army, rendered from a server <see cref="CombatantSnapshot"/> as SEPARATED rows of
-    /// troop-groups (each group a cluster of prefab units of its own troop type) plus a large HERO figure at the
-    /// front. Front row faces the enemy; deeper rows recede. Pure rendering, every unit a prefab-in-SO; no Find.
+    /// One active general's army, rendered from a server <see cref="CombatantSnapshot"/> as PERSISTENT groups of
+    /// troop-sprites. Instead of destroy+rebuild per snapshot, <see cref="ApplyState"/> DIFFS the new snapshot and
+    /// animates transitions: new groups spawn Idle, dead groups play Die then vanish, and groups whose row advanced
+    /// tween forward (Move). Each group carries a click collider so the UI can show its HP bar on demand.
     /// </summary>
     public sealed class BattleSideField : MonoBehaviour
     {
-        private readonly List<UnitVisual> _units = new List<UnitVisual>();
-        private readonly List<RowHealthBar> _bars = new List<RowHealthBar>();
+        private sealed class Cell
+        {
+            public int rowIndex, groupIndex;
+            public TroopType troop;
+            public int soldiers, maxSoldiers, capacity;
+            public int cols, srows;
+            public Transform anchor;                 // child of field; sprites + collider live here
+            public readonly List<UnitVisual> sprites = new List<UnitVisual>();
+            public Vector2 slotPos;                  // anchor target/current local position
+            public bool dying;
+            public Coroutine moveCo;
+        }
+
+        private readonly Dictionary<(int row, int grp), Cell> _cells = new Dictionary<(int, int), Cell>();
+        private CtxdGameDatabase _db;
+        private Faction _faction;
+        private CombatantSnapshot _snap;
+
+        // layout axes (isometric), set in ConfigureLayout
+        private Vector2 _rowAxis, _groupAxis, _spriteCol, _spriteRow;
+        private float _unitScale;
         private Vector3 _lungeDir;
-        private Coroutine _lunge;
+        private Coroutine _lunge, _idleCo;
 
-        /// <summary>Where damage numbers / cast effects appear (above the block).</summary>
+        private const float DieDuration = 0.4f;
+        private const float MoveDuration = 0.3f;
+
         public Vector3 Center => transform.position + Vector3.up * 0.7f;
+        public string CombatantId => _snap != null ? _snap.Id : null;
 
+        // ── build / update ─────────────────────────────────────────────────────────
         public void Build(CombatantSnapshot snap, Faction faction, CtxdGameDatabase db)
         {
-            Clear();
+            _db = db; _faction = faction;
+            ConfigureLayout(faction);
+            ApplyStateInternal(snap, initial: true);
+        }
+
+        /// <summary>Diff the new snapshot against live groups and animate the deltas (same active general).</summary>
+        public void ApplyState(CombatantSnapshot snap) => ApplyStateInternal(snap, initial: false);
+
+        private void ConfigureLayout(Faction faction)
+        {
             bool offense = faction == Faction.Offense;
-            // Chiến trường ISO: Công (dưới-trái) ↔ Thủ (trên-phải) giáp mặt theo đường chéo "/".
-            // 1 HÀNG NGANG trải theo đường chéo "\" (vuông góc trục giáp mặt); các HÀNG lùi dần theo "/" ra xa địch.
-            Vector2 rowAxis   = offense ? new Vector2(-0.62f, -0.34f) : new Vector2(0.62f, 0.34f);  // lùi hàng ra xa địch ("/")
-            Vector2 groupAxis = new Vector2(0.80f, -0.40f);                                          // nhóm đứng cạnh nhau trong 1 hàng ("\")
-            Vector2 spriteCol = new Vector2(0.16f, -0.08f);                                          // lính trong nhóm xếp theo hàng ("\")
-            Vector2 spriteRow = rowAxis * 0.16f;                                                     // độ dày nhóm theo hướng lùi
-            const float unitScale = 0.7f;
-            _lungeDir = offense ? new Vector3(0.5f, 0.28f, 0f) : new Vector3(-0.5f, -0.28f, 0f);      // lao thẳng về phía địch ("/")
+            // Chiến trường ISO: Công (dưới-trái) ↔ Thủ (trên-phải). Hàng lùi theo "/"; nhóm trải theo "\".
+            _rowAxis   = offense ? new Vector2(-0.62f, -0.34f) : new Vector2(0.62f, 0.34f);
+            _groupAxis = new Vector2(0.80f, -0.40f);
+            _spriteCol = new Vector2(0.16f, -0.08f);
+            _spriteRow = _rowAxis * 0.16f;
+            _unitScale = 0.7f;
+            _lungeDir  = offense ? new Vector3(0.5f, 0.28f, 0f) : new Vector3(-0.5f, -0.28f, 0f);
+        }
 
-            int rowCount = snap?.Formation != null ? snap.Formation.Count : 0;
-            int livingRows = 0;
-            if (snap?.Formation != null)
-                foreach (var row in snap.Formation)
-                { int s = 0; foreach (var g in row.Groups) s += g.Soldiers; if (s > 0) livingRows++; }
+        private void ApplyStateInternal(CombatantSnapshot snap, bool initial)
+        {
+            _snap = snap;
+            if (snap?.Formation == null) return;
 
-            // DẠNG "vài hàng quân": TƯỚNG CHÍNH LÀ các hàng lính (không có figure tướng riêng). Server luôn ăn HÀNG ĐẦU
-            // trước ⇒ hàng sát địch chết trước; các hàng CÒN SỐNG nén về trước (rowSlot) ⇒ "các hàng sống VẪN TIẾN LÊN"
-            // cho tới khi hết sạch = tướng chết. (Phó tướng = 1 hàng của tướng này, server đã ghép sẵn vào Formation.)
-            int rowSlot = 0;
-            for (int r = 0; r < rowCount; r++)
+            // render slot for each LIVING row (formation order) → living rows behind a cleared row advance forward.
+            var rowSlotOf = new Dictionary<int, int>();
+            int slot = 0;
+            for (int r = 0; r < snap.Formation.Count; r++)
             {
-                var row = snap.Formation[r];
-                int rowSoldiers = 0; foreach (var gg in row.Groups) rowSoldiers += gg.Soldiers;
-                if (rowSoldiers <= 0) continue;   // hàng đã tan → hàng sau tiến lên chiếm chỗ
-                int groups = row.Groups.Count;
-                for (int gi = 0; gi < groups; gi++)
-                {
-                    var g = row.Groups[gi];
-                    var visual = db != null ? db.GetVisualForTroop(g.Troop) : null;
-                    Vector2 groupCenter = rowAxis * rowSlot + groupAxis * (gi - (groups - 1) * 0.5f);
-
-                    int cols = Mathf.Max(1, g.SpriteCols), srows = Mathf.Max(1, g.SpriteRows);
-                    int capacity = cols * srows;
-                    // Nhóm còn sống → vẽ ĐỦ sprite; chết → 0. Máu vơi thể hiện qua thanh máu (RowHealthBar),
-                    // KHÔNG rụng lẻ từng sprite. ⇒ đòn thường: hàng đầu còn nguyên tới khi HP=0 rồi tan CÙNG LÚC;
-                    // skill nhắm nhóm/loại quân mới làm nhóm đó tan riêng (Soldiers nhóm đó về 0).
-                    int alive = g.Soldiers > 0 ? capacity : 0;
-
-                    int idx = 0;
-                    for (int sr = 0; sr < srows; sr++)
-                    for (int sc = 0; sc < cols; sc++)
-                    {
-                        if (idx++ >= alive) continue;
-                        var uv = VisualSpawner.SpawnUnit(visual, faction, transform);
-                        if (uv == null) continue;
-                        Vector2 p = groupCenter + spriteCol * (sc - (cols - 1) * 0.5f) + spriteRow * sr;
-                        uv.transform.localPosition = new Vector3(p.x, p.y, 0f);
-                        uv.transform.localScale = Vector3.one * unitScale;
-                        int order = 500 - Mathf.RoundToInt((transform.position.y + p.y) * 50f);
-                        uv.baseSortingOrder = order; uv.SetSortingOrder(order);
-                        uv.PlayIdle();
-                        _units.Add(uv);
-                    }
-                }
-
-                // Per-row HP bar (snapshot-driven): fill = rowSoldiers / rowMaxSoldiers, above the row.
-                int rowMax = 0; foreach (var gg in row.Groups) rowMax += gg.MaxSoldiers;
-                Vector2 rowCenter = rowAxis * rowSlot;
-                var barPos = new Vector3(rowCenter.x, rowCenter.y + 0.55f, 0f);
-                var bar = RowHealthBar.Create(transform, barPos, 0.9f);
-                bar.SetRatio(rowMax > 0 ? (float)rowSoldiers / rowMax : 0f);
-                int barOrder = 700 - Mathf.RoundToInt((transform.position.y + barPos.y) * 50f);
-                bar.SetSortingOrder(barOrder);
-                _bars.Add(bar);
-
-                rowSlot++;
+                int s = 0; foreach (var g in snap.Formation[r].Groups) s += g.Soldiers;
+                if (s > 0) { rowSlotOf[r] = slot; slot++; }
             }
 
-            // DẠNG "1 CON TƯỚNG" (không có hàng quân nào): thể hiện bằng MỘT đơn vị tướng lớn — tướng chết khi đơn vị
-            // này hết máu. Data hiện tại đều là "vài hàng quân" nên nhánh này KHÔNG kích hoạt (không có figure thừa).
-            if (livingRows == 0 && snap != null)
+            for (int r = 0; r < snap.Formation.Count; r++)
             {
-                var heroVisual = db != null ? db.GetVisualForTroop(snap.Troop) : null;
-                var hero = VisualSpawner.SpawnUnit(heroVisual, faction, transform);
-                if (hero != null)
+                var row = snap.Formation[r];
+                for (int gi = 0; gi < row.Groups.Count; gi++)
                 {
-                    hero.transform.localPosition = Vector3.zero;
-                    hero.transform.localScale = Vector3.one * 1.6f;
-                    int ho = 560 - Mathf.RoundToInt(transform.position.y * 50f);
-                    hero.baseSortingOrder = ho; hero.SetSortingOrder(ho);
-                    hero.PlayIdle();
-                    _units.Add(hero);
+                    var g = row.Groups[gi];
+                    var key = (r, gi);
+                    _cells.TryGetValue(key, out var cell);
+
+                    if (g.Soldiers <= 0)
+                    {
+                        if (cell != null && !cell.dying) KillCell(cell);   // nhóm chết → Die rồi biến mất
+                        continue;
+                    }
+
+                    int rowSlot = rowSlotOf[r];
+                    Vector2 target = _rowAxis * rowSlot + _groupAxis * (gi - (row.Groups.Count - 1) * 0.5f);
+                    if (cell == null)
+                    {
+                        _cells[key] = SpawnCell(g, r, gi, target);
+                    }
+                    else
+                    {
+                        cell.soldiers = g.Soldiers; cell.maxSoldiers = g.MaxSoldiers;
+                        if (!initial && (cell.slotPos - target).sqrMagnitude > 0.0001f)
+                            MoveCell(cell, target);       // hàng sau tiến lên → tween Move
+                        else if (initial) { cell.slotPos = target; if (cell.anchor != null) cell.anchor.localPosition = target; }
+                    }
                 }
             }
         }
 
+        // ── cell lifecycle ─────────────────────────────────────────────────────────
+        private Cell SpawnCell(GroupSnapshot g, int r, int gi, Vector2 target)
+        {
+            var anchorGo = new GameObject($"Grp_{r}_{gi}_{g.Troop}");
+            var anchor = anchorGo.transform;
+            anchor.SetParent(transform, false);
+            anchor.localPosition = new Vector3(target.x, target.y, 0f);
+
+            int cols = Mathf.Max(1, g.SpriteCols), srows = Mathf.Max(1, g.SpriteRows);
+            var cell = new Cell
+            {
+                rowIndex = r, groupIndex = gi, troop = g.Troop, soldiers = g.Soldiers, maxSoldiers = g.MaxSoldiers,
+                capacity = cols * srows, cols = cols, srows = srows, anchor = anchor, slotPos = target,
+            };
+
+            var visual = _db != null ? _db.GetVisualForTroop(g.Troop) : null;
+            for (int sr = 0; sr < srows; sr++)
+            for (int sc = 0; sc < cols; sc++)
+            {
+                var uv = VisualSpawner.SpawnUnit(visual, _faction, anchor);
+                if (uv == null) continue;
+                Vector2 off = _spriteCol * (sc - (cols - 1) * 0.5f) + _spriteRow * sr;
+                uv.transform.localPosition = new Vector3(off.x, off.y, 0f);
+                uv.transform.localScale = Vector3.one * _unitScale;
+                uv.PlayIdle();
+                cell.sprites.Add(uv);
+            }
+
+            var ct = anchorGo.AddComponent<GroupClickTarget>();
+            ct.field = this; ct.rowIndex = r; ct.groupIndex = gi;
+            var col = anchorGo.AddComponent<BoxCollider2D>();
+            col.isTrigger = true;
+            col.offset = new Vector2(0f, 0.15f);
+            col.size = new Vector2(cols * 0.22f + 0.35f, srows * 0.18f + 0.6f);
+
+            UpdateSorting(cell);
+            return cell;
+        }
+
+        private void KillCell(Cell cell)
+        {
+            cell.dying = true;
+            _cells.Remove((cell.rowIndex, cell.groupIndex));
+            if (cell.moveCo != null) StopCoroutine(cell.moveCo);
+            if (cell.anchor != null)
+            {
+                var col = cell.anchor.GetComponent<BoxCollider2D>(); if (col != null) col.enabled = false;
+            }
+            foreach (var uv in cell.sprites) if (uv != null) uv.PlayDie();
+            StartCoroutine(DestroyAfter(cell.anchor, DieDuration));
+        }
+
+        private IEnumerator DestroyAfter(Transform t, float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            if (t != null) Destroy(t.gameObject);
+        }
+
+        private void MoveCell(Cell cell, Vector2 target)
+        {
+            cell.slotPos = target;
+            if (cell.moveCo != null) StopCoroutine(cell.moveCo);
+            cell.moveCo = StartCoroutine(MoveCo(cell, target));
+        }
+
+        private IEnumerator MoveCo(Cell cell, Vector2 target)
+        {
+            foreach (var uv in cell.sprites) if (uv != null) uv.Play(UnitAction.Move);
+            Vector3 from = cell.anchor != null ? cell.anchor.localPosition : Vector3.zero;
+            Vector3 to = new Vector3(target.x, target.y, 0f);
+            float t = 0f;
+            while (t < MoveDuration && cell.anchor != null)
+            {
+                t += Time.deltaTime;
+                cell.anchor.localPosition = Vector3.Lerp(from, to, Mathf.Clamp01(t / MoveDuration));
+                yield return null;
+            }
+            if (cell.anchor != null) cell.anchor.localPosition = to;
+            foreach (var uv in cell.sprites) if (uv != null) uv.PlayIdle();
+            UpdateSorting(cell);
+            cell.moveCo = null;
+        }
+
+        private void UpdateSorting(Cell cell)
+        {
+            foreach (var uv in cell.sprites)
+            {
+                if (uv == null) continue;
+                int order = 500 - Mathf.RoundToInt(uv.transform.position.y * 50f);
+                uv.baseSortingOrder = order; uv.SetSortingOrder(order);
+            }
+        }
+
+        // ── whole-general action animations (attack lunge, hurt) ─────────────────────
         public void PlayAction(UnitAction action)
         {
-            foreach (var u in _units) if (u != null) u.Play(action);
+            foreach (var cell in _cells.Values)
+                foreach (var uv in cell.sprites) if (uv != null) uv.Play(action);
+
             if (action == UnitAction.Attack && isActiveAndEnabled)
             {
                 if (_lunge != null) StopCoroutine(_lunge);
                 _lunge = StartCoroutine(LungeCo());
             }
+            if (action == UnitAction.Attack || action == UnitAction.Hurt)
+            {
+                if (_idleCo != null) StopCoroutine(_idleCo);
+                _idleCo = StartCoroutine(ReturnIdle(0.5f));
+            }
+        }
+
+        private IEnumerator ReturnIdle(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            foreach (var cell in _cells.Values)
+                foreach (var uv in cell.sprites)
+                    if (uv != null && uv.Current != UnitAction.Move && uv.Current != UnitAction.Die) uv.PlayIdle();
         }
 
         private IEnumerator LungeCo()
@@ -138,16 +259,31 @@ namespace Ctxd.Battle
             _lunge = null;
         }
 
-        public void SetTroopRatio(float ratio) { }   // snapshot-driven now (server soldier counts)
-
-        public void Clear()
+        // ── HP accessors for the on-demand bar ───────────────────────────────────────
+        public bool TryGetGroup(int rowIndex, int groupIndex, out HpTarget info)
         {
-            if (_lunge != null) { StopCoroutine(_lunge); _lunge = null; }
-            transform.localPosition = Vector3.zero;
-            foreach (var u in _units) if (u != null) Destroy(u.gameObject);
-            _units.Clear();
-            foreach (var b in _bars) if (b != null) Destroy(b.gameObject);
-            _bars.Clear();
+            info = default;
+            if (!_cells.TryGetValue((rowIndex, groupIndex), out var cell) || cell.dying || cell.anchor == null) return false;
+            info.soldiers = cell.soldiers; info.max = cell.maxSoldiers;
+            info.top = cell.anchor.position + Vector3.up * 0.55f;
+            info.width = Mathf.Max(0.4f, cell.cols * 0.16f + 0.2f);
+            return true;
+        }
+
+        public bool TryGetRow(int rowIndex, out HpTarget info)
+        {
+            info = default;
+            Vector3 sum = Vector3.zero; int n = 0, sol = 0, max = 0;
+            foreach (var cell in _cells.Values)
+            {
+                if (cell.rowIndex != rowIndex || cell.dying || cell.anchor == null) continue;
+                sum += cell.anchor.position; n++; sol += cell.soldiers; max += cell.maxSoldiers;
+            }
+            if (n == 0) return false;
+            info.soldiers = sol; info.max = max;
+            info.top = sum / n + Vector3.up * 0.75f;
+            info.width = Mathf.Max(0.6f, n * 0.55f + 0.3f);
+            return true;
         }
     }
 }
