@@ -12,6 +12,66 @@ namespace Ctxd.Server
     //  client never holds the source of truth for these numbers — only visuals.
     // ─────────────────────────────────────────────────────────────────────────
 
+    /// <summary>One authored rule step in scenario.json (select → condition → act) → sim <see cref="RuleStep"/>.</summary>
+    public sealed class RuleStepDto
+    {
+        // SELECT — which combatants + which groups
+        public string Scope = "EnemyActive";   // EnemyActive | EnemyAll | AllySelf | AllyActive | AllyAll
+        public string Rows = "FrontRow";       // FrontRow | FrontNRows | AllRows | RowIndex
+        public int RowCount = 1;               // Rows == FrontNRows
+        public int RowIndex = 0;               // Rows == RowIndex
+        public List<string> TroopFilter;       // troop names to hit (e.g. ["ChienXa"]); non-empty → filter by troop
+        public int MaxGroups = 0;              // 0 = unlimited
+
+        // CONDITION — optional gate
+        public string Condition = "Always";    // Always | TargetHpBelowPct | TargetHpAbovePct | ActorMoraleFull | TerrainIs | TargetTroopPresent | Chance
+        public double CondValue = 0;           // pct / probability
+        public string CondTerrain = "Plain";
+        public string CondTroop = "CungBinh";
+
+        // ACTION — what to do
+        public string Action = "Damage";       // Damage | InstantKill | SetToHpPct | Confuse | Pushback | Heal | Buff
+        public double PowerScale = 1.0;
+        public string Dist = "EvenByHp";        // EvenByHp | FocusFrontFirst
+        public double HpPct = 0.0;
+        public int ConfuseTurns = 1;
+        public int PushbackTroops = 0;
+        public double HealScale = 1.0;
+
+        public RuleStep ToStep()
+        {
+            int mask = 0; bool filter = false;
+            if (TroopFilter != null && TroopFilter.Count > 0)
+            {
+                filter = true;
+                foreach (var s in TroopFilter)
+                    if (Enum.TryParse<TroopType>(s, true, out var tt)) mask |= 1 << (int)tt;
+            }
+            return new RuleStep
+            {
+                Select = new TargetSelect
+                {
+                    Scope = P(Scope, TargetScope.EnemyActive),
+                    Rows = P(Rows, RowMode.FrontRow),
+                    RowCount = RowCount, RowIndexValue = RowIndex,
+                    FilterByTroop = filter, TroopMask = mask, MaxGroups = MaxGroups,
+                },
+                Condition = new RuleCondition
+                {
+                    Kind = P(Condition, ConditionKind.Always),
+                    Value = CondValue, Terrain = P(CondTerrain, Terrain.Plain), Troop = P(CondTroop, TroopType.CungBinh),
+                },
+                Action = new RuleAction
+                {
+                    Kind = P(Action, ActionKind.Damage), PowerScale = PowerScale, Dist = P(Dist, Distribution.EvenByHp),
+                    HpPct = HpPct, ConfuseTurns = ConfuseTurns, PushbackTroops = PushbackTroops, HealScale = HealScale,
+                },
+            };
+        }
+
+        private static T P<T>(string s, T fallback) where T : struct => Enum.TryParse<T>(s, true, out var v) ? v : fallback;
+    }
+
     public sealed class TacticDto
     {
         public string Id, Name, Kind = "Damage";
@@ -22,13 +82,26 @@ namespace Ctxd.Server
         public int ConfusionTurns = 1;
         public int PushbackTroops;
 
-        public TacticSpec ToSpec() => new TacticSpec
+        /// <summary>Rule-engine program (data-driven targeting). Non-empty → Kind becomes Rule and legacy Kind is ignored.</summary>
+        public List<RuleStepDto> Program;
+
+        public TacticSpec ToSpec()
         {
-            Id = Id, DisplayName = string.IsNullOrEmpty(Name) ? Id : Name,
-            Kind = ParseEnum(Kind, TacticEffectKind.Damage),
-            RowsHit = RowsHit, Power = Power, IsAwakening = IsAwakening,
-            FixedPower = FixedPower, ConfusionTurns = ConfusionTurns, PushbackTroops = PushbackTroops,
-        };
+            bool hasProgram = Program != null && Program.Count > 0;
+            var spec = new TacticSpec
+            {
+                Id = Id, DisplayName = string.IsNullOrEmpty(Name) ? Id : Name,
+                Kind = hasProgram ? TacticEffectKind.Rule : ParseEnum(Kind, TacticEffectKind.Damage),
+                RowsHit = RowsHit, Power = Power, IsAwakening = IsAwakening,
+                FixedPower = FixedPower, ConfusionTurns = ConfusionTurns, PushbackTroops = PushbackTroops,
+            };
+            if (hasProgram)
+            {
+                spec.Program = new TacticProgram();
+                foreach (var s in Program) if (s != null) spec.Program.Steps.Add(s.ToStep());
+            }
+            return spec;
+        }
 
         private static T ParseEnum<T>(string s, T fallback) where T : struct
             => Enum.TryParse<T>(s, true, out var v) ? v : fallback;

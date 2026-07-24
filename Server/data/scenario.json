@@ -33,7 +33,10 @@
       "Id": "machao", "DisplayName": "Mã Siêu", "Troop": "KyBinh",
       "NormalAtk": 620, "NormalDef": 300, "TacticAtk": 560, "TacticDef": 280, "Strategy": 72, "Resilience": 0.09,
       "TroopCapacity": 12880, "Rows": 4,
-      "Skill2": { "Id": "ironcav", "Name": "Thiết Kỵ Vô Địch", "Kind": "Damage", "RowsHit": 2, "Power": 1.7 }
+      "Skill2": { "Id": "polei", "Name": "Phá Trận Cung (rule)", "Kind": "Rule",
+        "Program": [
+          { "Scope": "EnemyAll", "Rows": "AllRows", "TroopFilter": ["CungBinh"], "Action": "Damage", "PowerScale": 1.8 }
+        ]}
     },
     {
       "Id": "huangzhong", "DisplayName": "Hoàng Trung", "Troop": "CungBinh",
