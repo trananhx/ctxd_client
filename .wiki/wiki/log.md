@@ -2,7 +2,7 @@
 title: Log
 category: log
 created: 2026-06-27
-updated: 2026-06-27
+updated: 2026-07-24
 ---
 
 # ctxd_client — Log
@@ -202,3 +202,24 @@ Chronological record of all wiki operations.
 - **Root cause (đã chứng minh)**: render pipeline đã là Built-in sẵn (không URP/SRP). Test quét material ref trong `Assets/Ctxd`: đúng **1 guid thiếu** `a97c105638bdf8b4a8650670310a4cd3` — material sprite dùng chung của 19 prefab (`unit_*`,`fx_*`) + `BattleServer.unity`. Là material 2D-default của URP gán tự động khi còn URP, thành tham chiếu chết khi URP bị gỡ ⇒ magenta. Guid chưa từng là `.mat` được commit.
 - **Fix**: tạo `Assets/Ctxd/Visual/UnitSprite.mat` (+meta guid khớp) dùng shader built-in `Sprites/Default` (fileID 10753) ⇒ 1 asset resolve cả 20 ref. Verify cấp tham chiếu: 0 material thiếu. Trực quan: chờ focus Editor (Assets→Refresh).
 - Memory: `ctxd-sprite-material` (mới). Pages: [[log]], [[bugs/magenta-sprites-missing-material-2026-07-15]].
+
+## [2026-07-24] ingest/decision | Unified Unit Entity Model
+- Chốt mô hình **tướng+lính = 1 đối tượng** từ directive chủ dự án + 4 ảnh màn "Tướng lĩnh" (mobile 攻城掠地). Đọc 3 đơn vị (UNIT A nữ áo tím Lv.220 công thành / UNIT B nam giáp vàng Lv.201 Dũng 62 không chiến pháp / UNIT C nam tóc trắng Lv.204 kỵ binh) → gear Công/Thủ/Sức chứa quân, Thống/Dũng, binh chủng có bậc sao, chiến pháp, chiến thuật icon, thiên phú Lực chiến, binh lực/mộ binh.
+- Pages created: [[systems/unit-entity-model]], [[decisions/unified-unit-entity-model-2026-07-24]], [[sources/ingame-general-panel-2026-07-24]]
+- Pages updated: thêm 5 claims (c-20260724-01..05); reframe [[systems/general-system]] / [[systems/troop-types]] / [[systems/tactics-and-rage]] / [[entities/generals]] + [[GDD]] §4/§5; resolve quan-hệ tướng-lính; mở [[contradictions]] x-20260724-01 (Thống/Dũng ↔ code NormalAtk/TacticAtk chưa chốt) + [[open-questions]] q-20260724-01..03. Chạy qua 2 workflow (reconcile + verify: 13/13 code-gap CONFIRMED).
+- Ghi chú FIX: giữ nguyên chữ "Lực chiến (战力)" = chỉ số tổng hợp (không dịch "sát thương", DESIGN INTENT chênh → [[systems/equipment-and-gear]] open-question 战力); Thống/Dũng ↔ NormalAtk/TacticAtk là suy diễn (mâu thuẫn 3 chiều → [[contradictions]]); ảnh bản MOBILE, chờ chốt vs somo webgame ([[decisions/game-version-scope]]); hậu tố LV4/cấp4 = bậc sao binh chủng 4★ (suy luận, tách khỏi cấp tướng).
+
+## [2026-07-24] verify | Đối chiếu web CTXD
+- Chạy workflow tìm-kiếm-web + phản biện (URL thật). Xác nhận: 统/勇 (không có 武力) → resolve x-20260724-01; binh lực=HP chết-theo-hàng; 带兵量 3 trụ; số hàng riêng từng 战法; cast thủ công; 战力≠sát thương.
+- Sửa: Nhục Bác Tứ Sĩ→Tử Sĩ (binh chủng Chu Thái, giải thích chiến pháp trống); Mã Siêu=铁骑无敌 3 hàng → tách UNIT C.
+- GIỮ nghi vấn: bậc sao binh chủng (số liệu game khác, chưa gán CTXD), +60% công thành UNVERIFIED, tên 攻城车/黄金战骑.
+- Pages created: [[sources/ctxd-web-verify-2026-07-24]]
+- Pages updated: [[log]], [[claims]], [[contradictions]], [[open-questions]], [[systems/general-system]], [[systems/troop-types]], [[systems/tactics-and-rage]], [[entities/generals]], [[GDD]]
+
+## [2026-07-24] ingest | Dịch ngược APK client 攻城掠地 (nguồn sơ cấp)
+- **Dịch ngược APK** `Xưng Đế Công Thành_1.apk` (game 8.9.0.6, chính game ctxd_client làm lại): Cocos2d-x + LuaJIT; decompile **1115/1115** file bytecode bằng `luajit-decompiler-v2`; khôi phục tên qua `md5(path.lua)` → cây source 698 file có tên. Bảng bản địa hoá Việt (`res/lang_zh_cn`).
+- Chạy **6 subagent song song** bóc tách: battle engine (server-replay, ~47 event type, 12 hàng, phantom, Surround), binh chủng (4 hệ 步/弓/骑/器械), tướng (Thống/Dũng, 6 phẩm chất, Thức tỉnh, roster ~24 tướng), chiến pháp/nộ (mã ID 7 chữ số ×địa hình, cast server-gate+tap), kinh tế (nô lệ, 6 khu thành, cây công nghệ), meta (3 nước, Hội chiến, Phong Địa≠bang hội, cross-server).
+- **Kết luận then chốt**: kiến trúc **server-authoritative** (client chỉ replay report) → con số cân bằng ở server; GDD dịch ngược mạnh về cấu trúc/luật/enum.
+- Pages created: [[sources/apk-reverse-engineering-2026-07-24]] (+ nguồn bất biến `raw/references/apk-reverse-engineering-gcld-2026-07-24.md`, 618 dòng)
+- Pages updated: [[claims]] (+10: c-20260724-07…16 client-confirmed), [[contradictions]] (**giải quyết x-05 phẩm chất→A**; củng cố x-01 binh chủng, x-02 nộ, x-06 12-hàng), [[index]]; cần lan sang [[systems/battle-system]] / [[systems/tactics-and-rage]] / [[systems/troop-types]] / [[systems/general-system]] (callout xác thực client).
+- File GDD standalone đầy đủ: `scratchpad/GDD_final.md` (bản deliverable độc lập cho chủ dự án).

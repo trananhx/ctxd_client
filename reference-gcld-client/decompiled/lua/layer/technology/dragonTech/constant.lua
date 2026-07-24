@@ -1,0 +1,72 @@
+﻿dragonTechConstant = {}
+dragonTechConstant.RES = {
+	"res/ui/technology/dragonTech/dragonTechPic.plist",
+	"res/ui/technology/dragonTech/dragonTechPic1.plist",
+	"res/ui/technology/technologyPic.plist",
+	"res/ui/technology/technologyPic1.plist"
+}
+dragonTechConstant.techPic = {
+	shadow = "frame:lm_tit_hysx.png",
+	zhengdian = "frame:lm_tit_zdjl.png",
+	jianta = "frame:lm_tit_xbj.png",
+	junzi = "frame:lm_tit_jzjl.png",
+	guanzhi = "frame:lm_tit_gzqh.png",
+	isLianxie = "frame:lm_tit_jqqd2.png",
+	minzhong = "frame:lm_tit_mzjl.png",
+	heishi = "frame:lm_tit_hsyhs.png",
+	ssgf = "frame:lm_tit_jdxs.png",
+	gem = "frame:lm_tit_gxbs.png",
+	lvup = "frame:lm_tit_srwyb.png",
+	liangcang = "frame:lm_tit_gjl.png",
+	market = "frame:lm_tit_jssy.png",
+	tsc = "frame:lm_tit_phs.png",
+	chest = "frame:lm_tit_gxbx.png",
+	zhengwu = "frame:lm_tit_rlwj.png",
+	mbl = "frame:lm_tit_mblsx.png",
+	whip = "frame:lm_tit_bzsj.png",
+	suipian = "frame:lm_tit_srsgw.png",
+	shenji = "frame:lm_tit_srbsc.png",
+	fuli = "frame:lm_tit_gyfl.png",
+	jp = "frame:lm_tit_jpzb.png",
+	xuezhan = "frame:lm_tit_zgtk.png",
+	worship = "frame:lm_tit_jssx.png",
+	miji = "frame:lm_tit_srjlc.png",
+	jianzhu = "frame:lm_tit_ksjz.png"
+}
+dragonTechConstant.techNamePic = {
+	sqzc2 = "lm_tit_qszc2.png",
+	shijjb = "lm_tit_sjjb1.png",
+	ckjs1 = "lm_tit_ckjs.png",
+	ll = "lm_tit_ll1.png",
+	gxqh = "lm_tit_gxqh1.png",
+	ganj = "lm_tit_gj1.png",
+	xianc = "lm_tit_xc.png",
+	thbs = "lm_tit_tjbs.png",
+	jbqh = "lm_tit_jbqh1.png",
+	tsl = "lm_tit_tsl1.png",
+	qszc = "lm_tit_qszc1.png",
+	zhaom = "lm_tit_zm.png",
+	tsqh2 = "lm_tit_tsl2.png",
+	bz = "lm_tit_bzsj.png",
+	taoz5 = "lm_tit_tz5.png",
+	jsqh1 = "lm_tit_jsqh2.png",
+	jbjb5 = "lm_tit_jbqh4.png",
+	yingy = "lm_tit_yy.png",
+	zghl = "lm_tit_gzhl.png",
+	fyss2 = "lm_tit_fsys2.png",
+	dp = "lm_tit_db1.png",
+	gccx = "lm_tit_gcgx1.png"
+}
+dragonTechConstant.openConditionPic = {
+	zhb1 = "lm_tit_zbao.png",
+	zhb = "lm_tit_zbao.png",
+	xsjt1 = "lm_tit_xsjt.png",
+	hd1 = "lm_tit_hd.png",
+	caor = "lm_tit_cr.png",
+	zhangb = "lm_tit_zbao.png",
+	dwjt1 = "lm_tit_dwjt.png",
+	xiahy = "lm_tit_xhy.png",
+	lh1 = "lm_tit_lh.png",
+	pd1 = "lm_tit_pd.png",
+	czb = "lm_tit_czjlfb.png"
+}

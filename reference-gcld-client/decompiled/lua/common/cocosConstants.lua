@@ -1,0 +1,4 @@
+﻿CCTOUCHBEGAN = "began"
+CCTOUCHMOVED = "moved"
+CCTOUCHENDED = "ended"
+CCTOUCHCANCELLED = "cancelled"

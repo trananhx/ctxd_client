@@ -1,0 +1,1 @@
+﻿noviceWantedActivity.constant = {}

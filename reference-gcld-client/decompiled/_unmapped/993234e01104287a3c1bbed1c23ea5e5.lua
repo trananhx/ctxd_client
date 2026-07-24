@@ -1,0 +1,17 @@
+﻿storeConstant = {}
+storeConstant.tabButton = {}
+storeConstant.tabButton.equipment = 1
+storeConstant.equipmentQualityColor = {}
+storeConstant.equipmentQualityColor[0] = ccc3(232, 225, 209)
+storeConstant.equipmentQualityColor[1] = ccc3(232, 225, 209)
+storeConstant.equipmentQualityColor[2] = ccc3(108, 164, 191)
+storeConstant.equipmentQualityColor[3] = ccc3(133, 190, 109)
+storeConstant.equipmentQualityColor[4] = ccc3(204, 139, 71)
+storeConstant.equipmentQualityColor[5] = ccc3(213, 85, 60)
+storeConstant.equipmentQualityColor[6] = ccc3(162, 133, 199)
+storeConstant.TAG_STORE_CITY_NORMAL = 1001
+storeConstant.TAG_STORE_CITY_HIGHLIGHT = 1002
+storeConstant.TAG_STORE_EQUIPMENT_NORMAL = 1003
+storeConstant.TAG_STORE_EQUIPMENT_HIGHLIGHT = 1004
+storeConstant.TAG_STORE_EQUIPMENT_FRAME = 1005
+storeConstant.RES = {}

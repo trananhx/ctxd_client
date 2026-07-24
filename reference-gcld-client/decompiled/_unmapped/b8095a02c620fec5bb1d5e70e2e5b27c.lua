@@ -1,0 +1,2 @@
+﻿storeHouseConstant = {}
+storeHouseConstant.RES = {}

@@ -1,0 +1,2 @@
+﻿kfwdEntranceConstant = {}
+kfwdEntranceConstant.rewardItemTipName = {}

@@ -37,6 +37,7 @@ namespace Ctxd.Battle
         [Tooltip("↑ = các nhóm trong một hàng cách xa nhau hơn")] public float groupSpacing = 1.1f;
         [Tooltip("↑ = các lính TRONG một nhóm cách xa nhau hơn (sửa lính dính nhau)")] public float spriteSpacing = 2.0f;
         [Tooltip("Kích thước mỗi lính")] public float unitScale = 0.7f;
+        [Tooltip("Khoảng cách giữa HÀNG ĐẦU của 2 đạo quân (↓ = sát nhau hơn). Đo tâm-đến-tâm theo trục chéo iso.")] public float frontGap = 2.6f;
 
         public event System.Action<CombatantSnapshot, CombatantSnapshot> ActiveGeneralsChanged;
         public event System.Action<BattleOutcome> Finished;
@@ -58,8 +59,12 @@ namespace Ctxd.Battle
             if (database != null) database.BuildIndex(true);
             gameObject.AddComponent<BattleFieldSelection>();   // click a row/group → on-demand HP bar
 
-            _offRoot = new GameObject("OffenseRoot").transform; _offRoot.SetParent(transform, false); _offRoot.localPosition = new Vector3(-1.9f, -1.25f, 0f);
-            _defRoot = new GameObject("DefenseRoot").transform; _defRoot.SetParent(transform, false); _defRoot.localPosition = new Vector3(1.9f, 1.25f, 0f);
+            // 2 đạo quân đối mặt theo trục chéo iso (công dưới-trái ↔ thủ trên-phải), đối xứng qua tâm.
+            // frontGap = khoảng cách giữa HÀNG ĐẦU của 2 bên → mỗi root lùi ra nửa khoảng cách từ tâm.
+            Vector2 facing = new Vector2(1.9f, 1.25f).normalized;
+            Vector3 half = facing * (Mathf.Max(0f, frontGap) * 0.5f);
+            _offRoot = new GameObject("OffenseRoot").transform; _offRoot.SetParent(transform, false); _offRoot.localPosition = -half;
+            _defRoot = new GameObject("DefenseRoot").transform; _defRoot.SetParent(transform, false); _defRoot.localPosition =  half;
 
             if (network == null) { Debug.LogError("[Director] NetworkService not wired."); return; }
             network.ServerMessageReceived += OnServerMsg;

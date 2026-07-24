@@ -1,0 +1,17 @@
+﻿chatEnum = {}
+chatEnum.state = {}
+chatEnum.state.text = 1
+chatEnum.state.video = 2
+chatEnum.maxMsgNum = 20
+chatEnum.type = {}
+chatEnum.type.system = "GLOBAL"
+chatEnum.type.country = "COUNTRY"
+chatEnum.type.private = "ONE2ONE"
+chatEnum.type.yz = "YZ_"
+chatEnum.type.jb = "MULTI_JUBEN"
+chatEnum.linkType = {}
+chatEnum.linkType.battle = 1
+chatEnum.linkType.city = 2
+chatEnum.linkType.watch = 3
+chatEnum.linkType.kfyzCity = 12
+chatEnum.linkType.kfyz = 999

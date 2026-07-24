@@ -1,0 +1,24 @@
+﻿nationChallenges.constant = {}
+nationChallenges.constant.picToTit = {
+	wulin = "shengli",
+	weijiaohuang = "huangjin",
+	qiancheng = "jisi",
+	huishi = "zhancheng",
+	xilian = "xilian",
+	zhuzao = "zhuzao",
+	qiecuo = "tiaozhan",
+	zhengbing = "zhengbing",
+	weijiaoman = "manzu",
+	shadi = "duoyin",
+	junqian = "dantiao",
+	jifen = "jifen",
+	jiaohuo = "duoquan",
+	weijiaoyuan = "yuanjun",
+	gongxian = "juanyin",
+	shuaibu = "shadi",
+	chongfeng = "tujin",
+	chengchi = "zhugong",
+	jiebing = "jiebing",
+	fengkuang = "touzi",
+	xiangying = "jieling"
+}

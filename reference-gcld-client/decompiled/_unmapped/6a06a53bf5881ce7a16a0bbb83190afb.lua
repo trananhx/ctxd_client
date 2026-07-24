@@ -1,0 +1,52 @@
+﻿local var_0_0 = {
+	[1101] = {}
+}
+
+var_0_0[1101][1] = {}
+var_0_0[1101][1].side = "2"
+var_0_0[1101][1].pic = "xiaoqian"
+var_0_0[1101][1].contentId = "1440000"
+var_0_0[1102] = {}
+var_0_0[1102][1] = {}
+var_0_0[1102][1].side = "1"
+var_0_0[1102][1].pic = "xiaoqian"
+var_0_0[1102][1].contentId = "1440001"
+var_0_0[1103] = {}
+var_0_0[1103][1] = {}
+var_0_0[1103][1].side = "1"
+var_0_0[1103][1].pic = "xiaoqian"
+var_0_0[1103][1].contentId = "1440002"
+var_0_0[1001] = {}
+var_0_0[1001][1] = {}
+var_0_0[1001][1].side = "1"
+var_0_0[1001][1].pic = "xiahouen"
+var_0_0[1001][1].contentId = "1440003"
+var_0_0[1002] = {}
+var_0_0[1002][1] = {}
+var_0_0[1002][1].side = "2"
+var_0_0[1002][1].pic = "xiaoqian"
+var_0_0[1002][1].contentId = "1440004"
+var_0_0[1002][2] = {}
+var_0_0[1002][2].side = "1"
+var_0_0[1002][2].pic = "zhanghe"
+var_0_0[1002][2].contentId = "1440005"
+var_0_0[1002][3] = {}
+var_0_0[1002][3].side = "1"
+var_0_0[1002][3].pic = "zhangfei"
+var_0_0[1002][3].contentId = "1440006"
+var_0_0[1003] = {}
+var_0_0[1003][1] = {}
+var_0_0[1003][1].side = "1"
+var_0_0[1003][1].pic = "xiaoqian"
+var_0_0[1003][1].contentId = "1440007"
+var_0_0[1003][2] = {}
+var_0_0[1003][2].side = "1"
+var_0_0[1003][2].pic = "xiaoqian"
+var_0_0[1003][2].contentId = "1440008"
+var_0_0[1004] = {}
+var_0_0[1004][1] = {}
+var_0_0[1004][1].side = "1"
+var_0_0[1004][1].pic = "xiaoqian"
+var_0_0[1004][1].contentId = "1440009"
+
+return var_0_0

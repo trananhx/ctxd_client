@@ -1,0 +1,1 @@
+﻿jubenSelect.constant = {}

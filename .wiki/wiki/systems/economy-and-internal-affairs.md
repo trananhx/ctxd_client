@@ -4,12 +4,15 @@ category: systems
 tags: [resources, internal-affairs, tech-tree, city-building, economy]
 sources: []
 created: 2026-06-27
-updated: 2026-06-27
+updated: 2026-07-24
 ---
 
 # Tài nguyên & Nội chính (内政)
 
 Toàn bộ nền kinh tế của **攻城掠地 / Công Thành Xưng Đế** (bản webgame 傲世堂 2013 — bản khớp với asset dự án) chạy trên bốn loại tài nguyên cốt lõi, mỗi loại do MỘT công trình chuyên dụng trong khu tài nguyên (资源区) sản xuất và có một điểm tiêu hao (sink) riêng biệt. Nội chính (内政) là vòng lặp nâng cấp công trình, bổ nhiệm Thái thú (太守) và nghiên cứu Khoa học kỹ thuật (科技) để gia tăng sản lượng và mở khóa các buff vĩnh viễn. Kinh tế chính là cái van điều tiết tốc độ phát triển: cấp độ và việc hạ NPC mở khóa công trình/công nghệ, còn trần sản lượng tài nguyên giới hạn tốc độ ra quân, nâng binh khí và lên tech.
+
+> [!info] Xác thực từ dịch ngược client (2026-07-24) — [[sources/apk-reverse-engineering-2026-07-24]]
+> Client xác nhận **4 tài nguyên nền** Bạc/Gỗ/Lương/Thiết từ 4 khu (`sys_juming/muchang/nongchang/kuangchang`), + khu **Binh doanh** & **Hoàng Thành** (6 khu tổng). **DỮ LIỆU MỚI — hệ nô lệ/tù nhân**: bắt tướng địch vào Nhà lao (`general/jail`) → lao dịch; nô lệ tiêu hao để **cải tạo công trình (Lỗ Ban)**; enum tài nguyên có slave(8)/enslave(9)/slave_owner(10); mua lượt cướp nô bằng Vàng. Cây công nghệ: **Long Mạch (dragonTech)** 6 trạng thái (Đầu tư→Nghiên cứu→Tăng tốc) + **buildTech** (Thợ rèn/Thợ mộc, mỗi nghề 9 kỹ năng). Sản xuất đặc thù: **Con đường tơ lụa**, **Mỏ thiết** (17 ô), **Đồn điền** (tuntian). **outputMode**: mua buff sản lượng 150/200/300% bằng Vàng theo 1/7/30 ngày. Công thức/sản lượng gốc ở server. Xem [[claims#c-20260724-14]].
 
 ## Bốn tài nguyên cốt lõi
 
@@ -111,3 +114,4 @@ Tổng hợp từ [[sources/ctxd-web-research-2026-06-27]]
 - [[systems/progression-and-vip]]
 - [[systems/battle-system]]
 - [[entities/generals]]
+- [[sources/apk-reverse-engineering-2026-07-24]] — xác thực từ dịch ngược client (2026-07-24)

@@ -1,0 +1,12 @@
+﻿loginConstant = {}
+loginConstant.NAME_TEXTFIELD_TAG = 1001
+loginConstant.PASSWORD_TEXTFIELD_TAG = 1002
+loginConstant.REGISTER_MENUITEM_TAG = 2001
+loginConstant.LOGIN_MENUITEM_TAG = 2002
+loginTag = {}
+loginTag.subUi = 100
+loginTag.login = 101
+loginTag.serverList = 102
+loginTag.startGame = 103
+url = {}
+url.serverList = "http://42.62.46.142/ServerForTest.txt"

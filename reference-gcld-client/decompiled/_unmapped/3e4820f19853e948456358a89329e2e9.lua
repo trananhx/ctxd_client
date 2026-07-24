@@ -1,0 +1,1 @@
+﻿playerInfo2.constant = {}

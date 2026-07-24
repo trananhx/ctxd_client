@@ -4,7 +4,7 @@ category: overview
 tags: [gdd, design-document, master, cong-thanh-xung-de]
 sources: []
 created: 2026-06-27
-updated: 2026-06-27
+updated: 2026-07-24
 ---
 
 # GAME DESIGN DOCUMENT — Công Thành Xưng Đế (ctxd_client)
@@ -97,6 +97,7 @@ Chọn đúng thế khắc thế đối thủ = **lợi thế lớn** → trận
 
 ### 3.4 Chiến pháp & Nộ khí/Sĩ khí — [[systems/tactics-and-rage]]
 - Mỗi tướng có **chiến pháp (战法)** riêng, đánh theo **số hàng** (2–5 hàng tùy tướng).
+- **Nhịp phát động** 🎨: chiến pháp mỗi lượt dùng **N lần** HOẶC **kích hoạt theo điều kiện** (đủ nộ / giết một hàng / chạm mốc HP). **Số hàng đánh (2–5) là MỘT effect** của chiến pháp, không phải toàn bộ chiến pháp — ví dụ "(4 hàng)" (UNIT A) / "(5 hàng)" (UNIT C). Xem [[systems/tactics-and-rage]] · [[systems/unit-entity-model]].
 - **Mô hình sĩ khí (士气)** ✅: vào trận **50 sĩ khí**, tăng khi đánh/bị đánh/giết lính; đầy **100 → xả KỸ NĂNG 2 (战法)**. Lính **5★ vào trận sẵn 100** → tung kỹ năng 2 ngay lượt đầu. ⇒ tướng có **kỹ năng 1 (sĩ khí thấp)** và **kỹ năng 2 (đầy)**.
 - Kích hoạt 战法: lên trận có xác suất (上阵), khi giết một hàng/tướng, mốc HP (Triệu Vân 80/50/20%). ✅
 - Loại hiệu ứng: sát thương đơn/đa hàng, AoE, **Hỗn Loạn (混乱 — cấm địch xả 战法)**, tức sát (về 1 HP), đẩy lùi, buff. **Kháng (抵挡)**: chiến pháp **giác tỉnh không thể bị kháng**. ✅
@@ -116,6 +117,12 @@ Tướng có **5 thuộc tính**: 普通攻击 / 普通防御 / 战法攻击 / �
 ---
 
 ## 4. HỆ TƯỚNG (武将) — [[systems/general-system]] · [[entities/generals]]
+
+> [!info] Model quan hệ tướng-lính (đã rõ)
+> **Tướng = 1 ĐƠN VỊ đại diện binh chủng ra trận (tướng + lính = 1 đối tượng)** — không phải hai thực thể tách rời. Xem [[systems/unit-entity-model]] · [[decisions/unified-unit-entity-model-2026-07-24]]. Thiên phú của mỗi đơn vị là **buff % "Lực chiến (战力)"** theo bối cảnh (địa hình/loại thành), là **chỉ số tổng hợp** áp cho cả đơn vị 🎨.
+
+> [!warning] "Lực chiến (战力)" ≠ "sát thương"
+> Chữ in-game là **+Lực chiến (战力)** — một **chỉ số tổng hợp**, KHÔNG dịch thành "sát thương". Ý đồ chủ dự án ("thiên phú = buff sát thương cho lính") là **DESIGN INTENT**; chênh với chữ in-game (+战力) → xem open-question 战力 tại [[systems/equipment-and-gear]].
 
 ### 4.1 Đội hình & chiêu mộ
 - **200+ tướng**, mỗi tướng gắn 1 binh chủng.
@@ -145,6 +152,9 @@ Tướng có **5 thuộc tính**: 普通攻击 / 普通防御 / 战法攻击 / �
 | Hoàng Nguyệt Anh 黄月英 | **战车** 🎨 | — | Liên quan 破甲战车/云垂阵 |
 | Cam Ninh 甘宁 | — | 固守 → 绞龙巨浪 (5 hàng) | lv66; +25% nước |
 
+> [!question] Đơn vị có thể KHÔNG có chiến pháp (dạng thuần chỉ số thường)
+> Quan sát UNIT B (Nhục Bác Tứ Sĩ, Dũng 62 rất thấp) có ô **chiến pháp TRỐNG** 🎨 → có dạng đơn vị **thuần chỉ số thường** (chỉ đánh bằng công/thủ thường), không tung 战法. Lưu ý: "Dũng thấp → không chiến pháp" chỉ là **TƯƠNG QUAN**, KHÔNG phải bằng chứng nhân-quả; ánh xạ 统/勇 ↔ code chưa chốt (xem [[contradictions]]).
+
 (Binh khí, mốc hồng tướng, asset chân dung… xem [[entities/generals]].)
 
 ---
@@ -160,6 +170,18 @@ Tướng có **5 thuộc tính**: 普通攻击 / 普通防御 / 战法攻击 / �
 | Cung binh 弓兵 | Tầm xa | Hoàng Trung |
 | Chiến xa 战车 / Công thành 攻城 | Phá tường/thành, AoE | Hoàng Nguyệt Anh |
 | Mưu sĩ 谋士 | Khống chế/pháp thuật tuyến sau | Chu Du, Gia Cát Lượng |
+
+**Binh chủng CÓ CẤP quan sát từ 4 ảnh màn "Tướng lĩnh" (mobile) 🎨:**
+
+| Tên in-game (quan sát) | Hán tự ⚠️ | Suy diễn binh chủng | Đơn vị |
+|---|---|---|---|
+| Công Thành Xa **LV4** | 攻城车 ⚠️ (siege chariot) | 战车 / Công thành | UNIT A |
+| Nhục Bác Tứ Sĩ **lv4** | 肉搏死士 ⚠️ (cảm tử cận chiến) | bộ binh / 枪兵 tuyến đầu | UNIT B |
+| Hoàng Kim Chiến Kỵ (H.kim chiến kỳ) **cấp 4** | 黄金战骑 ⚠️ (kỵ giáp vàng) | 骑兵 | UNIT C |
+
+> [!warning] Đóng khung "bằng chứng mobile — chờ chủ dự án chốt"
+> 3 tên trên là **binh-chủng-có-cấp + tên Hán tự** đọc từ ảnh **bản MOBILE 攻城掠地**; target dựng lại là **somo webgame**. Đây là **bằng chứng mobile**, KHÔNG đè claim "4 binh chủng bản 2013" (c-20260627-09). Hán tự còn ⚠️ (chưa chắc). Xem [[decisions/game-version-scope]] · [[contradictions]].
+> Hậu tố **LV4 / lv4 / cấp4** nhiều khả năng là **bậc sao binh chủng (兵种星级 4★)** — TÁCH khỏi cấp tướng (Lv.220…) — ghi là **suy luận**.
 
 - **Khắc chế nằm ở THẾ TRẬN** (突/攻/防), KHÔNG ở binh chủng (bản 2013). ⚠️ Bản về sau có thể bổ sung khắc chế binh chủng — cần xác nhận.
 - **Địa hình** ưu tiên binh chủng: đồng bằng↔kỵ, núi rừng↔bộ/thương, sông nước↔tầm xa. ❓ hệ số % chưa rõ.
@@ -248,6 +270,9 @@ Tướng có **5 thuộc tính**: 普通攻击 / 普通防御 / 战法攻击 / �
 ## 15. QUYẾT ĐỊNH MỞ & CÂU HỎI CẦN CHỐT
 Xem đầy đủ: [[decisions/game-version-scope]], [[contradictions]], [[open-questions]].
 
+> [!info] Quan hệ tướng-lính đã rõ
+> Model **tướng + lính = 1 đơn vị** đã chốt — xem [[systems/unit-entity-model]] · [[decisions/unified-unit-entity-model-2026-07-24]] · nguồn [[sources/ingame-general-panel-2026-07-24]].
+
 | # | Vấn đề | Hiện trạng | Cần |
 |---|---|---|---|
 | D1 | **Phiên bản dựng lại** | Đề xuất somo-era (5-6 binh chủng) | Chủ dự án chốt |
@@ -273,12 +298,16 @@ Xem đầy đủ: [[decisions/game-version-scope]], [[contradictions]], [[open-q
 ---
 
 ## Phụ lục — Bản đồ wiki
-- Hệ thống: [[systems/battle-system]] · [[systems/tactics-and-rage]] · [[systems/troop-types]] · [[systems/general-system]] · [[systems/formation-system]] · [[systems/city-conquest]] · [[systems/economy-and-internal-affairs]] · [[systems/equipment-and-gear]] · [[systems/multiplayer-and-endgame]] · [[systems/progression-and-vip]]
+- Hệ thống: [[systems/battle-system]] · [[systems/tactics-and-rage]] · [[systems/troop-types]] · [[systems/general-system]] · [[systems/unit-entity-model]] · [[systems/formation-system]] · [[systems/city-conquest]] · [[systems/economy-and-internal-affairs]] · [[systems/equipment-and-gear]] · [[systems/multiplayer-and-endgame]] · [[systems/progression-and-vip]]
 - Thực thể/Thế giới: [[entities/generals]] · [[world/world-map-and-campaign]]
 - Kỹ thuật: [[technical/asset-pipeline]] · [[technical/asset-system-mapping]]
-- Provenance: [[claims]] · [[contradictions]] · [[open-questions]] · [[sources/ctxd-web-research-2026-06-27]] · [[sources/screenshot-somo-battle-2026-06-27]]
+- Quyết định: [[decisions/game-version-scope]] · [[decisions/unified-unit-entity-model-2026-07-24]]
+- Provenance: [[claims]] · [[contradictions]] · [[open-questions]] · [[sources/ctxd-web-research-2026-06-27]] · [[sources/screenshot-somo-battle-2026-06-27]] · [[sources/ingame-general-panel-2026-07-24]]
 
 ---
 ## Backlinks
 - [[index]] — mục lục
 - [[overview]] — tổng quan ngắn
+- [[systems/unit-entity-model]] — model tướng+lính = 1 đơn vị (§4, §3.4, §5)
+- [[decisions/unified-unit-entity-model-2026-07-24]] — quyết định gộp model đơn vị
+- [[sources/ingame-general-panel-2026-07-24]] — nguồn 4 ảnh màn "Tướng lĩnh" (mobile)

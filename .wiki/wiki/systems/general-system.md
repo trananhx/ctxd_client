@@ -1,19 +1,25 @@
 ---
 title: Hệ tướng (武将)
 category: systems
-tags: [general, tuong, awakening, giac-tinh, recruitment, progression]
+tags: [general, tuong, awakening, giac-tinh, recruitment, progression, unit-entity, thien-phu]
 sources: []
 created: 2026-06-27
-updated: 2026-06-27
+updated: 2026-07-24
 ---
 
 # Hệ tướng (武将)
 
 Hệ tướng (武将, "vũ tướng") là lớp tiến hóa cốt lõi của **Công Thành Xưng Đế** (攻城掠地). Toàn bộ hành trình của người chơi xoay quanh việc thu thập, nuôi dưỡng và giác tỉnh một dàn danh tướng Tam Quốc. Đây là trang anh em với [[entities/generals]] (hồ sơ từng tướng) và liên kết chặt với [[systems/tactics-and-rage]] (chiến pháp & nộ khí), [[systems/equipment-and-gear]] (binh khí) và [[systems/city-conquest]] (công thành).
 
+> [!info] Xác thực từ dịch ngược client (2026-07-24) — [[sources/apk-reverse-engineering-2026-07-24]]
+> Chỉ số nền client = **leader (Thống, 统) + strength (Dũng, 勇)** + att/def + `fMax` (HP tướng) + `forces/forcesMax` (quân số = máu phương trận, tách khỏi fMax); **KHÔNG có 武力 riêng** (củng cố [[claims#c-20260627-08]], resolve [[contradictions#x-20260724-01]]). **6 phẩm chất**: Trắng < Lam < Lục < Vàng < Đỏ < **Tím** (`lua/data/color.lua`, `colorQualityName`; bậc 0 = xám/tử trận) → **giải quyết** mâu thuẫn thứ tự phẩm chất (CN 紫 cao nhất; bác thứ tự VN egame). **Thức tỉnh (觉醒)** là trục tiến hoá chính: `general.evoke` 0/1/2; vật liệu theo `evokeType` 0-6 (Vàng/Gem/Đá/Rượu 2302/Đỗ Khang/Rượu Gia Cát); sinh **4 kỹ năng nhỏ + 1 đại** (`GENERAL_JUEXING_SKILL_MAX=5`) + chỉ số vĩnh viễn + buff khắc chế binh chủng + thiên phú địa hình. Trang bị **8 loại** (vũ khí/ngựa/giáp/áo choàng/binh phù/cờ/bảo vật/bộ). Chiêu mộ Quán rượu (5 thẻ, làm mới, toggle "chỉ mộ Tím"). Số liệu (chỉ số gốc, tỉ lệ rơi, đường cong EXP, điều kiện thức tỉnh lv120/121) ở server. Xem [[claims#c-20260724-11]], [[claims#c-20260724-12]], [[claims#c-20260724-13]].
+
 ## Tổng quan đội hình & binh chủng
 
 Dàn tướng có quy mô **200+ tướng**, mỗi tướng gắn cứng với **một binh chủng** duy nhất. Bản Việt hóa thường nêu 5 binh chủng: Thương (枪), Kỵ (骑), Cung (弓), Mưu (谋士/strategist) và một binh chủng thứ năm còn tranh cãi về cách gọi.
+
+> [!info] Mỗi tướng LÀ một đơn vị mang binh chủng ra trận
+> Mô hình đã chốt: **tướng + lính = MỘT đối tượng duy nhất** — tướng không đứng tách khỏi quân của mình, mà chính là đơn vị mang binh chủng (và toàn bộ đám lính của binh chủng đó) ra chiến trường. Panel "Tướng lĩnh" (bản mobile 攻城掠地) hiển thị binh chủng **KÈM CẤP** ngay dưới chân dung tướng — ví dụ UNIT A "Công Thành Xa **LV4**", UNIT B "Nhục Bác Tứ Sĩ **lv4**", UNIT C "H.kim chiến kỳ **cấp 4**" 🎨. Hậu tố LV4/lv4/cấp4 nhiều khả năng là **bậc sao/cấp của binh chủng (兵种星级 4★)**, TÁCH khỏi cấp tướng (Lv.220/201/204) — đây là suy luận ⚠️. Xem mô hình dữ liệu thống nhất ở [[systems/unit-entity-model]] và quyết định chốt tại [[decisions/unified-unit-entity-model-2026-07-24]].
 
 > [!warning] Binh chủng thứ năm: Nỏ hay Chiến Xa?
 > Một số mô tả tiếng Việt ghi binh chủng thứ năm là **Nỏ (弩)**, nhưng nguồn gốc Trung Quốc và nguồn bản mobile 2019 lại ghi là **Chiến Xa (战车 / Chiến Xa)**: "枪兵、骑兵、战车、弓手、谋士". Số lượng 200+ tướng và cấu trúc 5 binh chủng là [partially-confirmed]; tên gọi Nỏ vs Chiến Xa phụ thuộc phiên bản/nguồn. Khi dựng lại, xem [[systems/troop-types]] để chốt danh sách binh chủng cho bản 2013.
@@ -56,10 +62,23 @@ Ngoài Tửu Quán, tướng còn đến từ rương tướng, sự kiện và 
 
 ## Chỉ số, sức chứa quân & binh khí
 
-Mỗi tướng có **Vũ Lực (武力)** quyết định sát thương, và bộ chỉ số phòng thủ **Thống (统御/统, Command)** + **Dũng (勇, Courage/Valor)** quyết định khả năng chặn chiến pháp địch và phòng thủ.
+攻城掠地 **KHÔNG có chỉ số 武力 (Vũ Lực) riêng**. Toàn hệ chỉ số nền chỉ gồm **HAI** thuộc tính: **Thống (统)** và **Dũng (勇)** — và mỗi chỉ số chi phối **CẢ công LẪN thủ** trong đúng miền của nó (official ✅):
 
-> [!warning] Đính chính chỉ số phòng thủ
-> Một số tài liệu ghi "智 (Trí) chống đỡ" — KHÔNG đúng cho bản này. Nguồn CN xác nhận chỉ số phòng thủ/kháng là **统 (Thống)** và **勇 (Dũng)**; Dũng cao tăng xác suất CHẶN chiến pháp địch, không phải 智 (Trí).
+- **统 (Thống)** chi phối **đòn thường** — cả **普通攻击 (công thường)** LẪN **普通防御 (thủ thường)**.
+- **勇 (Dũng)** chi phối **chiến pháp** — cả **战法攻击 (công chiến pháp)** LẪN **战法防御 (thủ chiến pháp)**.
+- Quy đổi: **1 điểm 统/勇 ≈ 10 điểm công/thủ** tương ứng.
+- 5 thuộc tính phái sinh khi giải một đòn: **普通攻击 / 普通防御 / 战法攻击 / 战法防御 / 计策**.
+
+Nguồn: https://gc.aoshitang.com/news/zixun/322013031413222593632.html , http://gcld.49you.com/gonglue/60744.html
+
+> [!info] Mâu thuẫn ánh xạ Thống/Dũng đã GỠ — x-20260724-01 RESOLVED
+> Trang này TRƯỚC ĐÂY khẳng định "**武力(Vũ Lực) = sát thương** và **统/勇 = chỉ phòng thủ / chặn chiến pháp**" — điều đó **SAI**. Web đã xác minh: 攻城掠地 không có 武力 riêng; **统 = đòn thường (công + thủ)**, **勇 = chiến pháp (công + thủ)**, mỗi điểm ≈ 10. Điều này **GỠ mâu thuẫn 3 khung** [[contradictions#x-20260724-01]] (nay **RESOLVED**): khung "武力=damage" bị bác bỏ; khung [[claims#c-20260627-08]] ("统 drives normal atk/def, 勇 drives 战法 atk/def") được xác nhận là ĐÚNG; ánh xạ sang code chỉ cần **统→NormalAtk/NormalDef, 勇→TacticAtk/TacticDef**. Lưu ý cũ "UNIT B Dũng 62 → không có chiến pháp" chỉ là **TƯƠNG QUAN** (Dũng thấp → công/thủ chiến pháp yếu), phù hợp với việc UNIT B thuần cận chiến, không phải bằng chứng nhân-quả tuyệt đối.
+
+> [!info] Panel in-game khớp mô hình 2-chỉ-số
+> Panel "Tướng lĩnh" (bản mobile 🎨) hiển thị đúng **HAI** chỉ số 统/勇 cho từng tướng: UNIT A **Thống 171 / Dũng 170**, UNIT C **Thống 169 / Dũng 169** (cân — vừa mạnh đòn thường vừa mạnh chiến pháp), UNIT B **Thống 159 / Dũng 62** (Dũng thấp → yếu về chiến pháp, hợp với binh chủng thuần cận chiến). Không có ô 武力 nào trên panel — khớp official.
+
+> [!warning] Đính chính chỉ số kháng chiến pháp
+> Một số tài liệu ghi "智 (Trí) chống đỡ chiến pháp" — KHÔNG đúng cho bản này. Kháng chiến pháp thuộc **战法防御** do **勇 (Dũng)** chi phối (không phải 智/Trí). Dũng cao → 战法攻击 lẫn 战法防御 đều cao.
 
 Mỗi tướng có **sức chứa quân riêng (带兵量 / 兵力上限)** — tương đương "máu" của đơn vị. Sức chứa tăng theo cấp, theo trang bị và theo **binh khí (兵器)**:
 
@@ -67,7 +86,31 @@ Mỗi tướng có **sức chứa quân riêng (带兵量 / 兵力上限)** — 
 - **Mở binh khí lv80:** 血滴子 (công), 八卦袋 (sức chứa), 禁军令 (sức chứa).
 - Mỗi cấp binh khí cộng: công +5 (乌蚕鞭/血滴子), thủ +3, sức chứa/máu +8 (八卦袋/禁军令). Nguồn khuyên **ưu tiên nâng sức chứa quân**. [confirmed]
 
+Panel mobile hiển thị **带兵量 (sức chứa quân)** như một dòng gear riêng cạnh Công/Thủ: UNIT A **+63492**, UNIT B **+61140**, UNIT C **+56470** 🎨. Con số này là **trần binh lực** của đơn vị; **binh lực hiện tại** hồi dần theo cơ chế **Mộ binh (募兵)**:
+
+- Binh lực hiển thị dạng `hiện tại / trần`: UNIT A **0/952380** (cạn, timer 04:22, có nút **Tăng tốc mộ binh**), UNIT B **~7537/917100** (timer 05:02), UNIT C **647050/647050** (đầy) 🎨. Khi cạn quân, đơn vị mất sức chiến đấu cho tới khi mộ đủ.
+- Mộ binh **hồi theo timer**, có thể **tiêu Mộ Binh Lệnh** để đẩy nhanh / **Tăng tốc mộ binh**. Panel cho thấy **Mộ Binh Lệnh dùng chung 126987** cho cả ba tướng 🎨.
+- Vòng lặp tài nguyên (Lương thực, Mộ Binh Lệnh, timer, tăng tốc) chi tiết ở [[systems/economy-and-internal-affairs]] §Mộ binh (募兵).
+
 Chi tiết hệ trang bị/binh khí xem [[systems/equipment-and-gear]].
+
+## Thiên phú (thiên phú địa hình)
+
+🎨 Mỗi tướng có một dòng **thiên phú** riêng trên panel "Tướng lĩnh" (bản mobile). Thiên phú là **buff phần trăm** áp lên **Lực chiến (战力)** của đơn vị, kích hoạt theo **bối cảnh** — chủ yếu là **địa hình** chiến đấu, hoặc trạng thái công/thủ. Các ví dụ đọc trực tiếp từ panel:
+
+| Tướng | Thiên phú (đọc từ ảnh 🎨) | Điều kiện |
+|---|---|---|
+| UNIT A | Thành trì **+60% ❓ Lực chiến (战力)** | **Chỉ phe công** (công thành) |
+| UNIT B | Bình nguyên、Sơn địa、Thủy vực **+20% Lực chiến (战力)** | **Mọi địa hình** |
+| UNIT C | Bình nguyên **+25% Lực chiến (战力)** | Chỉ đồng bằng |
+
+> [!warning] "Lực chiến (战力)" là chỉ số TỔNG HỢP — không phải "sát thương"
+> Chữ in-game ghi buff **+Lực chiến (战力)**, tức tăng **chỉ số tổng hợp** của đơn vị, KHÔNG dịch thẳng thành "sát thương". 战力 (Lực chiến) = chỉ số **thực lực tổng hợp**, KHÔNG bằng sát thương; buff "+X% 战力/战斗力" là **hệ số NHÂN (1+加成)** trong công thức, không phải cộng thẳng damage (nguồn: http://www.07073.com/gcld/gonglue/1145296.html). Chủ dự án có **design intent** rằng "thiên phú = buff sát thương cho lính", nhưng điều này **chênh** với chữ in-game. Giữ nguyên chữ **Lực chiến (战力)** khi dựng lại và trỏ open-question công thức 战力 tại [[systems/equipment-and-gear]] (§"Công thức 战力 (chiến lực) tổng hợp").
+
+> [!warning] Con số +60% (công thành) của UNIT A ❓ UNVERIFIED
+> **Cấu trúc** "thiên phú 城池/攻城 战力 +X% chỉ áp cho phe công (仅攻方)" LÀ THẬT — ví dụ chốt được là Tư Mã Ý "攻城战斗力+25%（若非副将，守城无15%加成）" (nguồn: https://www.shiyouhome.com/gcld/wjfx/2009.html , https://www.602.com/news/33/6396.html). NHƯNG **con số cụ thể +60%** đọc từ panel UNIT A **KHÔNG có nguồn xác nhận**: mọi thiên phú công thành có nguồn đều **+25%**. +60% có thể là hiệu ứng phối binh/địa hình bình nguyên gộp lại, KHÔNG phải một dòng thiên phú tướng đơn lẻ. Đánh dấu ❓ và chờ kiểm chứng trước khi dùng làm hằng số cân bằng.
+
+Thiên phú địa hình gắn chặt với binh chủng (binh chủng công thành như UNIT A → thiên phú công thành chỉ-phe-công rất hợp lý). Xem thêm [[systems/troop-types]] (khắc chế + địa hình) và hồ sơ từng tướng ở [[entities/generals]].
 
 ## Lên cấp bằng EXP
 
@@ -154,7 +197,15 @@ Tập tướng giác tỉnh được là một **subset ~10-15 anh hùng tiêu b
 - 攻城掠地武将觉醒攻略 https://m.sohu.com/a/884347572_267471/
 - Hướng Dẫn Chơi Công Thành Xưng Đế https://egame.vn/huong-dan-choi-cong-thanh-xung-de/
 
-Tổng hợp từ [[sources/ctxd-web-research-2026-06-27]]
+Xác minh web 2026-07-24 (V1 统/勇, V6 战力, V7 thiên phú công thành):
+
+- V1 — 统/勇 chi phối đòn thường / chiến pháp (official) https://gc.aoshitang.com/news/zixun/322013031413222593632.html
+- V1 — 攻城掠地 chỉ có 统/勇, 1 điểm≈10 công/thủ http://gcld.49you.com/gonglue/60744.html
+- V6 — 战力 (Lực chiến) = chỉ số tổng hợp, buff là hệ số nhân http://www.07073.com/gcld/gonglue/1145296.html
+- V7 — thiên phú 攻城战斗力 +25% (仅攻方), Tư Mã Ý https://www.shiyouhome.com/gcld/wjfx/2009.html
+- V7 — thiên phú công thành chỉ phe công https://www.602.com/news/33/6396.html
+
+Tổng hợp từ [[sources/ctxd-web-research-2026-06-27]] và [[sources/ctxd-web-verify-2026-07-24]]
 
 ## Backlinks
 
@@ -165,3 +216,9 @@ Tổng hợp từ [[sources/ctxd-web-research-2026-06-27]]
 - [[systems/city-conquest]]
 - [[systems/troop-types]]
 - [[systems/battle-system]]
+- [[systems/unit-entity-model]]
+- [[systems/economy-and-internal-affairs]]
+- [[decisions/unified-unit-entity-model-2026-07-24]]
+- [[sources/ingame-general-panel-2026-07-24]]
+- [[sources/ctxd-web-verify-2026-07-24]]
+- [[sources/apk-reverse-engineering-2026-07-24]] — xác thực từ dịch ngược client (2026-07-24)

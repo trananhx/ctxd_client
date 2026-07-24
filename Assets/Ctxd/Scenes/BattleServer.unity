@@ -297,7 +297,6 @@ GameObject:
   m_IsActive: 1
 --- !u!212 &502397685
 SpriteRenderer:
-  serializedVersion: 3
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -343,7 +342,6 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: -200
-  m_MaskInteraction: 0
   m_Sprite: {fileID: -9100106122682379838, guid: cc5760fa065d5644885185ebf4b5bfb9, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -353,8 +351,8 @@ SpriteRenderer:
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
+  m_MaskInteraction: 0
   m_SpriteSortPoint: 0
-  m_BlendShapeWeights: []
 --- !u!4 &502397686
 Transform:
   m_ObjectHideFlags: 0
@@ -498,7 +496,6 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
-  m_UseReflectionProbes: 0
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
@@ -729,6 +726,11 @@ MonoBehaviour:
   port: 5005
   eventPace: 0.28
   autoStance: 1
+  rowSpacing: 2
+  groupSpacing: 2.5
+  spriteSpacing: 3
+  unitScale: 1
+  frontGap: 0.7
 --- !u!4 &1684086761
 Transform:
   m_ObjectHideFlags: 0

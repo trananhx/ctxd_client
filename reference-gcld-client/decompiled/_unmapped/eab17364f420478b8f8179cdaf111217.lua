@@ -1,0 +1,13 @@
+﻿selectForceConstant = {}
+selectForceConstant.WEIGUO_FORCE_TAG = 1001
+selectForceConstant.SHUGUO_FORCE_TAG = 1002
+selectForceConstant.WUGUO_FORCE_TAG = 1003
+selectForceConstant.PLAYERNAMELABEL_1_TAG = 1004
+selectForceConstant.PLAYERNAMELABEL_2_TAG = 1005
+selectForceConstant.SELECTED_FORCE_TAG = 10001
+selectForceConstant.SELECTED_FORCE_GENERAL_TAG = 10002
+selectForceConstant.RECOMMENDLABEL_TAG = 20001
+selectForceConstant.RECOMMENDICON_TAG = 20002
+selectForceConstant.RECOMMENDLABEL_TEXT_TAG = 20003
+selectForceConstant.EVENT_GET_FORCE_DATA = "selectForceConstant.EVENT_GET_FORCE_DATA"
+selectForceConstant.EVENT_SELECT_FORCE = "selectForceConstant.EVENT_SELECT_FORCE"

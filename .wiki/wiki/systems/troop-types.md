@@ -4,12 +4,15 @@ category: systems
 tags: [binh-chủng, kỵ-binh, thương-binh, cung-binh, công-thành, khắc-chế]
 sources: []
 created: 2026-06-27
-updated: 2026-06-27
+updated: 2026-07-24
 ---
 
 # Binh chủng (兵种)
 
 Binh chủng (兵种, *bīngzhǒng*) là phân loại quân lính cơ bản trong **攻城掠地** — bản webgame 傲世堂 (2013) mà dự án `ctxd_client` đang dựng lại. Đây là một trong những trang dễ bị "lẫn dữ kiện 3 game" nhất, nên trước hết phải xác lập rõ phạm vi: con số binh chủng, cơ chế khắc chế và hệ nâng sao của ba game gần tên nhau hoàn toàn khác nhau.
+
+> [!info] Xác thực từ dịch ngược client (2026-07-24) — [[sources/apk-reverse-engineering-2026-07-24]]
+> Client 攻城掠地 v8.9.0.6 đặt tên **4 hệ khắc chế binh chủng**: Bộ binh (步, textId 490729) / Kỵ binh (骑, 490727) / Cung thủ (弓, 490728) + **Khí giới/công thành** (cờ `hasCar` trong `army.lua:63`) — khớp official 步/弓/骑/器械. **KHÔNG có class 谋士/法师** trong code → bác "binh chủng thứ 5". Quan hệ khắc chế binh chủng KHÔNG cố định per-unit mà là **buff theo cấp** cấp bởi **Thức tỉnh tướng + công nghệ**. Lớp khắc chế thứ hai (độc lập) là **tam giác chiến thuật** Đột kích→Công kích→Phòng thủ→Đột kích. `troopType` ở card tướng kẹp **1–9** (icon `troop_1..9.png`); trong battle là enum **16–60** = skin/đơn vị đặc biệt (7 rig animation, gồm Hổ Báo Kỵ). Hệ số khắc chế (số) ở server. Xem [[claims#c-20260724-10]].
 
 > [!warning] Phân biệt 3 game — đọc trước khi dùng bất kỳ con số nào
 > Tiêu đề file nghiên cứu ban đầu ghi "5 binh chủng", nhưng **mục Verification verdicts đã đính chính**: bộ 5 binh chủng đó thuộc các bản KHÁC.
@@ -42,6 +45,27 @@ Theo nguồn có độ tin cao nhất cho đúng bản 攻城掠地 (Baidu Baike
 > Ảnh màn **武将对决** ([[sources/screenshot-somo-battle-2026-06-27]]) cho thấy mỗi tướng có **icon binh chủng riêng**, và xuất hiện **≥5 loại icon khác nhau**: gậy/quạt (**mưu sĩ 谋士** — 周瑜/诸葛亮), pháo/xe (**chiến xa 战车** — 黄月英), ngựa (**kỵ binh 骑兵** — 马超), thương (**thương binh 枪兵** — 周泰), cung (**cung binh 弓兵** — 黄忠).
 > → Tức **game thật (cấp cao, bản về sau/somo) có cả 谋士 (mưu sĩ) và 战车 (chiến xa)**, KHÔNG chỉ 4 loại. Nhiều khả năng "4 binh chủng (骑/枪/弓/攻城)" là con số **bản LAUNCH 2013** theo Baidu, còn webgame chạy nhiều năm đã **thêm binh chủng** (谋士/战车). Đây có thể là **drift phiên bản trong chính webgame**, không chỉ là "3 game khác nhau". Cần chốt với chủ dự án: dựng lại theo bản launch 4 loại, hay bản về sau (somo, 5–6 loại). Xem [[contradictions#x-20260627-01]], [[decisions/game-version-scope]].
 
+## Binh chủng CÓ CẤP + tên riêng (ảnh general-panel 2026-07-24)
+
+🎨 Bốn ảnh màn "Tướng lĩnh" của **bản MOBILE 攻城掠地** ([[sources/ingame-general-panel-2026-07-24]]) cho thấy binh chủng của mỗi tướng **hiển thị KÈM CẤP** (hậu tố "LV4" / "cấp 4") và mang **tên riêng** (không phải chỉ 骑/枪/弓/攻城 trơn). Cấp/hậu tố này gắn với binh chủng chứ không phải cấp tướng, nhưng bản chất cơ chế của nó (bậc sao hay cấp độ) **vẫn chưa chốt được cho 攻城掠地** — xem cảnh báo bên dưới.
+
+| Tên Việt (đọc từ ảnh 🎨) | Hán tự (⚠️ suy luận Hán-Việt, chưa đối chiếu client) | Họ binh chủng gợi ý | Trạng thái xác minh |
+|---|---|---|---|
+| Công Thành Xa | 攻城车 | 攻城 / 战车 (xe công thành / chiến xa) | ⚠️ PARTIAL — siege 器械 có thật, nhưng "攻城车" có thể là mô tả loại, không phải tên định danh (X2) |
+| Nhục Bác Tử Sĩ | 肉搏死士 | bộ binh / 枪兵 tuyến đầu | ✅ MEDIUM — 肉搏死士 xác nhận là binh chủng (của 周泰 Chu Thái); nguồn fansite (E1) |
+| Hoàng Kim Chiến Kỵ | 黄金战骑 | 骑兵 (kỵ binh) | ⚠️ UNVERIFIED — không nguồn nào ra đúng chuỗi "黄金战骑" (X2) |
+
+> [!warning] Hệ "bậc sao binh chủng 兵种星级" CHƯA có nguồn 攻城掠地 official — GIỮ NGHI VẤN (X1)
+> Hậu tố "LV4" đi kèm **tên binh chủng** (vd "Công Thành Xa LV4"), tách khỏi cấp tướng (Lv.220/201/204 hiển thị ở avatar). Trước đây trang này suy luận đó là **bậc sao binh chủng 兵种星级** với các con số như **战录 50/100/150/200** (chi phí 1★→5★), **4★ nhân đôi thiên phú**, **5★ vào trận 100 sĩ khí**. **Đính chính:** các con số này **CHƯA có nguồn 攻城掠地 official** — chúng **truy về game khác** (三国志战略版 / 率土之滨 / 乱世曹操传), KHÔNG phải 攻城掠地. Vì vậy TUYỆT ĐỐI KHÔNG viết hệ sao 兵种星级 là cơ chế đã-chốt của CTXD. "LV4/cấp 4" là bậc SAO hay CẤP ĐỘ vẫn là **câu hỏi mở** (X3) — cả hai hệ đều chưa xác nhận cho CTXD. Cần ảnh client gốc để chốt. Xem [[open-questions]], [[claims]].
+
+> [!info] Đính chính E1 — tên binh chủng
+> "Nhục Bác **Tử Sĩ**" (肉搏死士, 死士 = quân cảm tử) — SỬA từ cách ghi cũ "Nhục Bác Tứ Sĩ". 肉搏死士 được xác nhận **là binh chủng** (bản vàng 黄金肉搏死士 = binh chủng vàng của **周泰 Chu Thái**, thuần cận chiến "không phụ thuộc chiến pháp" → giải thích ô chiến pháp TRỐNG của đơn vị này). Độ tin **MEDIUM** (nguồn fansite; trang gốc ruiel 404). Nguồn: https://www.shiyouhome.com/gcld/wjfx/1999.html , https://www.233leyuan.com/post-detail/1991837600193638277
+
+Xem cấu trúc đơn vị hợp nhất tại [[systems/unit-entity-model]]; nguồn ảnh gốc tại [[sources/ingame-general-panel-2026-07-24]].
+
+> [!warning] Áp FIX-3 — bằng chứng MOBILE, chưa đè roster 2013
+> Ba tên binh chủng có cấp ở trên đến từ **bản mobile 攻城掠地**, trong khi mục tiêu dựng lại là **webgame somo**. Đây là **bằng chứng mobile, chờ chủ dự án chốt** — nó **củng cố** mâu thuẫn version-drift [[contradictions#x-20260627-01]] (binh-chủng-có-cấp + tên Hán tự riêng là dấu hiệu bản về sau/mobile), nhưng **KHÔNG phủ nhận** claim "4 binh chủng 兵种互不相克" của bản launch 2013 (c-20260627-09). Hai lớp dữ kiện cùng tồn tại cho tới khi chủ dự án chốt phạm vi phiên bản ([[decisions/game-version-scope]]).
+
 ## Khắc chế nằm ở THẾ TRẬN, không ở binh chủng
 
 Đây là điểm thiết kế quan trọng nhất và cũng dễ làm sai nhất khi dựng lại.
@@ -57,6 +81,9 @@ Theo nguồn có độ tin cao nhất cho đúng bản 攻城掠地 (Baidu Baike
 > [!warning] Vòng khắc chế binh chủng 5 bước là DISPUTED — không dùng cho bản 2013
 > Verdict nghiên cứu xếp chuỗi "枪兵→骑兵→弓兵→军师→战车→枪兵" vào loại **disputed**: không nguồn nào xác nhận đúng chuỗi này cho bất kỳ game ứng viên nào. Với webgame 2013 nó còn mâu thuẫn trực tiếp ("兵种互不相克"). Với bản Mobile 2019 chỉ xác nhận "có" cơ chế tương khắc, KHÔNG xác nhận chiều của vòng. Đừng triển khai vòng này như sự thật.
 
+> [!info] Hệ khắc chế THẬT xác minh qua web = 4 binh chủng 步/弓/骑/器械 (V12) — BÁC "binh chủng thứ 5 法师/谋士"
+> Nghiên cứu web 2026-07-24 chốt: hệ khắc chế thật của 攻城掠地 là **4 binh chủng 步/弓/骑/器械** (bộ / cung / kỵ / khí giới) theo vòng **步克弓 / 弓克骑 / 骑克器械 / 器械克步**, biểu hiện qua **兵种天赋 (thiên phú binh chủng)** chứ không phải một ma trận binh-vs-binh cứng. Cái gọi là **"binh chủng thứ 5 法师/谋士 (mưu sĩ)"** là **nội dung trộn từ game khác → BÁC**. Lưu ý: app store nêu con số **"12种兵种"** — nhiều khả năng là 4 hệ × nhiều bậc (biến thể/nâng cấp trong cùng hệ), không phải 12 loại độc lập. Đây củng cố nghi vấn version-drift ([[contradictions#x-20260627-01]]): "谋士/战车 icon" thấy trên ảnh somo là **biến thể hiển thị / binh chủng bậc cao trong 4 hệ**, không phải chứng cứ có hệ khắc chế 5-binh-chủng. Nguồn: https://www.9game.cn/news/9969087.html , https://apps.apple.com/us/app/id1444310665
+
 ## Địa hình ưu tiên binh chủng
 
 Một lớp tương quan riêng (ngoài thế trận) là **địa hình** chiến trường ưu tiên binh chủng phù hợp:
@@ -65,8 +92,16 @@ Một lớp tương quan riêng (ngoài thế trận) là **địa hình** chi�
 - **Núi rừng (山林)** — lợi cho **bộ binh tuyến đầu / thương binh** và cung binh ẩn nấp, kỵ binh bị hạn chế cơ động.
 - **Sông nước (河流)** — bất lợi cho kỵ binh; binh chủng tầm xa / công thành đóng vai trò khác.
 
-> [!question] Hệ số địa hình cụ thể chưa rõ
-> Nguyên tắc "địa hình ưu tiên binh chủng tương ứng" là hợp lý theo mô-típ Tam Quốc, nhưng **con số phần trăm tăng/giảm theo từng cặp địa hình × binh chủng cho đúng bản 2013 chưa có nguồn xác nhận**. Cần nguồn thời kỳ (2013–2015) để chốt bảng hệ số. Liên quan tới bản đồ và chiến dịch: [[world/world-map-and-campaign]].
+> [!warning] Thiên phú địa hình là BUFF % "Lực chiến (战力)" theo ĐƠN VỊ, không phải khắc chế binh-vs-binh
+> 🎨 Ảnh general-panel 2026-07-24 ([[sources/ingame-general-panel-2026-07-24]]) cho thấy mỗi tướng có **thiên phú địa hình** ghi rõ phần trăm, ví dụ:
+> - UNIT A: "Thành trì **Lực chiến +60%** (chỉ phe công)"
+> - UNIT B: "Bình nguyên、Sơn địa、Thủy vực **Lực chiến +20%**" (mọi địa hình)
+> - UNIT C: "Bình nguyên **Lực chiến +25%**"
+>
+> Áp **FIX-1**: các con số này buff **"Lực chiến (战力)"** — một **CHỈ SỐ TỔNG HỢP** của đơn vị, KHÔNG dịch thành "sát thương". Đây là buff **% theo từng tướng/đơn vị** khi ở địa hình phù hợp, **KHÔNG phải hệ số khắc chế binh-vs-binh** và cũng chưa phải bảng địa-hình × binh-chủng toàn cục. Chênh giữa chữ in-game "+Lực chiến 战力" và design-intent "thiên phú = buff sát thương cho lính" là mâu thuẫn treo — xem open-question 战力 tại [[systems/equipment-and-gear]].
+
+> [!question] Hệ số địa hình cụ thể (bảng toàn cục) chưa rõ
+> Nguyên tắc "địa hình ưu tiên binh chủng tương ứng" là hợp lý theo mô-típ Tam Quốc, và nay đã có **ví dụ % cụ thể per-thiên-phú-tướng** (+20 / +25 / +60% Lực chiến) từ ảnh mobile. Nhưng **bảng hệ số địa hình × binh-chủng toàn cục cho đúng bản 2013/webgame chưa có nguồn xác nhận** — các con số trên gắn với thiên phú riêng của từng tướng, không phải hệ số hệ thống áp cho mọi đơn vị. Cần nguồn thời kỳ (2013–2015) để chốt bảng hệ số. Liên quan tới bản đồ và chiến dịch: [[world/world-map-and-campaign]].
 
 ## Tướng gắn cứng với một binh chủng
 
@@ -112,6 +147,12 @@ Nhiều cơ chế "đẹp" trong tài liệu thực ra thuộc **乱世曹操传
 - 曹操传兵种培养及攻城略地篇 (乱世曹操传 — hệ sao/战录/天赋, dùng để PHÂN BIỆT): https://www.taptap.cn/moment/531165787902182783
 - 1001 lý do... Công Thành Xưng Đế Mobile 2019 (bộ 5 binh chủng, để phân biệt): https://2game.vn/1001-ly-chung-minh-cong-thanh-xung-de-mobile-la-chien-thuat-xuat-sac-nhat-2019-post209970.html
 
+Bổ sung xác minh web 2026-07-24 ([[sources/ctxd-web-verify-2026-07-24]]):
+- V12 — 4 binh chủng 步/弓/骑/器械 qua 兵种天赋; bác "binh chủng thứ 5 法师/谋士": https://www.9game.cn/news/9969087.html
+- V12 — app store nêu "12种兵种" (nhiều khả năng 4 hệ × nhiều bậc): https://apps.apple.com/us/app/id1444310665
+- E1 — 肉搏死士 (Nhục Bác Tử Sĩ) xác nhận là binh chủng (của 周泰 Chu Thái), độ tin medium: https://www.shiyouhome.com/gcld/wjfx/1999.html , https://www.233leyuan.com/post-detail/1991837600193638277
+- X1 — hệ bậc sao 兵种星级 (战录 50/100/150/200, 4★ nhân đôi thiên phú) CHƯA có nguồn 攻城掠地; số liệu truy về game khác (三国志战略版 / 率土之滨): https://www.taptap.cn/moment/531165787902182783
+
 Tổng hợp từ [[sources/ctxd-web-research-2026-06-27]]
 
 ## Backlinks
@@ -120,4 +161,8 @@ Tổng hợp từ [[sources/ctxd-web-research-2026-06-27]]
 - [[systems/battle-system]]
 - [[systems/formation-system]]
 - [[systems/general-system]]
+- [[systems/unit-entity-model]]
+- [[sources/ingame-general-panel-2026-07-24]]
+- [[sources/ctxd-web-verify-2026-07-24]]
 - [[decisions/game-version-scope]]
+- [[sources/apk-reverse-engineering-2026-07-24]] — xác thực từ dịch ngược client (2026-07-24)

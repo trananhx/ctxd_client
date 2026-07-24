@@ -1,0 +1,1 @@
+﻿diamondShop.constant = {}

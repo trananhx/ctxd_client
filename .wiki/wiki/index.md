@@ -2,7 +2,7 @@
 title: Index
 category: index
 created: 2026-06-27
-updated: 2026-06-27
+updated: 2026-07-24
 ---
 
 # ctxd_client — Wiki Index
@@ -16,6 +16,7 @@ Master catalog. Read first to find relevant pages. Project = recreation of **Cô
 - [[overview]] — Dự án, định danh game, vòng lặp cốt lõi, danh mục hệ thống
 
 ## Systems
+- [[systems/unit-entity-model]] — Mô hình đơn vị hợp nhất (Tướng=Lính); chiến pháp N-lần/điều kiện; multi-row & thiên phú = effect/buff; binh chủng có cấp (5 sources, 6 backlinks)
 - [[systems/battle-system]] — Chiến đấu theo lượt; hàng đợi 5 tướng; 3 thế trận 突击/攻击/防御 khắc chế; hình học chiến trường (cờ đỏ renderer)
 - [[systems/tactics-and-rage]] — Chiến pháp (战法); sĩ khí/nộ khí (士气/怒气) 50→100 → kỹ năng 2; 混乱/抵挡; 武神附体
 - [[systems/troop-types]] — Binh chủng (兵种); phân biệt 4 (webgame) vs 5 (mobile) vs 6 (乱世曹操传)
@@ -52,14 +53,18 @@ Master catalog. Read first to find relevant pages. Project = recreation of **Cô
 
 ## Decisions
 - [[decisions/game-version-scope]] — Phiên bản nào để dựng lại (đề xuất: webgame 2013)
+- [[decisions/unified-unit-entity-model-2026-07-24]] — Chốt tướng+lính = 1 đối tượng (directive + ảnh general-panel)
 - [[decisions/unity-downgrade-6000.2.8-2026-07-15]] — Hạ Unity xuống 6000.2.8f1 (đã verify biên dịch)
 
 ## Meta / Provenance
-- [[claims]] — 18 luận điểm có trích nguồn
-- [[contradictions]] — 7 mâu thuẫn chưa giải
-- [[open-questions]] — 12 câu hỏi mở
+- [[claims]] — 39 luận điểm có trích nguồn (23 từ 2026-06-27 + 6 (c-01…06) + **10 mới client-confirmed từ dịch ngược APK** c-20260724-07…16: server-authoritative, 12 hàng, mã ID chiến pháp, 4 hệ binh chủng, 6 phẩm chất, Thống/Dũng, Thức tỉnh, nô lệ, phong địa, cross-server)
+- [[contradictions]] — 8 mâu thuẫn; dịch ngược client (2026-07-24) **giải quyết x-05 (phẩm chất → A)**, củng cố x-01 (4 hệ binh chủng), x-02 (nộ cast thủ công), x-06 (12 ô-hàng)
+- [[open-questions]] — 16 câu hỏi (13 mở + 3 đã trả lời); mới 2026-07-24: icon chiến thuật, cấp binh chủng, "Lực chiến (战力)"
+- [[sources/apk-reverse-engineering-2026-07-24]] — ⭐ **Dịch ngược client 攻城掠地 v8.9.0.6** (nguồn sơ cấp: server-authoritative, ~47 event trận, 12 hàng, mã chiến pháp, 4 hệ binh chủng, Thức tỉnh, nô lệ, cross-server)
 - [[sources/ctxd-web-research-2026-06-27]] — Đợt nghiên cứu web nguồn
 - [[sources/screenshot-somo-battle-2026-06-27]] — Ảnh gameplay gốc (xác nhận game + hình học isometric)
+- [[sources/ingame-general-panel-2026-07-24]] — 4 ảnh màn Tướng lĩnh (binh chủng có cấp, chiến pháp N-hàng, thiên phú Lực chiến, mộ binh)
+- [[sources/ctxd-web-verify-2026-07-24]] — Đối chiếu web (统/勇, Mã Siêu 铁骑无敌, binh lực=HP, bậc sao chưa gán CTXD…)
 
 ## Bugs
 <!-- chưa có -->

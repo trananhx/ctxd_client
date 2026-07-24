@@ -4,7 +4,7 @@ category: systems
 tags: [multiplayer, endgame, national-war, cross-server, world-boss]
 sources: []
 created: 2026-06-27
-updated: 2026-06-27
+updated: 2026-07-24
 ---
 
 # Chế độ nhiều người & cuối game
@@ -13,6 +13,9 @@ Vòng lặp cuối game của **Công Thành Xưng Đế** (攻城掠地, bản 
 
 > [!info] Ý đồ thiết kế
 > Toàn bộ "cuối game" của bản 2013 là một sandbox PvP tập thể: thay vì leo bậc cá nhân, người chơi được kéo vào nhịp ngày (3 khung giờ Quốc chiến) và nhịp tuần/mùa (sự kiện liên server). Hệ thống thưởng kinh nghiệm và tài nguyên buộc người chơi cấp cao phải tham gia tập thể để tiến cấp hiệu quả.
+
+> [!info] Xác thực từ dịch ngược client (2026-07-24) — [[sources/apk-reverse-engineering-2026-07-24]]
+> Client xác nhận **3 nước Ngụy/Thục/Ngô** (`country.lua`, textId 95016/95017/95018). Chiến tranh quốc gia: **Hội chiến** (huizhan, đại chiến 3 nước Trù bị→Công thủ→Kết thúc), **Vây/Công thành** (weicheng), **Quân Đoàn** (corps — nhóm hợp binh cùng công thành/xuất chinh; có QĐ cá nhân). **ĐÍNH CHÍNH**: `feud` = **Phong Địa (fief)** sản xuất tài nguyên, KHÔNG phải bang hội; không có guild kiểu MMO — cộng đồng = Quốc gia + Quân Đoàn. "Liên minh" = ngoại giao **2-đánh-1** giữa 3 nước. **Cross-server (kf*)**: kfmg (Diệt Quốc), kfwd (Giải Tiên Phong), kfzb (Giải Tranh Bá), kfyz (Viễn chinh Đông Doanh). Xem [[claims#c-20260724-15]], [[claims#c-20260724-16]].
 
 ## Quốc chiến (国战)
 
@@ -174,3 +177,4 @@ Tổng hợp từ [[sources/ctxd-web-research-2026-06-27]]
 - [[systems/progression-and-vip]]
 - [[systems/battle-system]]
 - [[systems/tactics-and-rage]]
+- [[sources/apk-reverse-engineering-2026-07-24]] — xác thực từ dịch ngược client (2026-07-24)

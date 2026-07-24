@@ -1,0 +1,2 @@
+﻿gainGeneral.control = {}
+gainGeneral.data = {}

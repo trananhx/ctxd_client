@@ -4,12 +4,15 @@ category: systems
 tags: [battle, turn-based, stance, rage, tactics, renderer]
 sources: []
 created: 2026-06-27
-updated: 2026-06-27
+updated: 2026-07-24
 ---
 
 # Hệ chiến đấu (turn-based)
 
 Đây là trang lõi mô tả hệ chiến đấu theo lượt của **Công Thành Xưng Đế** (攻城掠地 — webgame 傲世堂 2013, bản mục tiêu của dự án). Toàn bộ asset chiến trận trong Unity (`warBG`, `warvsicon`, `army/att`, `army/def`, `skill/*`, `eff/*`, `warSkillName`, `warFeatAnger`...) phục vụ chính cho hệ này — xem chi tiết ánh xạ tại [[technical/asset-system-mapping]]. Các con số/cơ chế phụ trợ về binh chủng nằm ở [[systems/troop-types]], thế trận (阵法) ở [[systems/formation-system]], nộ khí và chiến pháp ở [[systems/tactics-and-rage]], và bộ tướng ở [[entities/generals]].
+
+> [!info] Xác thực từ dịch ngược client (2026-07-24) — [[sources/apk-reverse-engineering-2026-07-24]]
+> Client 攻城掠地 v8.9.0.6 xác nhận kiến trúc **server-authoritative**: server tính toàn bộ trận rồi stream một "báo cáo trận" gồm ~47 loại sự kiện đánh số (`lua/game/battle/reportHandler/<n>.lua`); client chỉ **replay** (`fightLayer.lua:3413 doBattleReport`) — KHÔNG có logic sát thương/né/bạo kích/targeting ở client. Trường vẽ `BATTLE_ROW_NUM = 12` ô-hàng (z-order=12−row); **chết-theo-hàng** xác nhận (event 30/46, khớp 递进击杀). Có **fast-battle** (event 45), **phantom/ảo ảnh** (`copyArmy`), **Surround/vây–phong toả** (event 53), song đấu 1v1 (event 12), trụ tên/máy bắn đá/hoả công (event 32-35). Xem [[claims#c-20260724-07]], [[claims#c-20260724-08]].
 
 ## Tổng quan vòng chiến
 
@@ -176,6 +179,7 @@ Tổng hợp từ [[sources/ctxd-web-research-2026-06-27]]
 
 ## Backlinks
 
+- [[sources/apk-reverse-engineering-2026-07-24]] — xác thực từ dịch ngược client (2026-07-24)
 - [[overview]]
 - [[systems/tactics-and-rage]]
 - [[systems/troop-types]]

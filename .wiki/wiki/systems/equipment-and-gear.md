@@ -4,7 +4,7 @@ category: systems
 tags: [equipment, treasures, divine-weapons, mounts, progression, combat-power]
 sources: []
 created: 2026-06-27
-updated: 2026-06-27
+updated: 2026-07-24
 ---
 
 # Trang bị, bảo vật, thần binh & chiến mã
@@ -13,6 +13,9 @@ updated: 2026-06-27
 
 > [!info] Ý đồ thiết kế: phân tầng theo mốc cấp
 > Mỗi hệ mở khóa ở một mốc tiến trình khác nhau (đánh bại 郭汜 → trang bị; Lv36 → trang bị vàng có kỹ năng; Lv110 → bộ "chân"; Lv130 → thần binh; Lv170 → lò Luyện Bảo). Cách giăng mốc này kéo dài đường cong nuôi tướng, ăn khớp với [[systems/progression-and-vip]].
+
+> [!info] Xác thực từ dịch ngược client (2026-07-24) — [[sources/apk-reverse-engineering-2026-07-24]]
+> Client xác nhận **6 phẩm chất** 白蓝绿黄红紫 (Trắng<Lam<Lục<Vàng<Đỏ<Tím, `color.lua`). Trang bị tướng **8 loại** (vũ khí/ngựa/giáp/áo choàng/binh phù/cờ/bảo vật/bộ). **Vũ khí**: rèn/đúc (casting), **Thần Binh cấp tối đa 220** (`MAX_GOD_WEAPON_LV=220`), **khe đá quý** (gỡ đá thường miễn phí, đá cao cấp tốn Vàng), khí giới công thành (Catapult/Machine). **Đá quý/bảo thạch**: chấm **sao 1–12**, 3 dòng thuộc tính ATK/DEF/HP. Nâng cấp bộ: Tôi luyện (quenching), Khai Quang (kaiguang), Thần Tướng (shenjiang). Con số (chỉ số, chi phí rèn/khảm) ở server. Xem [[claims#c-20260724-11]].
 
 ## 1. Trang bị 6 ô (装备)
 
@@ -190,3 +193,4 @@ Tổng hợp từ [[sources/ctxd-web-research-2026-06-27]]
 - [[entities/generals]]
 - [[systems/economy-and-internal-affairs]]
 - [[systems/progression-and-vip]]
+- [[sources/apk-reverse-engineering-2026-07-24]] — xác thực từ dịch ngược client (2026-07-24)

@@ -4,12 +4,15 @@ category: world
 tags: [world-map, quoc-chien, kich-ban, pve, three-kingdoms]
 sources: []
 created: 2026-06-27
-updated: 2026-06-27
+updated: 2026-07-24
 ---
 
 # Bản đồ thế giới & chiến dịch sử thi
 
 Bản đồ thế giới của **Công Thành Xưng Đế** (攻城掠地, bản webgame 傲世堂 2013) là sân khấu của hai trụ cột gắn chặt nhau: lớp **Quốc chiến (国战)** — một bản đồ chung tái hiện toàn cõi Tam Quốc nơi ba nước tranh đoạt thành trì — và lớp **kịch bản sử thi (剧本/副本)** đơn người chơi kể lại dòng thời gian lịch sử. Trang này mô tả địa lý, cơ chế chiếm thành trên bản đồ, các thành đặc biệt và chuỗi kịch bản. Cơ chế chiến đấu chi tiết nằm ở [[systems/city-conquest]]; phần đối kháng người chơi và endgame ở [[systems/multiplayer-and-endgame]].
+
+> [!info] Xác thực từ dịch ngược client (2026-07-24) — [[sources/apk-reverse-engineering-2026-07-24]]
+> Client xác nhận đại bản đồ gồm **~30 loại ô** (`world/constant.lua`): thành trì/chủ thành/thành Man, quan ải 3 cấp, địa hình (bình nguyên/sơn địa/thuỷ vực/hẻm/dốc), và ô tài nguyên–quân sự (đồn điền, **Kho Quân Hoả** cấp "Hoả Kế" khi công thành, bảo lũy, yếu tái, điểm khai thác). **Sương mù** (uncoverFog) mở dần theo tiến độ. Tài nguyên bản đồ gồm cả **Đồng** (copper). **Viễn chinh cross-server** mở rộng ngoài Trung Nguyên: **Cao Ly, Nhật (Đông Doanh), Lưu Cầu, Nam Chiếu, Việt Nam (Giao Chỉ)** (`kfyzWorld/config/road/*`). Xem [[claims#c-20260724-16]].
 
 ## Quy mô & phân chia bản đồ
 
@@ -123,3 +126,4 @@ Tổng hợp từ [[sources/ctxd-web-research-2026-06-27]]
 - [[systems/city-conquest]]
 - [[systems/multiplayer-and-endgame]]
 - [[systems/general-system]]
+- [[sources/apk-reverse-engineering-2026-07-24]] — xác thực từ dịch ngược client (2026-07-24)

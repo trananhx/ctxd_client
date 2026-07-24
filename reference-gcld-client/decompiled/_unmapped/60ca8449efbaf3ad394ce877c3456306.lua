@@ -1,0 +1,2 @@
+﻿offlineBuff.control = {}
+offlineBuff.data = {}
