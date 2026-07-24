@@ -15,10 +15,11 @@ namespace Ctxd.Battle
     /// <summary>Tunable field spacing (from the director's Inspector). Multipliers on the base ISO layout.</summary>
     public struct FieldLayout
     {
-        public float rowSpacing;    // ↑ = rows further apart (fix overlapping rows)
-        public float groupSpacing;  // ↑ = groups within a row further apart
-        public float unitScale;     // per-sprite scale
-        public static FieldLayout Default => new FieldLayout { rowSpacing = 1.5f, groupSpacing = 1.1f, unitScale = 0.7f };
+        public float rowSpacing;      // ↑ = rows further apart
+        public float groupSpacing;    // ↑ = groups within a row further apart
+        public float spriteSpacing;   // ↑ = soldiers within a group further apart
+        public float unitScale;       // per-sprite scale
+        public static FieldLayout Default => new FieldLayout { rowSpacing = 1.5f, groupSpacing = 1.1f, spriteSpacing = 2.0f, unitScale = 0.7f };
     }
 
     /// <summary>
@@ -82,8 +83,9 @@ namespace Ctxd.Battle
             float gs = _layout.groupSpacing > 0f ? _layout.groupSpacing : 1f;
             _rowAxis   = rowDir * rs;              // giãn cách HÀNG (chỗ đang bị đè lên nhau)
             _groupAxis = groupDir * gs;           // giãn cách NHÓM trong một hàng
-            _spriteCol = new Vector2(0.16f, -0.08f);
-            _spriteRow = rowDir * 0.16f;          // độ sâu cụm giữ nguyên (hướng cơ sở, không nhân) → cụm vẫn gọn
+            float ss = _layout.spriteSpacing > 0f ? _layout.spriteSpacing : 1f;
+            _spriteCol = new Vector2(0.16f, -0.08f) * ss;   // giãn cách lính theo CỘT trong nhóm
+            _spriteRow = rowDir * 0.16f * ss;               // giãn cách lính theo CHIỀU SÂU trong nhóm
             _unitScale = _layout.unitScale > 0f ? _layout.unitScale : 0.7f;
             _lungeDir  = offense ? new Vector3(0.5f, 0.28f, 0f) : new Vector3(-0.5f, -0.28f, 0f);
         }
@@ -152,12 +154,14 @@ namespace Ctxd.Battle
             };
 
             var visual = _db != null ? _db.GetVisualForTroop(g.Troop) : null;
+            Vector2 lo = Vector2.positiveInfinity, hi = Vector2.negativeInfinity;
             for (int sr = 0; sr < srows; sr++)
             for (int sc = 0; sc < cols; sc++)
             {
+                Vector2 off = _spriteCol * (sc - (cols - 1) * 0.5f) + _spriteRow * sr;
+                lo = Vector2.Min(lo, off); hi = Vector2.Max(hi, off);
                 var uv = VisualSpawner.SpawnUnit(visual, _faction, anchor);
                 if (uv == null) continue;
-                Vector2 off = _spriteCol * (sc - (cols - 1) * 0.5f) + _spriteRow * sr;
                 uv.transform.localPosition = new Vector3(off.x, off.y, 0f);
                 uv.transform.localScale = Vector3.one * _unitScale;
                 uv.PlayIdle();
@@ -168,8 +172,10 @@ namespace Ctxd.Battle
             ct.field = this; ct.rowIndex = r; ct.groupIndex = gi;
             var col = anchorGo.AddComponent<BoxCollider2D>();
             col.isTrigger = true;
-            col.offset = new Vector2(0f, 0.15f);
-            col.size = new Vector2(cols * 0.22f + 0.35f, srows * 0.18f + 0.6f);
+            // collider bao đúng cụm sprite (theo bao đóng thực tế) + đệm cho thân/đầu sprite → click chuẩn dù spacing đổi
+            Vector2 span = hi - lo;
+            col.offset = (lo + hi) * 0.5f + new Vector2(0f, 0.25f);
+            col.size = new Vector2(span.x + 0.45f, span.y + 0.8f);
 
             UpdateSorting(cell);
             return cell;

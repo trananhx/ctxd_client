@@ -35,6 +35,7 @@ namespace Ctxd.Battle
         [Header("Field layout (spacing)")]
         [Tooltip("↑ = các hàng cách xa nhau hơn (sửa dính/đè hàng)")] public float rowSpacing = 1.5f;
         [Tooltip("↑ = các nhóm trong một hàng cách xa nhau hơn")] public float groupSpacing = 1.1f;
+        [Tooltip("↑ = các lính TRONG một nhóm cách xa nhau hơn (sửa lính dính nhau)")] public float spriteSpacing = 2.0f;
         [Tooltip("Kích thước mỗi lính")] public float unitScale = 0.7f;
 
         public event System.Action<CombatantSnapshot, CombatantSnapshot> ActiveGeneralsChanged;
@@ -205,7 +206,7 @@ namespace Ctxd.Battle
             if (c == null) return null;
             var go = new GameObject($"Field_{faction}"); go.transform.SetParent(root, false);
             var fv = go.AddComponent<BattleSideField>();
-            try { fv.Build(c, faction, database, new FieldLayout { rowSpacing = rowSpacing, groupSpacing = groupSpacing, unitScale = unitScale }); }
+            try { fv.Build(c, faction, database, new FieldLayout { rowSpacing = rowSpacing, groupSpacing = groupSpacing, spriteSpacing = spriteSpacing, unitScale = unitScale }); }
             catch (System.Exception ex) { Debug.LogError($"[Director] field build: {ex}"); Destroy(go); return null; }
             return fv;
         }
