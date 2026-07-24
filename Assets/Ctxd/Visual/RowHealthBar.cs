@@ -8,7 +8,7 @@ namespace Ctxd.Visual
     {
         private SpriteRenderer _bg, _fill;
         private float _width = 0.9f;
-        private const float Height = 0.10f;
+        private const float Height = 0.16f;
 
         private static Sprite _sprite;
         private static Sprite WhiteSprite()
@@ -16,7 +16,7 @@ namespace Ctxd.Visual
             if (_sprite != null) return _sprite;
             var tex = new Texture2D(1, 1, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point };
             tex.SetPixel(0, 0, Color.white); tex.Apply();
-            _sprite = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0f, 0.5f), 100f); // left-anchored → scale.x = fill
+            _sprite = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0f, 0.5f), 1f); // PPU=1: 1×1 tex = 1 world unit (100 → sub-pixel/invisible)
             _sprite.name = "RowHpBarPixel";
             return _sprite;
         }
