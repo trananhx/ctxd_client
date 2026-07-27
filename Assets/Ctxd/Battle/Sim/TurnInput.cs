@@ -5,7 +5,8 @@ namespace Ctxd.Battle.Sim
     {
         public Stance Stance;
         public bool Awaken;
-        public TurnInput(Stance stance, bool awaken = false) { Stance = stance; Awaken = awaken; }
+        public bool Cast;   // RE: người chơi bấm hình tướng để thả 战法 (cast thủ công, không auto khi đầy nộ).
+        public TurnInput(Stance stance, bool awaken = false, bool cast = false) { Stance = stance; Awaken = awaken; Cast = cast; }
     }
 
     /// <summary>Strategy for choosing a side's input each round (AI / scripted / player playback).</summary>

@@ -1,0 +1,63 @@
+{
+  "Generals": [
+    {
+      "Id": "guanyu", "DisplayName": "Quan Vũ", "Troop": "KyBinh", "Level": 220,
+      "NormalAtk": 640, "NormalDef": 320, "TacticAtk": 600, "TacticDef": 300, "Strategy": 92, "Resilience": 0.14,
+      "TroopCapacity": 16043, "Rows": 4, "FiveStar": true, "CanAwaken": true,
+      "TerrainBonus": { "Plain": 0.25, "City": 0.25 },
+      "Skill2": { "Id": "wushen", "Name": "Võ Thần Phụ Thể", "Kind": "AoeDamage", "RowsHit": 3, "Power": 1.9, "IsAwakening": true, "FixedPower": 2.6 },
+      "CounterVsTroop": { "CungBinh": 0.15 }
+    },
+    {
+      "Id": "zhangfei", "DisplayName": "Trương Phi", "Troop": "ThuongBinh", "Level": 205,
+      "NormalAtk": 600, "NormalDef": 360, "TacticAtk": 540, "TacticDef": 320, "Strategy": 70, "Resilience": 0.10,
+      "TroopCapacity": 13770, "Rows": 4, "CanAwaken": true,
+      "TerrainBonus": { "Mountain": 0.25 },
+      "Skill2": { "Id": "roar", "Name": "Diệt Thế Bào Hao", "Kind": "Pushback", "RowsHit": 3, "Power": 1.6, "PushbackTroops": 800 }
+    },
+    {
+      "Id": "zhaoyun", "DisplayName": "Triệu Vân", "Troop": "KyBinh", "Level": 210,
+      "NormalAtk": 610, "NormalDef": 330, "TacticAtk": 580, "TacticDef": 300, "Strategy": 85, "Resilience": 0.12,
+      "TroopCapacity": 11497, "Rows": 4, "CanAwaken": true,
+      "TerrainBonus": { "Plain": 0.25, "Mountain": 0.25, "Forest": 0.25, "Water": 0.25 },
+      "Deputy": { "Id": "guanping", "DisplayName": "Quan Bình", "Troop": "ThuongBinh", "NormalAtk": 480, "TacticAtk": 420, "TroopCapacity": 4000 },
+      "Skill2": { "Id": "dragonspear", "Name": "Long Thương Ngạo Thế", "Kind": "AoeDamage", "RowsHit": 4, "Power": 1.7 }
+    },
+    {
+      "Id": "machao", "DisplayName": "Mã Siêu", "Troop": "KyBinh", "Level": 195,
+      "NormalAtk": 620, "NormalDef": 300, "TacticAtk": 560, "TacticDef": 280, "Strategy": 72, "Resilience": 0.09,
+      "TroopCapacity": 12880, "Rows": 4,
+      "TerrainBonus": { "Plain": 0.35 },
+      "Skill2": { "Id": "polei", "Name": "Phá Trận Cung", "Kind": "Rule",
+        "Program": [
+          { "Scope": "EnemyAll", "Rows": "AllRows", "TroopFilter": ["CungBinh"], "Action": "Damage", "PowerScale": 1.8 }
+        ]}
+    },
+    {
+      "Id": "huangzhong", "DisplayName": "Hoàng Trung", "Troop": "CungBinh", "Level": 180,
+      "NormalAtk": 590, "NormalDef": 260, "TacticAtk": 600, "TacticDef": 240, "Strategy": 68, "Resilience": 0.07,
+      "TroopCapacity": 9930, "Rows": 4,
+      "Skill1": { "Id": "volley", "Name": "Liên Châu Tiễn", "Kind": "AoeDamage", "RowsHit": 2, "Power": 1.2 },
+      "Skill2": { "Id": "volleyx", "Name": "Bách Bộ Xuyên Dương", "Kind": "AoeDamage", "RowsHit": 3, "Power": 1.6 }
+    },
+    {
+      "Id": "zhugeliang", "DisplayName": "Gia Cát Lượng", "Troop": "MuuSi", "Level": 215,
+      "NormalAtk": 500, "NormalDef": 280, "TacticAtk": 640, "TacticDef": 300, "Strategy": 98, "Resilience": 0.16,
+      "TroopCapacity": 10500, "Rows": 4, "FiveStar": true, "CanAwaken": true,
+      "Skill2": { "Id": "fengxiong", "Name": "Phùng Hung Hóa Cát", "Kind": "Confusion", "RowsHit": 2, "Power": 1.5, "ConfusionTurns": 1, "GrantsLuanwu": true }
+    },
+    {
+      "Id": "zhouyu", "DisplayName": "Chu Du", "Troop": "MuuSi", "Level": 200,
+      "NormalAtk": 520, "NormalDef": 270, "TacticAtk": 620, "TacticDef": 290, "Strategy": 94, "Resilience": 0.15,
+      "TroopCapacity": 10120, "Rows": 4, "CanAwaken": true,
+      "TerrainBonus": { "Water": 0.25, "Mountain": 0.25 },
+      "Skill2": { "Id": "chiyan", "Name": "Xích Diễm Mê Trận", "Kind": "AoeDamage", "RowsHit": 4, "Power": 1.8, "ConfusionTurns": 1 }
+    },
+    {
+      "Id": "huangyueying", "DisplayName": "Hoàng Nguyệt Anh", "Troop": "ChienXa", "Level": 175,
+      "NormalAtk": 560, "NormalDef": 340, "TacticAtk": 560, "TacticDef": 320, "Strategy": 80, "Resilience": 0.12,
+      "TroopCapacity": 12200, "Rows": 4,
+      "Skill2": { "Id": "pojia", "Name": "Phá Giáp Chiến Xa", "Kind": "Damage", "RowsHit": 2, "Power": 1.7 }
+    }
+  ]
+}

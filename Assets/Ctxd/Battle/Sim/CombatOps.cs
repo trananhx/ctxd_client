@@ -209,29 +209,61 @@ namespace Ctxd.Battle.Sim
                     ActorId = c.Id, Amount = c.Morale, ActorMoraleAfter = c.Morale, Text = $"{c.DisplayName} đầy nộ khí!" });
         }
 
+        // [2E] Trụ tên bắn: sát thương cố định vào hàng đầu phe Công (KHÔNG tiêu RNG → determinism-safe).
+        public static int TowerShoot(Combatant target, int power, int round, List<BattleEvent> ev)
+            => target == null ? 0 : ApplyDamageToFront(target, System.Math.Max(0, power), round, ev);
+
+        // [2E] Hoả công: rải sát thương lên N hàng đầu của target (KHÔNG tiêu RNG).
+        public static int ApplyFire(Combatant target, int rows, double perRowScale, int round, List<BattleEvent> ev)
+        {
+            if (target == null || !target.HasFormation || rows <= 0) return 0;
+            var groups = new List<Group>();
+            int taken = 0;
+            foreach (var r in target.Formation)
+            {
+                if (taken >= rows) break;
+                if (!r.Alive) continue;
+                foreach (var g in r.Groups) if (g.Alive) groups.Add(g);
+                taken++;
+            }
+            int dmg = System.Math.Max(1, (int)System.Math.Round(perRowScale * rows * 10.0));
+            return ApplyDamageToGroups(target, groups, dmg, Distribution.EvenByHp, round, ev);
+        }
+
         public static double StanceMult(int sign, BattleConfig cfg)
             => sign > 0 ? cfg.StanceAdvantageMult : (sign < 0 ? cfg.StanceDisadvantageMult : 1.0);
 
+        // RE (mobile): địa hình = thiên phú % Lực chiến (战力) PER-TƯỚNG, KHÔNG phải affinity theo binh chủng.
+        // c.TerrainBonus[(int)terrain] = % (data từ server). City (Thành trì) chỉ áp phe Công (城池战力仅攻方).
         public static double TerrainMult(Combatant c, Terrain terrain, BattleConfig cfg)
         {
-            bool match;
-            switch (terrain)
-            {
-                case Terrain.Plain: match = c.Troop == TroopType.KyBinh; break;
-                case Terrain.Mountain:
-                case Terrain.Forest: match = c.Troop == TroopType.ThuongBinh; break;
-                case Terrain.Water: match = c.Troop == TroopType.CungBinh; break;
-                default: match = false; break;
-            }
-            return match ? 1.0 + cfg.TerrainAffinityBonus : 1.0;
+            if (c == null || c.TerrainBonus == null) return 1.0;
+            if (terrain == Terrain.City && c.Faction != Faction.Offense) return 1.0; // 城池战力仅攻方
+            return c.TerrainBonus.TryGetValue((int)terrain, out var pct) ? 1.0 + pct : 1.0;
         }
 
-        // Optional somo-era troop counter. Neutral by default (2013: 兵种互不相克).
-        public static double TroopMult(Combatant a, Combatant b, BattleConfig cfg) => 1.0;
+        // Khắc chế binh chủng: [2B] bonus PER-TƯỚNG (Thức tỉnh/tech) CỘNG CHỒNG lên [Stage1] vòng ring universal.
+        // ring null + CounterVsTroop null → neutral (webgame 2013: 兵种互不相克).
+        public static double TroopMult(Combatant a, Combatant b, BattleConfig cfg)
+        {
+            if (a == null || b == null) return 1.0;
+            double bonus = 0.0;
+            if (a.CounterVsTroop != null && a.CounterVsTroop.TryGetValue((int)b.Troop, out var pg)) bonus += pg;   // per-tướng
+            if (cfg?.TroopCounterRing != null && cfg.TroopCounterRing.TryGetValue((int)a.Troop, out var beats) && beats == (int)b.Troop)
+                bonus += cfg.TroopCounterBonus;   // ring universal
+            return 1.0 + bonus;
+        }
 
+        // Overload cũ (out crit) → delegate xuống overload có 'miss'. Callsite cũ không đổi.
         public static int BasicDamage(Combatant actor, Combatant target, double stanceMult, Terrain terrain,
                                       BattleConfig cfg, DeterministicRng rng, out bool crit)
+            => BasicDamage(actor, target, stanceMult, terrain, cfg, rng, out crit, out _);
+
+        public static int BasicDamage(Combatant actor, Combatant target, double stanceMult, Terrain terrain,
+                                      BattleConfig cfg, DeterministicRng rng, out bool crit, out bool miss)
         {
+            miss = RollDodge(cfg, rng, dodgeable: true);   // đòn thường có thể bị né (report3 'ms')
+            if (miss) { crit = false; return 0; }
             double raw = actor.Stats.NormalAtk - target.Stats.NormalDef * 0.5;
             if (raw < 1) raw = 1;
             double mult = stanceMult * TerrainMult(actor, terrain, cfg) * TroopMult(actor, target, cfg);
@@ -241,20 +273,37 @@ namespace Ctxd.Battle.Sim
             return Math.Max(1, (int)Math.Round(raw * mult * cfg.BaseDamageScale));
         }
 
+        /// <summary>Né đòn (report3 'ms'). CHỈ tốn RNG khi DodgeChance>0 (mặc định 0 → không drift determinism baseline).</summary>
+        public static bool RollDodge(BattleConfig cfg, DeterministicRng rng, bool dodgeable)
+            => dodgeable && cfg != null && cfg.DodgeChance > 0.0 && rng.Chance(cfg.DodgeChance);
+
+        // [2C] "gia thành": biến thể chiến pháp khớp địa hình hiện tại → nhân JiachengMult (>1).
+        static double Jiacheng(TacticSpec t, Terrain terrain)
+            => (t != null && t.TerrainTag.HasValue && t.TerrainTag.Value == terrain) ? t.JiachengMult : 1.0;
+
+        // Overload cũ (out crit) → delegate. Callsite cũ (RuleActions) không đổi.
         public static int TacticDamage(Combatant actor, Combatant target, TacticSpec tactic, double stanceMult,
                                        bool awakened, Terrain terrain, BattleConfig cfg, DeterministicRng rng, out bool crit)
+            => TacticDamage(actor, target, tactic, stanceMult, awakened, terrain, cfg, rng, out crit, out _);
+
+        public static int TacticDamage(Combatant actor, Combatant target, TacticSpec tactic, double stanceMult,
+                                       bool awakened, Terrain terrain, BattleConfig cfg, DeterministicRng rng, out bool crit, out bool miss)
         {
+            // awakened / undodgeable KHÔNG bị né (必中).
+            miss = RollDodge(cfg, rng, dodgeable: !awakened && !(tactic != null && tactic.Undodgeable));
+            if (miss) { crit = false; return 0; }
             crit = false;
             double rowFactor = 1.0 + 0.35 * (Math.Max(1, tactic.RowsHit) - 1);
+            double jc = Jiacheng(tactic, terrain);   // [2C] gia thành khi dùng đúng biến thể địa hình
             if (awakened)
             {
                 double fixedPow = tactic.FixedPower > 0 ? tactic.FixedPower : tactic.Power * 2.0;
-                // Awakened: ignore def/variance/resist but keep terrain affinity (GDD §4.2: awakened tactic +địa hình).
-                return Math.Max(1, (int)Math.Round(actor.Stats.TacticAtk * fixedPow * rowFactor * TerrainMult(actor, terrain, cfg)));
+                // Awakened: ignore def/variance/resist but keep terrain affinity + jiacheng (GDD §4.2).
+                return Math.Max(1, (int)Math.Round(actor.Stats.TacticAtk * fixedPow * rowFactor * TerrainMult(actor, terrain, cfg) * jc));
             }
             double raw = actor.Stats.TacticAtk * tactic.Power - target.Stats.TacticDef * 0.5;
             if (raw < 1) raw = 1;
-            double mult = stanceMult * rowFactor * TerrainMult(actor, terrain, cfg);
+            double mult = stanceMult * rowFactor * TerrainMult(actor, terrain, cfg) * jc;
             crit = rng.Chance(cfg.CritChance);
             if (crit) mult *= cfg.CritMult;
             else if (rng.Chance(cfg.FrenzyChance)) mult *= cfg.FrenzyMult; // 乱舞
@@ -263,9 +312,9 @@ namespace Ctxd.Battle.Sim
             return Math.Max(1, (int)Math.Round(raw * mult * cfg.BaseDamageScale));
         }
 
-        public static BattleEvent DamageEvent(int round, Combatant actor, Combatant target, int amount, bool crit, TacticEffectKind effect)
+        public static BattleEvent DamageEvent(int round, Combatant actor, Combatant target, int amount, bool crit, TacticEffectKind effect, bool miss = false)
             => new BattleEvent { Round = round, Type = BattleEventType.Damage, Side = actor.Faction,
-                ActorId = actor.Id, TargetId = target.Id, Amount = amount, Crit = crit, Effect = effect,
+                ActorId = actor.Id, TargetId = target.Id, Amount = amount, Crit = crit, Miss = miss, Effect = effect,
                 ActorTroopsAfter = actor.Troops, TargetTroopsAfter = target.Troops, ActorMoraleAfter = actor.Morale };
     }
 }

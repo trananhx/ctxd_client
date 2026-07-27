@@ -22,6 +22,10 @@ namespace Ctxd.EditorTools
         const string HudPath = UiDir + "/BattleHudUI.prefab";
         const string PanelPath = UiDir + "/TestApiPanelUI.prefab";
         const string LineupPath = UiDir + "/LineupUI.prefab";
+        const string LobbyPath = UiDir + "/LobbyUI.prefab";
+        const string SelGenPath = UiDir + "/SelectGeneralUI.prefab";
+        const string SelStagePath = UiDir + "/SelectStageUI.prefab";
+        const string ResultPath = UiDir + "/ResultUI.prefab";
 
         public static UIRegistrySO BuildAll()
         {
@@ -29,10 +33,14 @@ namespace Ctxd.EditorTools
             var hud = BuildHud();
             var panel = BuildPanel();
             var lineup = BuildLineup();
-            var reg = BuildRegistry(hud, panel, lineup);
+            var lobby = BuildLobby();
+            var selGen = BuildSelectGeneral();
+            var selStage = BuildSelectStage();
+            var result = BuildResult();
+            var reg = BuildRegistry(hud, panel, lineup, lobby, selGen, selStage, result);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[UIForge] Built BattleHud + TestApiPanel + Lineup prefabs + UIRegistry (refs auto-wired).");
+            Debug.Log("[UIForge] Built HUD + TestPanel + Lineup + Lobby + SelectGeneral + SelectStage + Result prefabs + UIRegistry (refs auto-wired).");
             return reg;
         }
 
@@ -119,14 +127,21 @@ namespace Ctxd.EditorTools
         }
 
         // ── registry ─────────────────────────────────────────────────────────────
-        static UIRegistrySO BuildRegistry(GameObject hud, GameObject panel, GameObject lineup)
+        static UIRegistrySO BuildRegistry(GameObject hud, GameObject panel, GameObject lineup,
+            GameObject lobby, GameObject selGen, GameObject selStage, GameObject result)
         {
             var reg = LoadOrCreate<UIRegistrySO>(RegPath);
+            UIConfig Screen(UIId id, GameObject go) => new UIConfig { Id = id, AssetRef = go, Lane = UILayer.Screen, CachePolicy = UICachePolicy.KeepLoaded, DismissByEscape = false, PausableWhenOverlaid = false };
+            UIConfig Hud(UIId id, GameObject go) => new UIConfig { Id = id, AssetRef = go, Lane = UILayer.Hud, CachePolicy = UICachePolicy.KeepLoaded, DismissByEscape = false, PausableWhenOverlaid = false };
             var entries = new List<UIConfig>
             {
-                new UIConfig { Id = UIId.MainMenu, AssetRef = lineup, Lane = UILayer.Screen, CachePolicy = UICachePolicy.KeepLoaded, DismissByEscape = false, PausableWhenOverlaid = false },
-                new UIConfig { Id = UIId.TestApiPanel, AssetRef = panel, Lane = UILayer.Hud, CachePolicy = UICachePolicy.KeepLoaded, DismissByEscape = false, PausableWhenOverlaid = false },
-                new UIConfig { Id = UIId.BattleHud, AssetRef = hud, Lane = UILayer.Hud, CachePolicy = UICachePolicy.KeepLoaded, DismissByEscape = false, PausableWhenOverlaid = false },
+                Screen(UIId.MainMenu, lineup),          // legacy pre-battle lineup (không dùng trong flow mới)
+                Screen(UIId.Lobby, lobby),
+                Screen(UIId.SelectGeneral, selGen),
+                Screen(UIId.SelectStage, selStage),
+                Screen(UIId.Result, result),
+                Hud(UIId.TestApiPanel, panel),
+                Hud(UIId.BattleHud, hud),
             };
             typeof(UIRegistrySO).GetField("entries", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(reg, entries);
             EditorUtility.SetDirty(reg);
@@ -166,6 +181,173 @@ namespace Ctxd.EditorTools
             SetField(ui, "_confirm", confirm);
 
             var prefab = PrefabUtility.SaveAsPrefabAsset(root, LineupPath);
+            Object.DestroyImmediate(root);
+            return prefab;
+        }
+
+        // ── Lobby (sảnh chính) ────────────────────────────────────────────────────
+        static GameObject BuildLobby()
+        {
+            var root = UIRoot("LobbyUI");
+            var rt = (RectTransform)root.transform; Stretch(rt);
+            FullBg(root, new Color(0.10f, 0.13f, 0.11f, 0.98f));
+            var ui = root.AddComponent<LobbyUI>();
+
+            Text("Title", rt, new Vector2(0.5f, 1f), new Vector2(0, -90), new Vector2(1400, 80), 56, "CÔNG THÀNH XƯNG ĐẾ", new Color(1f, 0.85f, 0.4f));
+            Text("Sub", rt, new Vector2(0.5f, 1f), new Vector2(0, -150), new Vector2(1200, 40), 26, "Chiến thuật Tam Quốc theo lượt", new Color(0.82f, 0.84f, 0.88f));
+
+            var header = Panel("Header", rt, new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1), new Vector2(40, -40), new Vector2(640, 150), new Color(0.05f, 0.07f, 0.09f, 0.92f));
+            var pName = TextIn("PName", header, new Vector2(24, 86), new Vector2(-24, -16), 34, "Chủ Công", Color.white, TextAlignmentOptions.Left);
+            var pLevel = TextIn("PLevel", header, new Vector2(24, 46), new Vector2(-24, -62), 24, "Chủ Công Lv.1", new Color(1f, 0.85f, 0.5f), TextAlignmentOptions.Left);
+            var pRes = TextIn("PRes", header, new Vector2(24, 10), new Vector2(-24, -104), 20, "—", new Color(0.8f, 0.86f, 0.8f), TextAlignmentOptions.Left);
+
+            var campaign = Button(rt, "XUẤT CHINH", new Vector2(0.5f, 0.5f), new Vector2(0, 40), new Vector2(440, 100), new Color(0.30f, 0.60f, 0.34f));
+            var formation = Button(rt, "ĐỘI HÌNH", new Vector2(0.5f, 0.5f), new Vector2(0, -84), new Vector2(360, 78), new Color(0.30f, 0.42f, 0.58f));
+
+            var stubDefs = new[] { "Chủ Thành", "Trang Bị", "Bản Đồ", "Cửa Hàng" };
+            var stubs = new Button[stubDefs.Length];
+            float sx = -570;
+            for (int i = 0; i < stubDefs.Length; i++) { stubs[i] = Button(rt, stubDefs[i], new Vector2(0.5f, 0f), new Vector2(sx, 90), new Vector2(340, 68), new Color(0.22f, 0.24f, 0.28f)); sx += 380; }
+
+            SetField(ui, "_playerName", pName); SetField(ui, "_level", pLevel); SetField(ui, "_resources", pRes);
+            SetField(ui, "_btnCampaign", campaign); SetField(ui, "_btnFormation", formation); SetField(ui, "_stubButtons", stubs);
+
+            var prefab = PrefabUtility.SaveAsPrefabAsset(root, LobbyPath);
+            Object.DestroyImmediate(root);
+            return prefab;
+        }
+
+        // ── SelectGeneral (chọn tướng / đội hình) ─────────────────────────────────
+        static GameObject BuildSelectGeneral()
+        {
+            var root = UIRoot("SelectGeneralUI");
+            var rt = (RectTransform)root.transform; Stretch(rt);
+            FullBg(root, new Color(0.09f, 0.11f, 0.13f, 0.98f));
+            var ui = root.AddComponent<SelectGeneralUI>();
+
+            Text("Title", rt, new Vector2(0.5f, 1f), new Vector2(0, -56), new Vector2(1400, 60), 40, "CHỌN TƯỚNG — BÀY BINH BỐ TRẬN", new Color(1f, 0.85f, 0.4f));
+            var hint = Text("Hint", rt, new Vector2(0.5f, 1f), new Vector2(0, -104), new Vector2(1200, 34), 22, "Đã chọn 0/5 tướng", new Color(0.82f, 0.84f, 0.88f));
+
+            const int cardCount = 8;
+            var cards = new SelectGeneralUI.Card[cardCount];
+            float cardW = 440, cardH = 128, gapX = 24, gapY = 20, gridLeft = 120, gridTop = -180;
+            for (int i = 0; i < cardCount; i++)
+            {
+                int col = i % 2, row = i / 2;
+                cards[i] = BuildGeneralCard(rt, i, new Vector2(0, 1), new Vector2(gridLeft + col * (cardW + gapX), gridTop - row * (cardH + gapY)), new Vector2(cardW, cardH));
+            }
+
+            const int slotCount = 5;
+            var slots = new SelectGeneralUI.Slot[slotCount];
+            float slotW = 560, slotH = 92, slotGap = 16, slotRight = -80, slotTop = -200;
+            Text("LineupTitle", rt, new Vector2(1, 1), new Vector2(slotRight - slotW / 2, -150), new Vector2(slotW, 40), 26, "ĐỘI HÌNH XUẤT CHIẾN (1→5)", new Color(1f, 0.8f, 0.5f));
+            for (int i = 0; i < slotCount; i++)
+                slots[i] = BuildLineupSlot(rt, i, new Vector2(1, 1), new Vector2(slotRight, slotTop - i * (slotH + slotGap)), new Vector2(slotW, slotH));
+
+            var confirm = Button(rt, "TIẾP TỤC", new Vector2(1, 0), new Vector2(-220, 70), new Vector2(360, 80), new Color(0.30f, 0.60f, 0.34f));
+            var back = Button(rt, "QUAY LẠI", new Vector2(0, 0), new Vector2(200, 70), new Vector2(300, 70), new Color(0.42f, 0.30f, 0.30f));
+
+            SetField(ui, "_cards", cards); SetField(ui, "_slots", slots);
+            SetField(ui, "_confirm", confirm); SetField(ui, "_back", back); SetField(ui, "_hint", hint);
+
+            var prefab = PrefabUtility.SaveAsPrefabAsset(root, SelGenPath);
+            Object.DestroyImmediate(root);
+            return prefab;
+        }
+
+        static SelectGeneralUI.Card BuildGeneralCard(Transform parent, int i, Vector2 anchor, Vector2 pos, Vector2 size)
+        {
+            var cardRt = NewRect($"Card{i}", parent, anchor, anchor, new Vector2(0, 1), pos, size);
+            var img = cardRt.gameObject.AddComponent<Image>(); img.color = new Color(0.16f, 0.18f, 0.22f, 0.96f); img.sprite = Builtin(); img.type = Image.Type.Sliced;
+            var btn = cardRt.gameObject.AddComponent<Button>();
+            var name = TextIn("Name", cardRt, new Vector2(16, 84), new Vector2(-16, -8), 26, "—", Color.white, TextAlignmentOptions.Left);
+            var troop = TextIn("Troop", cardRt, new Vector2(16, 48), new Vector2(-16, -52), 20, "—", Color.gray, TextAlignmentOptions.Left);
+            var level = TextIn("Level", cardRt, new Vector2(16, 10), new Vector2(-224, -88), 18, "Lv.—", new Color(0.85f, 0.85f, 0.9f), TextAlignmentOptions.Left);
+            var power = TextIn("Power", cardRt, new Vector2(224, 10), new Vector2(-16, -88), 18, "Lực chiến —", new Color(1f, 0.82f, 0.4f), TextAlignmentOptions.Right);
+            var mark = Highlight(cardRt);
+            return new SelectGeneralUI.Card { root = cardRt.gameObject, button = btn, name = name, troop = troop, power = power, level = level, selectedMark = mark };
+        }
+
+        static SelectGeneralUI.Slot BuildLineupSlot(Transform parent, int i, Vector2 anchor, Vector2 pos, Vector2 size)
+        {
+            var rt = NewRect($"Slot{i}", parent, anchor, anchor, new Vector2(1, 1), pos, size);
+            var img = rt.gameObject.AddComponent<Image>(); img.color = new Color(0.13f, 0.15f, 0.20f, 0.95f); img.sprite = Builtin(); img.type = Image.Type.Sliced;
+            var label = TextIn("Label", rt, new Vector2(24, 0), new Vector2(-130, 0), 24, $"{i + 1}.  (trống)", Color.white, TextAlignmentOptions.Left);
+            var remove = Button(rt, "Bỏ", new Vector2(1, 0.5f), new Vector2(-58, 0), new Vector2(92, 60), new Color(0.5f, 0.3f, 0.3f));
+            return new SelectGeneralUI.Slot { root = rt.gameObject, label = label, remove = remove };
+        }
+
+        // ── SelectStage (chọn màn / phó bản) ──────────────────────────────────────
+        static GameObject BuildSelectStage()
+        {
+            var root = UIRoot("SelectStageUI");
+            var rt = (RectTransform)root.transform; Stretch(rt);
+            FullBg(root, new Color(0.11f, 0.10f, 0.09f, 0.98f));
+            var ui = root.AddComponent<SelectStageUI>();
+
+            Text("Title", rt, new Vector2(0.5f, 1f), new Vector2(0, -56), new Vector2(1200, 60), 40, "CHỌN MÀN — CHINH CHIẾN", new Color(1f, 0.85f, 0.4f));
+
+            const int cardCount = 6;
+            var cards = new SelectStageUI.StageCard[cardCount];
+            float cardW = 900, cardH = 120, gap = 18, top = -150, left = 120;
+            for (int i = 0; i < cardCount; i++)
+                cards[i] = BuildStageCard(rt, i, new Vector2(0, 1), new Vector2(left, top - i * (cardH + gap)), new Vector2(cardW, cardH));
+
+            Text("TierTitle", rt, new Vector2(1, 1), new Vector2(-350, -150), new Vector2(500, 40), 26, "ĐỘ KHÓ", new Color(1f, 0.8f, 0.5f));
+            var tierNames = SelectStageUI.TierNames;
+            var tiers = new SelectStageUI.TierButton[5];
+            float ty = -210;
+            for (int i = 0; i < 5; i++) { tiers[i] = BuildTier(rt, i, tierNames[i], new Vector2(1, 1), new Vector2(-350, ty), new Vector2(500, 76)); ty -= 92; }
+
+            var info = Text("Info", rt, new Vector2(1, 1), new Vector2(-350, ty - 4), new Vector2(520, 60), 20, "Chọn một phó bản để xuất chinh", new Color(0.85f, 0.86f, 0.8f));
+
+            var confirm = Button(rt, "VÀO TRẬN", new Vector2(1, 0), new Vector2(-220, 70), new Vector2(360, 86), new Color(0.62f, 0.34f, 0.30f));
+            var back = Button(rt, "QUAY LẠI", new Vector2(0, 0), new Vector2(200, 70), new Vector2(300, 70), new Color(0.42f, 0.30f, 0.30f));
+
+            SetField(ui, "_cards", cards); SetField(ui, "_tiers", tiers);
+            SetField(ui, "_confirm", confirm); SetField(ui, "_back", back); SetField(ui, "_info", info);
+
+            var prefab = PrefabUtility.SaveAsPrefabAsset(root, SelStagePath);
+            Object.DestroyImmediate(root);
+            return prefab;
+        }
+
+        static SelectStageUI.StageCard BuildStageCard(Transform parent, int i, Vector2 anchor, Vector2 pos, Vector2 size)
+        {
+            var cardRt = NewRect($"Stage{i}", parent, anchor, anchor, new Vector2(0, 1), pos, size);
+            var img = cardRt.gameObject.AddComponent<Image>(); img.color = new Color(0.18f, 0.16f, 0.14f, 0.96f); img.sprite = Builtin(); img.type = Image.Type.Sliced;
+            var btn = cardRt.gameObject.AddComponent<Button>();
+            var name = TextIn("Name", cardRt, new Vector2(20, 74), new Vector2(-20, -10), 28, "—", new Color(1f, 0.9f, 0.7f), TextAlignmentOptions.Left);
+            var terrain = TextIn("Terrain", cardRt, new Vector2(20, 42), new Vector2(-20, -52), 19, "—", new Color(0.7f, 0.85f, 0.95f), TextAlignmentOptions.Left);
+            var desc = TextIn("Desc", cardRt, new Vector2(20, 8), new Vector2(-20, -84), 18, "—", new Color(0.8f, 0.8f, 0.82f), TextAlignmentOptions.Left);
+            var mark = Highlight(cardRt);
+            return new SelectStageUI.StageCard { root = cardRt.gameObject, button = btn, name = name, terrain = terrain, desc = desc, selectedMark = mark };
+        }
+
+        static SelectStageUI.TierButton BuildTier(Transform parent, int i, string label, Vector2 anchor, Vector2 pos, Vector2 size)
+        {
+            var btn = Button(parent, label, anchor, pos, size, new Color(0.26f, 0.30f, 0.38f));
+            var mark = Highlight(btn.transform);
+            return new SelectStageUI.TierButton { button = btn, selectedMark = mark };
+        }
+
+        // ── Result (kết quả trận) ─────────────────────────────────────────────────
+        static GameObject BuildResult()
+        {
+            var root = UIRoot("ResultUI");
+            var rt = (RectTransform)root.transform; Stretch(rt);
+            FullBg(root, new Color(0.05f, 0.06f, 0.08f, 0.92f));
+            var ui = root.AddComponent<ResultUI>();
+
+            var panel = Panel("Panel", rt, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(760, 520), new Color(0.10f, 0.12f, 0.15f, 0.98f));
+            var title = TextIn("Title", panel, new Vector2(20, 360), new Vector2(-20, -40), 64, "KẾT QUẢ", new Color(1f, 0.85f, 0.35f), TextAlignmentOptions.Center);
+            var outcome = TextIn("Outcome", panel, new Vector2(20, 250), new Vector2(-20, -180), 30, "—", Color.white, TextAlignmentOptions.Center);
+            var reward = TextIn("Reward", panel, new Vector2(20, 120), new Vector2(-20, -300), 24, "—", new Color(0.85f, 0.9f, 0.85f), TextAlignmentOptions.Center);
+            var cont = Button(panel, "VỀ SẢNH", new Vector2(0.5f, 0), new Vector2(0, 60), new Vector2(320, 84), new Color(0.30f, 0.55f, 0.34f));
+
+            SetField(ui, "_title", title); SetField(ui, "_outcome", outcome); SetField(ui, "_reward", reward); SetField(ui, "_continue", cont);
+
+            var prefab = PrefabUtility.SaveAsPrefabAsset(root, ResultPath);
             Object.DestroyImmediate(root);
             return prefab;
         }
@@ -232,6 +414,42 @@ namespace Ctxd.EditorTools
             var t = Text(label + "_L", rt, new Vector2(0.5f, 0.5f), Vector2.zero, size, 20, label, Color.white);
             var trt = (RectTransform)t.transform; trt.anchorMin = Vector2.zero; trt.anchorMax = Vector2.one; trt.offsetMin = Vector2.zero; trt.offsetMax = Vector2.zero;
             return btn;
+        }
+
+        // Text that stretches to fill its parent minus (offMin, offMax) — handy for card/panel internals.
+        static TextMeshProUGUI TextIn(string name, Transform parent, Vector2 offMin, Vector2 offMax, float fontSize, string text, Color color, TextAlignmentOptions align)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            var rt = (RectTransform)go.transform; rt.SetParent(parent, false);
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one; rt.offsetMin = offMin; rt.offsetMax = offMax;
+            var t = go.AddComponent<TextMeshProUGUI>();
+            StyleText(t, fontSize, color, align);
+            t.text = text;
+            return t;
+        }
+
+        static RectTransform Panel(string name, Transform parent, Vector2 aMin, Vector2 aMax, Vector2 pivot, Vector2 pos, Vector2 size, Color c)
+        {
+            var rt = NewRect(name, parent, aMin, aMax, pivot, pos, size);
+            var img = rt.gameObject.AddComponent<Image>(); img.color = c; img.sprite = Builtin(); img.type = Image.Type.Sliced;
+            return rt;
+        }
+
+        static Image FullBg(GameObject root, Color c)
+        {
+            var img = root.AddComponent<Image>(); img.color = c; img.sprite = Builtin(); img.type = Image.Type.Sliced;
+            return img;
+        }
+
+        // Gold overlay toggled on selection — raycastTarget off so it never blocks the card's own Button.
+        static GameObject Highlight(Transform card)
+        {
+            var go = new GameObject("Sel", typeof(RectTransform));
+            var rt = (RectTransform)go.transform; rt.SetParent(card, false);
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one; rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+            var img = go.AddComponent<Image>(); img.color = new Color(1f, 0.85f, 0.3f, 0.30f); img.sprite = Builtin(); img.type = Image.Type.Sliced; img.raycastTarget = false;
+            go.SetActive(false);
+            return go;
         }
 
         static Sprite _builtin;

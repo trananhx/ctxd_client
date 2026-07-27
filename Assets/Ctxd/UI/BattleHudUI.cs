@@ -12,7 +12,8 @@ namespace Ctxd.UI
     /// <summary>Payload for the battle HUD: the stance-choice callback (wired to the server-driven director).</summary>
     public sealed class BattleHudData
     {
-        public System.Action<Stance, bool> OnStance;
+        // (stance, awaken, cast) — RE: cast = người chơi bấm thả 战法 thủ công (nút GIÁC), stance = 3 thế trận.
+        public System.Action<Stance, bool, bool> OnStance;
     }
 
     /// <summary>
@@ -47,14 +48,16 @@ namespace Ctxd.UI
             Wire(_dotKich, Stance.DotKich, false);
             Wire(_tanCong, Stance.TanCong, false);
             Wire(_phongThu, Stance.PhongThu, false);
-            if (_giac != null) _giac.onClick.AddListener(() => Data?.OnStance?.Invoke(Stance.DotKich, true));
+            // GIÁC = thả chiến pháp nộ (cast=true) + giác tỉnh (awaken=true). Chỉ bật khi CanCast (xem SetActiveGenerals).
+            if (_giac != null) _giac.onClick.AddListener(() => Data?.OnStance?.Invoke(Stance.DotKich, true, true));
+            if (_giac != null) _giac.interactable = false;   // mờ tới khi nộ đủ
             if (_bannerGroup != null) _bannerGroup.alpha = 0f;
             return UniTask.CompletedTask;
         }
 
         private void Wire(Button b, Stance s, bool awaken)
         {
-            if (b != null) b.onClick.AddListener(() => Data?.OnStance?.Invoke(s, awaken));
+            if (b != null) b.onClick.AddListener(() => Data?.OnStance?.Invoke(s, awaken, false));   // 3 thế trận: cast=false
         }
 
         public void SetActiveGenerals(CombatantSnapshot off, CombatantSnapshot def)
@@ -63,13 +66,14 @@ namespace Ctxd.UI
             {
                 if (_offName) _offName.text = off.DisplayName;
                 if (_offHp) _offHp.fillAmount = Ratio(off.Troops, off.MaxTroops);
-                if (_offMorale) _offMorale.fillAmount = Mathf.Clamp01(off.Morale / 100f);
+                if (_offMorale) _offMorale.fillAmount = Mathf.Clamp01(off.Morale / (float)Mathf.Max(1, off.MoraleFull));
+                if (_giac != null) _giac.interactable = off.CanCast;   // RE: nút thả 战法 chỉ bật khi useAble (server-gate)
             }
             if (def != null)
             {
                 if (_defName) _defName.text = def.DisplayName;
                 if (_defHp) _defHp.fillAmount = Ratio(def.Troops, def.MaxTroops);
-                if (_defMorale) _defMorale.fillAmount = Mathf.Clamp01(def.Morale / 100f);
+                if (_defMorale) _defMorale.fillAmount = Mathf.Clamp01(def.Morale / (float)Mathf.Max(1, def.MoraleFull));
             }
         }
 

@@ -1,5 +1,6 @@
 {
-  "Terrain": "Plain",
+  "Terrain": "City",
+  "EnableCityTower": true,
   "Seed": 20260630,
   "OffenseNation": "Thục",
   "DefenseNation": "Ngụy",
@@ -8,13 +9,19 @@
       "Id": "guanyu", "DisplayName": "Quan Vũ", "Troop": "KyBinh",
       "NormalAtk": 640, "NormalDef": 320, "TacticAtk": 600, "TacticDef": 300, "Strategy": 92, "Resilience": 0.14,
       "TroopCapacity": 16043, "Rows": 4, "FiveStar": true, "CanAwaken": true,
+      "TerrainBonus": { "Plain": 0.25, "City": 0.25 },
       "Formation": [
         ["KyBinh", "KyBinh", "KyBinh"],
         ["KyBinh", "KyBinh", "KyBinh"],
         ["CungBinh", "CungBinh", "CungBinh"],
         ["ThuongBinh", "ThuongBinh", "ThuongBinh"]
       ],
-      "Skill2": { "Id": "wushen", "Name": "Võ Thần Phụ Thể", "Kind": "AoeDamage", "RowsHit": 3, "Power": 1.9, "IsAwakening": true, "FixedPower": 2.6 }
+      "Skill2": { "Id": "wushen", "Name": "Võ Thần Phụ Thể", "Kind": "AoeDamage", "RowsHit": 3, "Power": 1.9, "IsAwakening": true, "FixedPower": 2.6 },
+      "Skill2Variants": [
+        { "Id": "wushen_city", "Name": "Võ Thần (Công Thành)", "Kind": "AoeDamage", "RowsHit": 4, "Power": 2.0, "TerrainTag": "City", "JiachengMult": 1.3, "NextTacticId": "wushen_followup" },
+        { "Id": "wushen_followup", "Name": "Truy Kích Liên Hoàn", "Kind": "Damage", "RowsHit": 2, "Power": 1.2 }
+      ],
+      "CounterVsTroop": { "CungBinh": 0.15 }
     },
     {
       "Id": "zhangfei", "DisplayName": "Trương Phi", "Troop": "ThuongBinh",

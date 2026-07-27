@@ -30,6 +30,11 @@ namespace Ctxd.Data
         [Header("Formation")]
         public FormationDefinition defaultFormation;
 
+        [System.Serializable]
+        public struct TerrainBonusEntry { public Ctxd.Battle.Sim.Terrain terrain; public double bonus; }   // qualify: tránh nhập nhằng UnityEngine.Terrain
+        [Header("Thiên phú địa hình (RE) — % Lực chiến; City chỉ áp phe Công")]
+        public TerrainBonusEntry[] terrainBonuses;
+
         public string DisplayNameOrName => string.IsNullOrEmpty(displayName) ? name : displayName;
         public UnitVisualDefinition UnitVisual => troopType != null ? troopType.unitVisual : null;
 
@@ -37,7 +42,7 @@ namespace Ctxd.Data
         {
             var s = stats;
             if (defaultFormation != null) s = defaultFormation.Modify(s);
-            return new Combatant
+            var c = new Combatant
             {
                 Id = runtimeId,
                 DefId = Id,
@@ -54,6 +59,13 @@ namespace Ctxd.Data
                 Rows = rows,
                 FormationId = defaultFormation != null ? defaultFormation.Id : null,
             };
+            // [2E] vá drift SO: gán thiên phú địa hình (parity với đường JSON ScenarioLoader) — preview offline không mất thiên phú.
+            if (terrainBonuses != null && terrainBonuses.Length > 0)
+            {
+                c.TerrainBonus = new System.Collections.Generic.Dictionary<int, double>();
+                foreach (var tb in terrainBonuses) c.TerrainBonus[(int)tb.terrain] = tb.bonus;
+            }
+            return c;
         }
     }
 }

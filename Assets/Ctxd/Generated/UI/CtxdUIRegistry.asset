@@ -23,6 +23,46 @@ MonoBehaviour:
     AllowMultiInstance: 0
     DismissByEscape: 0
     PausableWhenOverlaid: 0
+  - Id: 1003
+    StringId: 
+    AssetRef: {fileID: 6612198591893561787, guid: 6843170d00c42b246addbbbf8eeb3dc6, type: 3}
+    AddressKey: 
+    Lane: 1
+    CachePolicy: 2
+    PreloadOnBoot: 0
+    AllowMultiInstance: 0
+    DismissByEscape: 0
+    PausableWhenOverlaid: 0
+  - Id: 1004
+    StringId: 
+    AssetRef: {fileID: 5752782917814411852, guid: 25b8853cf0dbe72408c03c5ee4fc97b3, type: 3}
+    AddressKey: 
+    Lane: 1
+    CachePolicy: 2
+    PreloadOnBoot: 0
+    AllowMultiInstance: 0
+    DismissByEscape: 0
+    PausableWhenOverlaid: 0
+  - Id: 1005
+    StringId: 
+    AssetRef: {fileID: 7903377927071467370, guid: 6835ea8b08cafc242b966a0b3bfb6920, type: 3}
+    AddressKey: 
+    Lane: 1
+    CachePolicy: 2
+    PreloadOnBoot: 0
+    AllowMultiInstance: 0
+    DismissByEscape: 0
+    PausableWhenOverlaid: 0
+  - Id: 1002
+    StringId: 
+    AssetRef: {fileID: 2832906454917596073, guid: eac04597b07410d47b1c7a8c16387a4a, type: 3}
+    AddressKey: 
+    Lane: 1
+    CachePolicy: 2
+    PreloadOnBoot: 0
+    AllowMultiInstance: 0
+    DismissByEscape: 0
+    PausableWhenOverlaid: 0
   - Id: 3002
     StringId: 
     AssetRef: {fileID: 6469181536747435437, guid: 36cb69b4607baf4499e5265328f9e734, type: 3}

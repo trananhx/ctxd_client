@@ -9,6 +9,10 @@ namespace Ctxd.Battle.Sim
         public string Nation;
         public readonly List<Combatant> Queue = new List<Combatant>();
         public int ActiveIndex;
+        // [2D] trạng thái bao vây (包围)
+        public bool Surrounded;
+        public int SurroundSince = -1, SlamCd;
+        public Tower Tower;   // [2E] trụ tên phòng thủ (chỉ phe Thủ ở trận City); null = không có.
 
         public Combatant Active => (ActiveIndex >= 0 && ActiveIndex < Queue.Count) ? Queue[ActiveIndex] : null;
 

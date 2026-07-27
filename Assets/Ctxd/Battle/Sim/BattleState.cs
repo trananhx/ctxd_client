@@ -6,6 +6,7 @@ namespace Ctxd.Battle.Sim
         public SideState Offense, Defense;
         public Terrain Terrain;
         public int Round;
+        public int MoraleFull = 100;   // = BattleConfig.MoraleFull (runner set) → cast-gate không hardcode 100.
         public BattleOutcome Outcome = BattleOutcome.Ongoing;
 
         public SideState Side(Faction f) => f == Faction.Offense ? Offense : Defense;

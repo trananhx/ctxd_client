@@ -14,5 +14,6 @@ namespace Ctxd.Battle.Sim
         public ulong Seed = 12345UL;
         public BattleConfig Config = new BattleConfig();
         public string OffenseNation = "", DefenseNation = "";
+        public Tower DefenseTower = null;   // [2E] trụ tên phe Thủ (dùng khi Terrain.City & EnableCityTower); null → mặc định từ config.
     }
 }

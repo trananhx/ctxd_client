@@ -30,7 +30,12 @@ namespace Ctxd.Battle
         public int port = 5005;
         [Header("Playback")]
         public float eventPace = 0.28f;
-        public bool autoStance = true;
+        // RE: nộ cast THỦ CÔNG → tắt auto-stance mặc định để không đè lệnh người chơi (bật lại cho demo/AI nếu cần).
+        public bool autoStance = false;
+
+        [Tooltip("Bật (Forge set) khi có GameFlowController điều phối: director KHÔNG tự connect/JoinBattle và KHÔNG tự hiện màn lineup — flow controller lo phần đó.")]
+        [SerializeField] private bool _externallyDriven = false;
+        public void SetExternallyDriven(bool value) => _externallyDriven = value;
 
         [Header("Field layout (spacing)")]
         [Tooltip("↑ = các hàng cách xa nhau hơn (sửa dính/đè hàng)")] public float rowSpacing = 1.5f;
@@ -71,7 +76,9 @@ namespace Ctxd.Battle
             network.Disconnected += OnDisconnected;
             network.NetworkError += err => Debug.LogWarning($"[Director] net error: {err}");
 
-            StartCoroutine(ConnectAndJoin());
+            // Có GameFlowController điều phối → nó sở hữu connect + JoinStage/StartBattle. Đứng một mình → tự lo (legacy).
+            if (!_externallyDriven)
+                StartCoroutine(ConnectAndJoin());
         }
 
         private IEnumerator ConnectAndJoin()
@@ -127,8 +134,24 @@ namespace Ctxd.Battle
         private void OnDisconnected(string reason) => Say($"Mất kết nối: {reason}", 2f);
 
         // ── commands (UI → server) ───────────────────────────────────────────────
-        public void SendStance(Stance stance, bool awaken) { if (network != null) network.Send(Command.ChooseStance(stance, awaken)); }
+        public void SendStance(Stance stance, bool awaken, bool cast = false) { if (network != null) network.Send(Command.ChooseStance(stance, awaken, cast)); }
         public void SendTestApi(TestApiKind kind, SideRef side) { if (network != null) network.Send(Command.TestApi(kind, side)); }
+
+        /// <summary>Dọn trận sau khi về sảnh: huỷ field + ẩn HUD/panel + reset trạng thái để trận sau render sạch.
+        /// Gọi bởi <see cref="GameFlowController"/> khi người chơi bấm "Về sảnh" ở màn Kết quả.</summary>
+        public void ResetForNewBattle()
+        {
+            StopAllCoroutines();
+            _pending.Clear();
+            _playing = false; _over = false; _state = null;
+            if (_offField != null) { Destroy(_offField.gameObject); _offField = null; }
+            if (_defField != null) { Destroy(_defField.gameObject); _defField = null; }
+            if (uiManager != null)
+            {
+                uiManager.HideAsync(UIId.BattleHud, new UIHideOptions { Instant = true }).Forget();
+                uiManager.HideAsync(UIId.TestApiPanel, new UIHideOptions { Instant = true }).Forget();
+            }
+        }
 
         // ── inbound (main thread via NetworkPump) ────────────────────────────────
         private void OnServerMsg(ServerMsg msg)
@@ -150,7 +173,8 @@ namespace Ctxd.Battle
             {
                 case ServerMsgType.Lobby:
                     _state = msg.Snapshot;
-                    ShowLineupAsync(msg.Snapshot).Forget();
+                    // Externally-driven: GameFlowController đã chọn tướng/màn → nó gửi StartBattle. Đứng một mình → tự hiện lineup.
+                    if (!_externallyDriven) ShowLineupAsync(msg.Snapshot).Forget();
                     break;
                 case ServerMsgType.BattleStart:
                     _state = msg.Snapshot;
@@ -181,7 +205,7 @@ namespace Ctxd.Battle
             {
                 yield return new WaitForSeconds(1.4f);
                 if (_over || network == null || !network.IsConnected) yield break;
-                SendStance((Stance)(Mathf.Abs(Time.frameCount) % 3), false);
+                SendStance((Stance)(Mathf.Abs(Time.frameCount) % 3), false, false);
             }
         }
 
@@ -228,6 +252,7 @@ namespace Ctxd.Battle
                     yield return Wait(eventPace * 0.45f);
                     break;
                 case BattleEventType.SkillCast:
+                case BattleEventType.TacticCast:   // FIX: sim phát TacticCast; gộp render như SkillCast (trước đây chiến pháp KHÔNG hiển thị)
                     if (!string.IsNullOrEmpty(e.Text)) Say(e.Text, 1.2f);
                     AttackerField(e.Side)?.PlayAction(UnitAction.Attack);
                     SpawnSkillEffect(e);
@@ -236,6 +261,15 @@ namespace Ctxd.Battle
                 case BattleEventType.Damage:
                     SpawnDamage(TargetField(e.Side), e.Amount, e.Crit, e.Effect == TacticEffectKind.Heal);
                     yield return Wait(eventPace * 0.4f);
+                    break;
+                case BattleEventType.GroupKilled:   // 1 nhóm lính tan (chết-theo-hàng) — nhịp ngắn
+                    yield return Wait(eventPace * 0.15f);
+                    break;
+                case BattleEventType.Morale:        // đầy nộ / hỗn loạn / đẩy lùi — báo banner nếu có text
+                case BattleEventType.Confusion:
+                case BattleEventType.Pushback:
+                    if (!string.IsNullOrEmpty(e.Text)) Say(e.Text, 1f);
+                    yield return Wait(eventPace * 0.35f);
                     break;
                 case BattleEventType.UnitKilled:
                     SpawnDamage(FieldOf(e.Side), e.Amount, false, false);
@@ -253,6 +287,18 @@ namespace Ctxd.Battle
                 case BattleEventType.Banner:
                 case BattleEventType.StanceClash:
                 case BattleEventType.UnitAdded:
+                // [Stage 2A-2E] banner cho sự kiện mới (chuỗi/phản-giữ/biến-thể/phantom/vây/trụ tên).
+                case BattleEventType.TacticHeld:
+                case BattleEventType.TacticChain:
+                case BattleEventType.TacticVariantOffer:
+                case BattleEventType.PhantomSpawned:
+                case BattleEventType.SurroundBegin:
+                case BattleEventType.SurroundSlam:
+                case BattleEventType.SurroundEnd:
+                case BattleEventType.TowerShoot:
+                case BattleEventType.TowerBreak:
+                case BattleEventType.TowerCountdown:
+                case BattleEventType.Fire:
                     if (!string.IsNullOrEmpty(e.Text)) Say(e.Text, 0.9f);
                     yield return Wait(eventPace * 0.35f);
                     break;

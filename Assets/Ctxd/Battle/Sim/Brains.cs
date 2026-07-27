@@ -10,8 +10,10 @@ namespace Ctxd.Battle.Sim
             Stance stance = (enemy != null && enemy.HasLastStance && rng.Chance(0.65))
                 ? StanceRules.Counter(enemy.LastStance)
                 : (Stance)rng.Range(0, 3);
-            bool awaken = me != null && me.Awakened && me.Morale >= 100 && me.Skill2 != null && !me.Confused;
-            return new TurnInput(stance, awaken);
+            // AI (phe do máy điều khiển) vẫn "auto-cast" khi đủ nộ; chỉ người chơi mới phải bấm tay (input.Cast).
+            bool useAble = me != null && me.UseAble(state.MoraleFull);
+            bool awaken = useAble && me.Awakened;
+            return new TurnInput(stance, awaken, cast: useAble);
         }
     }
 

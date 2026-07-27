@@ -27,7 +27,12 @@ namespace Ctxd.Battle.Sim.Net
         public Faction Faction;
         public TroopType Troop;
         public int MaxTroops, Troops, Morale;
+        public int MoraleFull;                    // ngưỡng nộ đầy (tunable) → HUD vẽ thanh nộ đúng tỉ lệ
         public bool Awakened, FiveStar, Alive;
+        public bool CanCast;                      // RE: đủ nộ + có skill2 + không hỗn loạn + không bị vây → bật nút thả 战法
+        public bool IsPhantom;                    // [2D] đơn vị ảo ảnh
+        public PhantomKind Phantom;               // [2D] loại giao chiến/ảo ảnh
+        public int XianzhengStars;                // [2D] số sao Hãm Trận
         public int Rows;                          // configured row count
         public string FormationId;
         public string Skill1Id, Skill1Name, Skill2Id, Skill2Name;
@@ -39,7 +44,16 @@ namespace Ctxd.Battle.Sim.Net
         public Faction Faction;
         public string Nation;
         public int ActiveIndex;
+        public bool Surrounded;                   // [2D] phe đang bị bao vây
+        public int SlamCd;                        // [2D] đếm ngược tới đòn phong toả kế
+        public TowerSnapshot Tower;               // [2E] trụ tên phe Thủ (null = không có)
         public List<CombatantSnapshot> Queue = new List<CombatantSnapshot>();
+    }
+
+    /// <summary>[2E] Trụ tên phòng thủ (client HUD).</summary>
+    public sealed class TowerSnapshot
+    {
+        public int Blood, MaxBlood, NextAttackRound;
     }
 
     public sealed class BattleSnapshot
@@ -54,23 +68,27 @@ namespace Ctxd.Battle.Sim.Net
             Terrain = s.Terrain,
             Round = s.Round,
             Outcome = s.Outcome,
-            Offense = SideFrom(s.Offense),
-            Defense = SideFrom(s.Defense),
+            Offense = SideFrom(s.Offense, s.MoraleFull),
+            Defense = SideFrom(s.Defense, s.MoraleFull),
         };
 
-        private static SideSnapshot SideFrom(SideState side)
+        private static SideSnapshot SideFrom(SideState side, int moraleFull)
         {
-            var snap = new SideSnapshot { Faction = side.Faction, Nation = side.Nation, ActiveIndex = side.ActiveIndex };
-            foreach (var c in side.Queue) snap.Queue.Add(From(c));
+            var snap = new SideSnapshot { Faction = side.Faction, Nation = side.Nation, ActiveIndex = side.ActiveIndex,
+                Surrounded = side.Surrounded, SlamCd = side.SlamCd,
+                Tower = side.Tower == null ? null : new TowerSnapshot { Blood = side.Tower.Blood, MaxBlood = side.Tower.MaxBlood, NextAttackRound = side.Tower.NextAttackRound } };
+            foreach (var c in side.Queue) snap.Queue.Add(From(c, moraleFull, side.Surrounded));
             return snap;
         }
 
-        public static CombatantSnapshot From(Combatant c) => new CombatantSnapshot
+        public static CombatantSnapshot From(Combatant c, int moraleFull = 100, bool surrounded = false) => new CombatantSnapshot
         {
             Id = c.Id, DefId = c.DefId, DisplayName = c.DisplayName,
             Faction = c.Faction, Troop = c.Troop,
-            MaxTroops = c.MaxTroops, Troops = c.Troops, Morale = c.Morale,
+            MaxTroops = c.MaxTroops, Troops = c.Troops, Morale = c.Morale, MoraleFull = moraleFull,
             Awakened = c.Awakened, FiveStar = c.FiveStar, Alive = c.Alive, Rows = c.Rows,
+            CanCast = c.UseAble(moraleFull) && !surrounded,
+            IsPhantom = c.IsPhantom, Phantom = c.Phantom, XianzhengStars = c.XianzhengStars,
             FormationId = c.FormationId,
             Skill1Id = c.Skill1?.Id, Skill1Name = c.Skill1?.DisplayName,
             Skill2Id = c.Skill2?.Id, Skill2Name = c.Skill2?.DisplayName,

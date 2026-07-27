@@ -29,6 +29,9 @@ namespace Luzart
         // --- CTXD Screen (1xxx) ---
         MainMenu = 1001,
         Result = 1002,
+        Lobby = 1003,          // sảnh chính (Chủ thành) — điểm vào flow
+        SelectGeneral = 1004,  // chọn tướng / đội hình (5 vị trí 一–五)
+        SelectStage = 1005,    // chọn màn / phó bản (5 độ khó)
 
         // --- CTXD Hud (3xxx) ---
         BattleHud = 3001,

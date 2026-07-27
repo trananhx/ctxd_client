@@ -50,8 +50,10 @@ Master catalog. Read first to find relevant pages. Project = recreation of **Cô
 - [[technical/luzart-assetmodifier]] — Luzart `AssetModifier`: EditorWindow làm hàng loạt SO
 - [[technical/asset-pipeline]] — Bố cục `Assets/Resources/` & toolchain 2D
 - [[technical/asset-system-mapping]] — Ánh xạ thư mục asset ↔ hệ thống game
+- [[technical/game-flow-navigation]] — Luồng điều hướng Lobby→ChọnTướng→ChọnMàn→Đánh→Kết quả (GameFlowController + LuzartUI)
 
 ## Decisions
+- [[decisions/game-flow-end-to-end-2026-07-25]] — Dựng luồng game end-to-end trên 1 scene qua LuzartUI (server-authoritative)
 - [[decisions/game-version-scope]] — Phiên bản nào để dựng lại (đề xuất: webgame 2013)
 - [[decisions/unified-unit-entity-model-2026-07-24]] — Chốt tướng+lính = 1 đối tượng (directive + ảnh general-panel)
 - [[decisions/unity-downgrade-6000.2.8-2026-07-15]] — Hạ Unity xuống 6000.2.8f1 (đã verify biên dịch)

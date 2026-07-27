@@ -1,0 +1,7 @@
+{
+  "Stages": [
+    { "Id": "stage_khanhvang", "Name": "Trấn Áp Khăn Vàng", "Terrain": "Plain",  "DefenseNation": "Khăn Vàng", "Desc": "184 — Khởi nghĩa Hoàng Cân bùng nổ.", "EnemyCount": 3, "Locked": false },
+    { "Id": "stage_quando",    "Name": "Đại Chiến Quan Độ", "Terrain": "Pass",   "DefenseNation": "Viên Thiệu", "Desc": "200 — Tào Tháo quyết chiến Viên Thiệu.", "EnemyCount": 4, "Locked": false },
+    { "Id": "stage_xichbich",  "Name": "Xích Bích Hỏa Công", "Terrain": "Water", "DefenseNation": "Tào Ngụy",  "Desc": "208 — Liên minh Tôn-Lưu chống Tào.", "EnemyCount": 5, "Locked": false }
+  ]
+}

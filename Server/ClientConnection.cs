@@ -42,6 +42,9 @@ namespace Ctxd.Server
                 case ClientMsgType.StartBattle:  StartBattle(cmd); break;
                 case ClientMsgType.ChooseStance: ChooseStance(cmd); break;
                 case ClientMsgType.TestApi:      TestApi(cmd); break;
+                case ClientMsgType.CopyArmy:     CopyArmy(cmd); break;
+                case ClientMsgType.ListStages:   Send(ServerMsg.Stages(ScenarioLoader.ListStages())); break;
+                case ClientMsgType.ListRoster:   Send(ServerMsg.Roster(ScenarioLoader.RosterSummaries())); break;
             }
         }
 
@@ -49,8 +52,12 @@ namespace Ctxd.Server
         {
             var dto = ScenarioLoader.Load(cmd.ScenarioId);
             if (cmd.Seed != 0) dto.Seed = cmd.Seed;
+            // Campaign flow: replace the stage's default offense with the player's chosen roster, then scale by difficulty.
+            dto.OverrideOffense(cmd.OffenseGeneralIds, ScenarioLoader.LoadRosterDtos());
+            dto.ApplyDifficulty(cmd.Difficulty);
             _session = new BattleSession(dto.ToSetup());   // built, NOT begun → lobby for pre-battle lineup
-            Console.WriteLine($"[server] #{_cid} JoinBattle → lobby ({dto.OffenseNation} (Công) vs {dto.DefenseNation} (Thủ))");
+            Console.WriteLine($"[server] #{_cid} JoinBattle '{cmd.ScenarioId ?? "default"}' diff={cmd.Difficulty} → lobby " +
+                              $"({dto.OffenseNation} (Công) {dto.Offense.Count} vs {dto.DefenseNation} (Thủ) {dto.Defense.Count})");
             Send(ServerMsg.Lobby(_session.Snapshot()));
         }
 
@@ -66,7 +73,7 @@ namespace Ctxd.Server
         private void ChooseStance(Command cmd)
         {
             if (NoSession()) return;
-            Broadcast(_session.Step(new TurnInput(cmd.Stance, cmd.Awaken)));
+            Broadcast(_session.Step(new TurnInput(cmd.Stance, cmd.Awaken, cmd.Cast)));
         }
 
         private void TestApi(Command cmd)
@@ -75,6 +82,12 @@ namespace Ctxd.Server
             var events = _session.TestApi(cmd.TestKind, cmd.TargetFaction);
             Console.WriteLine($"[server] #{_cid} TEST {cmd.TestKind}/{cmd.Side} → {events.Count} events");
             Broadcast(events);
+        }
+
+        private void CopyArmy(Command cmd)
+        {
+            if (NoSession()) return;
+            Broadcast(_session.CopyArmy(cmd.TargetFaction, cmd.Phantom, cmd.PhantomCount));
         }
 
         private void Broadcast(System.Collections.Generic.List<BattleEvent> events)

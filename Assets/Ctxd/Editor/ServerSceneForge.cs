@@ -82,12 +82,21 @@ namespace Ctxd.EditorTools
             Set(pump, "_service", ns);
             EditorUtility.SetDirty(pump);
 
-            // ServerBattleDirector — all collaborators wired (no runtime lookup)
+            // ServerBattleDirector — renders the IN-BATTLE view; externally driven by the flow controller
+            // (nó KHÔNG tự connect/JoinBattle và KHÔNG tự hiện màn lineup — GameFlowController lo phần đó).
             var dir = new GameObject("ServerBattleDirector").AddComponent<ServerBattleDirector>();
             Set(dir, "database", db);
             Set(dir, "network", ns);
             Set(dir, "uiManager", uiManager);
+            Set(dir, "_externallyDriven", true);
             EditorUtility.SetDirty(dir);
+
+            // GameFlowController — điều phối Lobby → Chọn tướng → Chọn màn → Đánh → Kết quả → Lobby.
+            var flow = new GameObject("GameFlowController").AddComponent<GameFlowController>();
+            Set(flow, "network", ns);
+            Set(flow, "uiManager", uiManager);
+            Set(flow, "director", dir);
+            EditorUtility.SetDirty(flow);
 
             Folder("Assets/Ctxd/Scenes");
             EditorSceneManager.MarkSceneDirty(scene);

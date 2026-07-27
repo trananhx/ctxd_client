@@ -1,0 +1,25 @@
+{
+  "Terrain": "Plain",
+  "Seed": 20260701,
+  "OffenseNation": "Thục",
+  "DefenseNation": "Khăn Vàng",
+  "Offense": [
+    { "Id": "guanyu", "DisplayName": "Quan Vũ", "Troop": "KyBinh", "TroopCapacity": 16043, "FiveStar": true,
+      "NormalAtk": 640, "NormalDef": 320, "TacticAtk": 600, "TacticDef": 300, "Strategy": 92,
+      "Skill2": { "Id": "wushen", "Name": "Võ Thần Phụ Thể", "Kind": "AoeDamage", "RowsHit": 3, "Power": 1.9 } }
+  ],
+  "Defense": [
+    { "Id": "zhangjiao", "DisplayName": "Trương Giác", "Troop": "MuuSi",
+      "NormalAtk": 480, "NormalDef": 250, "TacticAtk": 520, "TacticDef": 240, "Strategy": 70, "Resilience": 0.08,
+      "TroopCapacity": 9000, "Rows": 4,
+      "Skill2": { "Id": "spell", "Name": "Thái Bình Yêu Thuật", "Kind": "Confusion", "RowsHit": 2, "Power": 1.3, "ConfusionTurns": 1 } },
+    { "Id": "zhangbao", "DisplayName": "Trương Bảo", "Troop": "ThuongBinh",
+      "NormalAtk": 460, "NormalDef": 260, "TacticAtk": 440, "TacticDef": 230, "Strategy": 50, "Resilience": 0.06,
+      "TroopCapacity": 8200, "Rows": 4,
+      "Skill1": { "Id": "swarm", "Name": "Nhân Hải Chiến Thuật", "Kind": "Damage", "RowsHit": 1, "Power": 1.1 } },
+    { "Id": "zhangliang", "DisplayName": "Trương Lương", "Troop": "CungBinh",
+      "NormalAtk": 470, "NormalDef": 230, "TacticAtk": 460, "TacticDef": 220, "Strategy": 55, "Resilience": 0.05,
+      "TroopCapacity": 7600, "Rows": 4,
+      "Skill1": { "Id": "arrows", "Name": "Loạn Tiễn", "Kind": "AoeDamage", "RowsHit": 2, "Power": 1.0 } }
+  ]
+}

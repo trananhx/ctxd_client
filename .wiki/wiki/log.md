@@ -223,3 +223,25 @@ Chronological record of all wiki operations.
 - Pages created: [[sources/apk-reverse-engineering-2026-07-24]] (+ nguồn bất biến `raw/references/apk-reverse-engineering-gcld-2026-07-24.md`, 618 dòng)
 - Pages updated: [[claims]] (+10: c-20260724-07…16 client-confirmed), [[contradictions]] (**giải quyết x-05 phẩm chất→A**; củng cố x-01 binh chủng, x-02 nộ, x-06 12-hàng), [[index]]; cần lan sang [[systems/battle-system]] / [[systems/tactics-and-rage]] / [[systems/troop-types]] / [[systems/general-system]] (callout xác thực client).
 - File GDD standalone đầy đủ: `scratchpad/GDD_final.md` (bản deliverable độc lập cho chủ dự án).
+
+## [2026-07-24] decision/impl | Căn chỉnh engine trận theo RE mobile (Stage 1)
+- Chủ dự án chốt **target = mobile**, sửa code battle theo reverse-engineering. Chạy workflow Understand+Design (6 agent) → spec compile-safe → implement Stage 1 → review đối nghịch (4 agent) → fix.
+- **Đã sửa & verify**: (1) binh chủng 4 hệ + vòng khắc chế 步克弓/弓克骑/骑克器械/器械克步 (data-driven, giữ enum → 0 migration); (2) địa hình = thiên phú % Lực chiến per-tướng (bỏ affinity cũ, City chỉ phe công, thêm City/Pass); (3) nộ cast thủ công (`useAble && Cast`, `CanCast`, nút GIÁC gate); (4) fix bug `TacticCast` không render + 8 enum event mới.
+- **Verify**: dotnet build 0/0, selftest OK, 40/40 test (thêm `ReAlignmentTests.cs`), Unity compile 0 lỗi.
+- Files: sim `Assets/Ctxd/Battle/Sim/*` + `Server/*` + `scenario.json` + `ServerBattleDirector.cs`/`BattleHudUI.cs`.
+- Pages created: [[decisions/re-align-battle-mobile-2026-07-24]]
+- Stage 2 backlog (trong decision): khắc chế per-tướng, biến thể chiến pháp theo địa hình, phantom/vây/công thành/chained tactic, drift SO TerrainBonus.
+
+## [2026-07-24] impl | Stage 2 breadth — battle engine RE-alignment (2A-2E)
+- Triển khai TOÀN BỘ Stage 2 theo RE mobile: workflow design (6 agent) → implement 5 sub-stage (build/test gate mỗi bước) → review đối nghịch (4 agent) → fix.
+- **2A** né(`ms`)/beHold(phản-giữ)/chuỗi(`nextTacticId`)/Loạn Vũ; **2B** khắc chế binh chủng per-tướng (`Combatant.CounterVsTroop`, cộng chồng ring); **2C** biến thể chiến pháp theo địa hình (`TerrainTag`+jiacheng) + report27 (`TacticVariantOffer`); **2D** phantom (`BattleSession.CopyArmy` deep-copy) + surround (≥5× → slam + cấm cast); **2E** trụ tên công thành (`Tower`+`UpdateCityTower`) + hoả + vá drift SO `GeneralDefinition.TerrainBonus`.
+- **Review CHẶN đã fix**: beHold không tiêu nộ → kẹt vòng tới MaxRounds; + phân biệt beHold 1(đỡ)/2(phản chiến giáng sát thương ngược); comment ring RE-confirmed-vs-simplification; HUD thanh nộ dùng `MoraleFull`.
+- **Verify**: dotnet build 0/0, **72/72 test** (Stage2A-E + fix), selftest OK, Unity compile 0 lỗi/0 warning. Mọi feature gated/neutral-default → **0 drift** trận cũ.
+- Pages updated: [[decisions/re-align-battle-mobile-2026-07-24]] (Stage 2 = DONE).
+
+## [2026-07-25] impl | Luồng game end-to-end: Lobby → Chọn tướng → Chọn màn → Đánh → Kết quả
+- Chủ dự án yêu cầu dựng luồng hoàn chỉnh. Workflow Understand (5 agent map bootstrap/net/battle-entry/server-data/GDD) → thiết kế → implement 4 layer (server+protocol → UI screens+flow controller → Forge → verify).
+- **Kiến trúc**: giữ server-authoritative + pattern Forge; điều hướng qua LuzartUI lane `Screen` (1 scene, không scene-loader). `GameFlowController` điều phối pre/post-battle + connect + `JoinStage/StartBattle`; `ServerBattleDirector` (`_externallyDriven=true`) chỉ render trong trận (dual-subscriber, message rời nhau).
+- **Mới**: 4 màn `UIBase<TData>` (Lobby/SelectGeneral/SelectStage/Result) + `TroopVisual` + `GameFlowController`; `UIId` +Lobby/SelectGeneral/SelectStage; Protocol +ListStages/ListRoster/Stages/Roster + `Command.OffenseGeneralIds/Difficulty` + DTO `StageInfo/GeneralSummary`; server `ScenarioLoader` roster/stages + `ScenarioDto.ApplyDifficulty/OverrideOffense`; data `roster.json`/`stages.json`/3× `stage_*.json`; Forge dựng 4 prefab + wire flow controller.
+- **Verify**: dotnet build 0/0, **84/84 test** (+12 `CampaignFlowTests`), selftest OK, Unity compile 0 lỗi, **play-test thật đi hết luồng** (8 screenshot, chọn 5 tướng → Quan Độ/Khó → CHIẾN THẮNG thưởng scale → về Lobby dọn trận), 0 exception.
+- Pages created: [[decisions/game-flow-end-to-end-2026-07-25]], [[technical/game-flow-navigation]]

@@ -169,6 +169,45 @@ namespace Ctxd.Server
             });
         }
 
+        // [2D] Phantom (幻影): sao chép tướng active thành ảo ảnh nối cuối hàng. DEEP-COPY formation.
+        public List<BattleEvent> CopyArmy(Faction side, PhantomKind kind, int count)
+        {
+            var ev = new List<BattleEvent>();
+            if (_runner.IsOver) { ev.Add(Info("Trận đã kết thúc.")); return ev; }
+            St.Offense.AdvanceToNextLiving(); St.Defense.AdvanceToNextLiving();
+            var sideState = St.Side(side);
+            var src = sideState.Active;
+            if (src == null) return ev;
+            int phantoms = 0; foreach (var c in sideState.Queue) if (c.IsPhantom) phantoms++;
+            int n = Math.Max(1, count);
+            for (int i = 0; i < n && phantoms < _cfg.PhantomMax; i++, phantoms++)
+            {
+                var p = ClonePhantom(src, side, kind, phantoms);
+                sideState.Queue.Add(p);
+                ev.Add(new BattleEvent { Round = St.Round, Type = BattleEventType.PhantomSpawned, Side = side,
+                    ActorId = p.Id, Amount = p.Troops, Count = 1, Text = $"Ảo ảnh: {p.DisplayName} ({p.Troops} quân)" });
+            }
+            return ev;
+        }
+
+        private Combatant ClonePhantom(Combatant src, Faction side, PhantomKind kind, int idx)
+        {
+            int troops = Math.Max(1, (int)Math.Round(src.MaxTroops * _cfg.PhantomTroopScale));
+            var p = new Combatant
+            {
+                Id = $"{src.Id}_ph{idx}", DefId = src.DefId, DisplayName = src.DisplayName + " (Ảo)",
+                Faction = side, Troop = src.Troop, Stats = src.Stats,
+                MaxTroops = troops, Troops = troops, Rows = Math.Max(1, src.Rows),
+                Morale = _cfg.PhantomStartMorale, Skill1 = src.Skill1, Skill2 = src.Skill2,
+                IsPhantom = true, Phantom = kind,
+                XianzhengStars = kind == PhantomKind.Xianzheng ? Math.Max(1, src.XianzhengStars) : 0,
+            };
+            // DEEP-COPY: dựng formation MỚI hoàn toàn (không share Row/Group reference với src).
+            p.Formation.AddRange(FormationBuilder.Uniform(p.Rows, FormationBuilder.DefaultGroupsPerRow, src.Troop, troops));
+            p.SyncTroops();
+            return p;
+        }
+
         private static double Power(Combatant c) => c.MaxTroops + (c.Stats.NormalAtk + c.Stats.TacticAtk) * 5.0;
 
         private Combatant MakeReinforcement(Faction side, int n)

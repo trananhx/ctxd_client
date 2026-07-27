@@ -32,13 +32,13 @@ namespace Ctxd.Battle.Sim
     public sealed class DamageEffect : ITacticEffect
     {
         public TacticEffectKind Kind => TacticEffectKind.Damage;
-        public void Apply(TacticContext c) { int d = c.RollDamage(out bool crit); c.DealDamage(d, crit); }
+        public void Apply(TacticContext c) { int d = c.RollDamage(out bool crit, out bool miss); c.DealDamage(d, crit, miss); }
     }
 
     public sealed class AoeDamageEffect : ITacticEffect
     {
         public TacticEffectKind Kind => TacticEffectKind.AoeDamage;
-        public void Apply(TacticContext c) { int d = c.RollDamage(out bool crit); c.DealDamage(d, crit); } // rows via Tactic.RowsHit
+        public void Apply(TacticContext c) { int d = c.RollDamage(out bool crit, out bool miss); c.DealDamage(d, crit, miss); } // rows via Tactic.RowsHit
     }
 
     public sealed class ConfusionEffect : ITacticEffect
@@ -73,8 +73,9 @@ namespace Ctxd.Battle.Sim
         public TacticEffectKind Kind => TacticEffectKind.Pushback;
         public void Apply(TacticContext c)
         {
-            int d = c.RollDamage(out bool crit);
-            c.DealDamage(d + c.Tactic.PushbackTroops, crit);
+            int d = c.RollDamage(out bool crit, out bool miss);
+            c.DealDamage(miss ? 0 : d + c.Tactic.PushbackTroops, crit, miss);
+            if (miss) return;   // né → không đẩy lùi
             c.Emit(new BattleEvent { Round = c.Round, Type = BattleEventType.Pushback, Side = c.Actor.Faction,
                 ActorId = c.Actor.Id, TargetId = c.Target.Id, Amount = c.Tactic.PushbackTroops,
                 Text = $"{c.Target.DisplayName} bị đẩy lùi" });

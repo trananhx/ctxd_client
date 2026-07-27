@@ -1,0 +1,34 @@
+{
+  "Terrain": "Water",
+  "Seed": 20260703,
+  "OffenseNation": "Liên Minh Tôn-Lưu",
+  "DefenseNation": "Tào Ngụy",
+  "Offense": [
+    { "Id": "zhouyu", "DisplayName": "Chu Du", "Troop": "MuuSi", "TroopCapacity": 10120, "CanAwaken": true,
+      "NormalAtk": 520, "NormalDef": 270, "TacticAtk": 620, "TacticDef": 290, "Strategy": 94,
+      "TerrainBonus": { "Water": 0.25 },
+      "Skill2": { "Id": "chiyan", "Name": "Xích Diễm Mê Trận", "Kind": "AoeDamage", "RowsHit": 4, "Power": 1.8, "ConfusionTurns": 1 } }
+  ],
+  "Defense": [
+    { "Id": "caocao", "DisplayName": "Tào Tháo", "Troop": "KyBinh", "FiveStar": true,
+      "NormalAtk": 600, "NormalDef": 340, "TacticAtk": 560, "TacticDef": 320, "Strategy": 95, "Resilience": 0.15,
+      "TroopCapacity": 15200, "Rows": 4,
+      "Skill2": { "Id": "rampage", "Name": "Loạn Thế Gian Hùng", "Kind": "Damage", "RowsHit": 3, "Power": 1.7 } },
+    { "Id": "xiahoudun", "DisplayName": "Hạ Hầu Đôn", "Troop": "ThuongBinh",
+      "NormalAtk": 580, "NormalDef": 350, "TacticAtk": 520, "TacticDef": 310, "Strategy": 66, "Resilience": 0.11,
+      "TroopCapacity": 12010, "Rows": 4,
+      "Skill2": { "Id": "devour", "Name": "Bạt Thỉ Đạm Tình", "Kind": "Damage", "RowsHit": 2, "Power": 1.5 } },
+    { "Id": "zhangliao", "DisplayName": "Trương Liêu", "Troop": "KyBinh", "CanAwaken": true,
+      "NormalAtk": 605, "NormalDef": 320, "TacticAtk": 560, "TacticDef": 295, "Strategy": 80, "Resilience": 0.12,
+      "TroopCapacity": 11020, "Rows": 4,
+      "Skill2": { "Id": "weizhen", "Name": "Uy Chấn Tiêu Diêu", "Kind": "Confusion", "RowsHit": 2, "Power": 1.4, "ConfusionTurns": 1 } },
+    { "Id": "xuchu", "DisplayName": "Hứa Chử", "Troop": "ThuongBinh",
+      "NormalAtk": 595, "NormalDef": 360, "TacticAtk": 500, "TacticDef": 330, "Strategy": 58, "Resilience": 0.10,
+      "TroopCapacity": 13340, "Rows": 4,
+      "Skill2": { "Id": "tigerfury", "Name": "Hổ Si Cuồng Nộ", "Kind": "Damage", "RowsHit": 2, "Power": 1.6 } },
+    { "Id": "dianwei", "DisplayName": "Điển Vi", "Troop": "ThuongBinh",
+      "NormalAtk": 600, "NormalDef": 330, "TacticAtk": 510, "TacticDef": 300, "Strategy": 60, "Resilience": 0.09,
+      "TroopCapacity": 10880, "Rows": 4,
+      "Skill1": { "Id": "twinhalberd", "Name": "Song Kích", "Kind": "Damage", "RowsHit": 1, "Power": 1.1 } }
+  ]
+}

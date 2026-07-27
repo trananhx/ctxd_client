@@ -1,0 +1,29 @@
+{
+  "Terrain": "Pass",
+  "Seed": 20260702,
+  "OffenseNation": "Thục",
+  "DefenseNation": "Viên Thiệu",
+  "Offense": [
+    { "Id": "guanyu", "DisplayName": "Quan Vũ", "Troop": "KyBinh", "TroopCapacity": 16043, "FiveStar": true,
+      "NormalAtk": 640, "NormalDef": 320, "TacticAtk": 600, "TacticDef": 300, "Strategy": 92,
+      "Skill2": { "Id": "wushen", "Name": "Võ Thần Phụ Thể", "Kind": "AoeDamage", "RowsHit": 3, "Power": 1.9 } }
+  ],
+  "Defense": [
+    { "Id": "yuanshao", "DisplayName": "Viên Thiệu", "Troop": "KyBinh", "FiveStar": true,
+      "NormalAtk": 590, "NormalDef": 340, "TacticAtk": 540, "TacticDef": 320, "Strategy": 78, "Resilience": 0.12,
+      "TroopCapacity": 14200, "Rows": 4,
+      "Skill2": { "Id": "hebei", "Name": "Hà Bắc Tứ Đình Trụ", "Kind": "Damage", "RowsHit": 3, "Power": 1.6 } },
+    { "Id": "yanliang", "DisplayName": "Nhan Lương", "Troop": "KyBinh",
+      "NormalAtk": 610, "NormalDef": 300, "TacticAtk": 520, "TacticDef": 280, "Strategy": 55, "Resilience": 0.08,
+      "TroopCapacity": 11800, "Rows": 4,
+      "Skill2": { "Id": "charge", "Name": "Tiên Phong Đột Kích", "Kind": "Damage", "RowsHit": 2, "Power": 1.5 } },
+    { "Id": "wenchou", "DisplayName": "Văn Sú", "Troop": "KyBinh",
+      "NormalAtk": 605, "NormalDef": 305, "TacticAtk": 515, "TacticDef": 285, "Strategy": 52, "Resilience": 0.08,
+      "TroopCapacity": 11600, "Rows": 4,
+      "Skill2": { "Id": "charge2", "Name": "Hà Bắc Danh Tướng", "Kind": "Damage", "RowsHit": 2, "Power": 1.5 } },
+    { "Id": "zhanghe", "DisplayName": "Trương Cáp", "Troop": "KyBinh",
+      "NormalAtk": 580, "NormalDef": 320, "TacticAtk": 520, "TacticDef": 300, "Strategy": 74, "Resilience": 0.11,
+      "TroopCapacity": 11000, "Rows": 4, "CanAwaken": true,
+      "Skill2": { "Id": "wildcharge", "Name": "Đãng Khấu Tiên Phong", "Kind": "Damage", "RowsHit": 2, "Power": 1.55 } }
+  ]
+}
