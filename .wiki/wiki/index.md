@@ -2,7 +2,7 @@
 title: Index
 category: index
 created: 2026-06-27
-updated: 2026-07-24
+updated: 2026-07-27
 ---
 
 # ctxd_client — Wiki Index
@@ -53,6 +53,7 @@ Master catalog. Read first to find relevant pages. Project = recreation of **Cô
 - [[technical/game-flow-navigation]] — Luồng điều hướng Lobby→ChọnTướng→ChọnMàn→Đánh→Kết quả (GameFlowController + LuzartUI)
 
 ## Decisions
+- [[decisions/battle-visual-grammar-2026-07-27]] — Thanh máu per-nhóm màu theo phe; bake 303 prefab FX gương cây sprite; tách FX đòn-đánh (bên bị đánh) vs buff/thế-trận (dưới chân bên mình)
 - [[decisions/game-flow-end-to-end-2026-07-25]] — Dựng luồng game end-to-end trên 1 scene qua LuzartUI (server-authoritative)
 - [[decisions/game-version-scope]] — Phiên bản nào để dựng lại (đề xuất: webgame 2013)
 - [[decisions/unified-unit-entity-model-2026-07-24]] — Chốt tướng+lính = 1 đối tượng (directive + ảnh general-panel)

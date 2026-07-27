@@ -15,7 +15,7 @@ MonoBehaviour:
   _id: 
   kind: 0
   sourceId: wushen
-  prefab: {fileID: 7218444480900572677, guid: e6d3ee6b133c7c54082ef424e0e2fb06, type: 3}
+  prefab: {fileID: 8518882902281549880, guid: ccb66c56a8c74734fb916f3caddf82f3, type: 3}
   resourcesPath: sprite/eff/WuShenFuTi
   fps: 16
   scale: 1.5

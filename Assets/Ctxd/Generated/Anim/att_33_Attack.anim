@@ -7,7 +7,7 @@ AnimationClip:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: att_33_Attack
-  serializedVersion: 8
+  serializedVersion: 7
   m_Legacy: 0
   m_Compressed: 0
   m_UseHighQualityCurve: 1
@@ -65,7 +65,6 @@ AnimationClip:
       isPPtrCurve: 1
       isIntCurve: 0
       isSerializeReferenceCurve: 0
-      metaData: 0
     pptrCurveMapping:
     - {fileID: -855298285791758126, guid: 6110ac73eeab04b4f969bf4086a03910, type: 3}
     - {fileID: 6937817954938267909, guid: 68b09e3d6801b5445a8621f80e45fc9d, type: 3}

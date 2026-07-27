@@ -15,7 +15,7 @@ MonoBehaviour:
   _id: 
   kind: 2
   sourceId: wujiangjuexing
-  prefab: {fileID: 5598643050892405896, guid: 990b111b3c9b10c458f2a68cb242494e, type: 3}
+  prefab: {fileID: 6147075138606567496, guid: 227260c2835efff469d683409aa391bd, type: 3}
   resourcesPath: sprite/eff/wujiangjuexing
   fps: 16
   scale: 1.5

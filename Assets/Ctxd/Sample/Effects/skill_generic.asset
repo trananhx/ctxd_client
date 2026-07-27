@@ -15,7 +15,7 @@ MonoBehaviour:
   _id: 
   kind: 0
   sourceId: skill_generic
-  prefab: {fileID: 3433107268464335994, guid: 9f6a7cf751aa00a428812da309ed465a, type: 3}
+  prefab: {fileID: 2525924480092930517, guid: e54a152bb16ab904283fccbe6dacd223, type: 3}
   resourcesPath: sprite/eff/gjjl
   fps: 16
   scale: 1.2

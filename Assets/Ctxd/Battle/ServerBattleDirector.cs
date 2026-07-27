@@ -44,6 +44,25 @@ namespace Ctxd.Battle
         [Tooltip("Kích thước mỗi lính")] public float unitScale = 0.7f;
         [Tooltip("Khoảng cách giữa HÀNG ĐẦU của 2 đạo quân (↓ = sát nhau hơn). Đo tâm-đến-tâm theo trục chéo iso.")] public float frontGap = 2.6f;
 
+        // FX id = đường dẫn nguồn dưới Assets/Resources/sprite (AssetForge bake mỗi thư mục thành 1 prefab cùng id).
+        // "{f}" được thay bằng att/def theo phe → mỗi phe dùng đúng bản màu của mình.
+        [Header("FX chiêu thức — hiển thị bên BỊ ĐÁNH")]
+        [Tooltip("Dùng khi chiến pháp không có FX riêng theo TacticId")] public string skillFxFormat = "skill/{f}/skill_01";
+        [Tooltip("FX chiến pháp giác tỉnh, hiện thêm ở phe cast")] public string awakenFx = "eff/wujiangjuexing";
+
+        [Header("FX buff & thế trận — hiển thị DƯỚI CHÂN phe được áp dụng")]
+        [Tooltip("Buff/hồi quân: hiện dưới chân từng nhóm của phe được buff")] public string buffFxFormat = "eff/formation/{f}/down/1";
+        [Tooltip("Thế trận Đột Kích (突击)")] public string stanceDotKichFx = "eff/formation/{f}/top/3";
+        [Tooltip("Thế trận Tấn Công (攻击)")] public string stanceTanCongFx = "eff/formation/{f}/top/6";
+        [Tooltip("Thế trận Phòng Thủ (防守)")] public string stancePhongThuFx = "eff/formation/{f}/top/2";
+        [Tooltip("Độ cao FX dưới chân so với tâm nhóm (âm = thấp hơn)")] public float underFootY = -0.05f;
+        [Tooltip("Cỡ FX dưới chân (art gốc vẽ to hơn đội hình hiện tại)")] public float underFootScale = 0.45f;
+        [Tooltip("Bật = mỗi NHÓM một vầng sáng; tắt = mỗi HÀNG một vầng (art gốc vẽ theo hàng)")] public bool underFootPerGroup = false;
+
+        [Header("Thanh máu nhóm (chỉ hiện khi nhóm mất máu)")]
+        [Tooltip("Màu thanh máu phe Công — sprite att là giáp XANH")] public Color offenseBarColor = new Color(0.25f, 0.62f, 1f, 0.95f);
+        [Tooltip("Màu thanh máu phe Thủ — sprite def là giáp ĐỎ")] public Color defenseBarColor = new Color(0.90f, 0.20f, 0.18f, 0.95f);
+
         public event System.Action<CombatantSnapshot, CombatantSnapshot> ActiveGeneralsChanged;
         public event System.Action<BattleOutcome> Finished;
 
@@ -55,6 +74,7 @@ namespace Ctxd.Battle
         private LineupUI _lineup;
         private readonly Queue<ServerMsg> _pending = new Queue<ServerMsg>();
         private bool _playing, _over;
+        private bool _stancePreviewShown;   // FX thế trận phe mình đã vẽ lúc bấm → bỏ qua echo StanceChosen của server
 
         public BattleSnapshot State => _state;
         public bool IsOver => _over;
@@ -62,7 +82,6 @@ namespace Ctxd.Battle
         private void Start()
         {
             if (database != null) database.BuildIndex(true);
-            gameObject.AddComponent<BattleFieldSelection>();   // click a row/group → on-demand HP bar
 
             // 2 đạo quân đối mặt theo trục chéo iso (công dưới-trái ↔ thủ trên-phải), đối xứng qua tâm.
             // frontGap = khoảng cách giữa HÀNG ĐẦU của 2 bên → mỗi root lùi ra nửa khoảng cách từ tâm.
@@ -134,7 +153,14 @@ namespace Ctxd.Battle
         private void OnDisconnected(string reason) => Say($"Mất kết nối: {reason}", 2f);
 
         // ── commands (UI → server) ───────────────────────────────────────────────
-        public void SendStance(Stance stance, bool awaken, bool cast = false) { if (network != null) network.Send(Command.ChooseStance(stance, awaken, cast)); }
+        /// <summary>Người chơi luôn cầm phe Công. FX thế trận vẽ NGAY lúc bấm (không đợi server) để nút có phản hồi tức thì;
+        /// cờ <see cref="_stancePreviewShown"/> nuốt bản echo <c>StanceChosen</c> của server để khỏi vẽ hai lần.</summary>
+        public void SendStance(Stance stance, bool awaken, bool cast = false)
+        {
+            PlayUnderFoot(Faction.Offense, StanceFx(stance));
+            _stancePreviewShown = true;
+            if (network != null) network.Send(Command.ChooseStance(stance, awaken, cast));
+        }
         public void SendTestApi(TestApiKind kind, SideRef side) { if (network != null) network.Send(Command.TestApi(kind, side)); }
 
         /// <summary>Dọn trận sau khi về sảnh: huỷ field + ẩn HUD/panel + reset trạng thái để trận sau render sạch.
@@ -235,7 +261,7 @@ namespace Ctxd.Battle
             if (c == null) return null;
             var go = new GameObject($"Field_{faction}"); go.transform.SetParent(root, false);
             var fv = go.AddComponent<BattleSideField>();
-            try { fv.Build(c, faction, database, new FieldLayout { rowSpacing = rowSpacing, groupSpacing = groupSpacing, spriteSpacing = spriteSpacing, unitScale = unitScale }); }
+            try { fv.Build(c, faction, database, new FieldLayout { rowSpacing = rowSpacing, groupSpacing = groupSpacing, spriteSpacing = spriteSpacing, unitScale = unitScale, offenseBarColor = offenseBarColor, defenseBarColor = defenseBarColor }); }
             catch (System.Exception ex) { Debug.LogError($"[Director] field build: {ex}"); Destroy(go); return null; }
             return fv;
         }
@@ -264,6 +290,14 @@ namespace Ctxd.Battle
                     break;
                 case BattleEventType.GroupKilled:   // 1 nhóm lính tan (chết-theo-hàng) — nhịp ngắn
                     yield return Wait(eventPace * 0.15f);
+                    break;
+                case BattleEventType.RoundBegin:
+                    _stancePreviewShown = false;
+                    break;
+                case BattleEventType.StanceChosen:  // vầng sáng thế trận dưới chân phe đã chọn
+                    if (e.Side == Faction.Offense && _stancePreviewShown) _stancePreviewShown = false;   // đã vẽ lúc bấm
+                    else PlayUnderFoot(e.Side, StanceFx(e.Stance));
+                    yield return Wait(eventPace * 0.2f);
                     break;
                 case BattleEventType.Morale:        // đầy nộ / hỗn loạn / đẩy lùi — báo banner nếu có text
                 case BattleEventType.Confusion:
@@ -322,18 +356,65 @@ namespace Ctxd.Battle
                 at.Center + Vector3.up * 0.5f, $"+{exp} EXP", new Color(0.5f, 0.9f, 1f), false);
         }
 
+        /// <summary>
+        /// Two DIFFERENT visual grammars, chosen by the tactic's effect family:
+        /// <list type="bullet">
+        /// <item>offensive (Damage/Aoe/Confusion/…) → the VFX plays on the SIDE BEING HIT, at its centre;</item>
+        /// <item>supportive (Buff/Heal) → nothing happens on the enemy, so it plays UNDER THE FEET of the caster's
+        /// own groups, like a stance aura.</item>
+        /// </list>
+        /// The <c>att</c>/<c>def</c> art variant always follows the CASTER, since the effect is theirs.
+        /// </summary>
         private void SpawnSkillEffect(BattleEvent e)
         {
+            if (IsSupportEffect(e.Effect)) { PlayUnderFoot(e.Side, buffFxFormat); return; }
+
             var target = TargetField(e.Side);
             if (target == null || database == null) return;
-            var ev = database.GetEffectVisual(e.Awakened ? "wushen" : "skill_generic") ?? database.GetEffectVisual("skill_generic");
+            var ev = SkillFx(e);
             if (ev != null) VisualSpawner.SpawnEffect(ev, target.Center, transform);
             if (e.Awakened && AttackerField(e.Side) != null)
             {
-                var aw = database.GetEffectVisual("wujiangjuexing");
+                var aw = database.GetEffectVisual(awakenFx);
                 if (aw != null) VisualSpawner.SpawnEffect(aw, AttackerField(e.Side).Center, transform);
             }
         }
+
+        private static bool IsSupportEffect(TacticEffectKind kind)
+            => kind == TacticEffectKind.Buff || kind == TacticEffectKind.Heal;
+
+        /// <summary>Per-tactic art if the forge baked one (<c>skill/&lt;f&gt;/&lt;tacticId&gt;</c>), else the configured default.</summary>
+        private EffectVisualDefinition SkillFx(BattleEvent e)
+        {
+            string f = Facing(e.Side);
+            if (!string.IsNullOrEmpty(e.TacticId))
+            {
+                var byId = database.GetEffectVisual($"skill/{f}/{e.TacticId}");
+                if (byId != null) return byId;
+            }
+            return Fx(skillFxFormat, e.Side);
+        }
+
+        private void PlayUnderFoot(Faction side, string format)
+        {
+            var field = FieldOf(side);
+            var fx = Fx(format, side);
+            if (field != null && fx != null) field.SpawnUnderFootEffect(fx, underFootY, underFootScale, underFootPerGroup);
+        }
+
+        private EffectVisualDefinition Fx(string format, Faction side)
+            => (database == null || string.IsNullOrEmpty(format))
+                ? null
+                : database.GetEffectVisual(format.Replace("{f}", Facing(side)));
+
+        private static string Facing(Faction side) => side == Faction.Offense ? "att" : "def";
+
+        private string StanceFx(Stance stance) => stance switch
+        {
+            Stance.DotKich => stanceDotKichFx,
+            Stance.TanCong => stanceTanCongFx,
+            _              => stancePhongThuFx,
+        };
 
         private void Say(string text, float dur)
         {

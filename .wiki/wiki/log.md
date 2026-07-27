@@ -2,7 +2,7 @@
 title: Log
 category: log
 created: 2026-06-27
-updated: 2026-07-24
+updated: 2026-07-27
 ---
 
 # ctxd_client — Log
@@ -245,3 +245,13 @@ Chronological record of all wiki operations.
 - **Mới**: 4 màn `UIBase<TData>` (Lobby/SelectGeneral/SelectStage/Result) + `TroopVisual` + `GameFlowController`; `UIId` +Lobby/SelectGeneral/SelectStage; Protocol +ListStages/ListRoster/Stages/Roster + `Command.OffenseGeneralIds/Difficulty` + DTO `StageInfo/GeneralSummary`; server `ScenarioLoader` roster/stages + `ScenarioDto.ApplyDifficulty/OverrideOffense`; data `roster.json`/`stages.json`/3× `stage_*.json`; Forge dựng 4 prefab + wire flow controller.
 - **Verify**: dotnet build 0/0, **84/84 test** (+12 `CampaignFlowTests`), selftest OK, Unity compile 0 lỗi, **play-test thật đi hết luồng** (8 screenshot, chọn 5 tướng → Quan Độ/Khó → CHIẾN THẮNG thưởng scale → về Lobby dọn trận), 0 exception.
 - Pages created: [[decisions/game-flow-end-to-end-2026-07-25]], [[technical/game-flow-navigation]]
+
+## [2026-07-27] impl | Ngữ pháp hình ảnh trận: thanh máu per-nhóm, prefab-hoá toàn bộ FX, tách skill/buff
+- Chủ dự án chỉ 3 khiếm khuyết tầng trình diễn. Khảo sát 2 agent (thanh máu + pipeline FX) → sửa 3 hạng mục, mỗi hạng mục compile-check qua Unity MCP.
+- **1. Thanh máu**: `RowHealthBar` (per-hàng, click) → `HealthBar` (per-nhóm, tự hiện khi `0 < soldiers < max`), con của group anchor nên bám theo khi hàng tiến. Màu theo phe suy TỪ ART GỐC (`army/att` giáp xanh, `army/def` giáp đỏ) → Công xanh / Thủ đỏ, chỉnh được trên Inspector. Xoá `BattleFieldSelection` + `GroupClickTarget` + collider per-nhóm.
+- **2. FX**: `AssetForge` bỏ bảng 3 effect hard-code, **quét toàn bộ** `Resources/sprite` → `Generated/FX/<đường-dẫn-nguồn>.{prefab,anim,controller,asset}` (gương cây sprite; id = đường dẫn = khoá tra DB). Quy tắc: tên **số trần** → 1 chuỗi animation, còn lại → prefab tĩnh riêng (chịu được thư mục lai kiểu `tip.png` lẫn frame). Loại `army/tacticalGeneralPicMax/warBG/windowBG` (không phải FX). Kết quả **303 prefab** (35 anim + 268 tĩnh), 0 SO thiếu prefab.
+- **3. Skill vs buff**: `SpawnSkillEffect` rẽ theo `BattleEvent.Effect` — sát thương → tâm phe **BỊ ĐÁNH** (order 600); `Buff`/`Heal` → **dưới chân** phe **CAST** (order 100). Bản màu `att`/`def` theo người cast. Thế trận dùng chung ngữ pháp buff, vẽ **ngay lúc bấm** (cờ `_stancePreviewShown` nuốt echo server). Vầng sáng mặc định per-HÀNG (art vẽ theo bề ngang hàng). Mọi ánh xạ là chuỗi format `{f}` trên Inspector.
+- **Bug tự gây & đã vá**: forge tạo GameObject tạm trong scene đang mở; một lần bake hỏng để lại `fx_warBG_1` (ảnh nền full màn, order 600) **che toàn bộ quân**. Dọn object + bọc `try/finally` mọi chỗ bake.
+- **Verify**: 84/84 test, Unity compile 0 lỗi, play-test thật (Quan Độ/Chiến Thần): 3/12 nhóm mất máu hiện thanh đúng màu; FX đòn đánh tại tâm phe thủ `(1.09,1.41)`; FX buff 4 cái tại 4 tâm hàng phe công order 100.
+- Pages created: [[decisions/battle-visual-grammar-2026-07-27]]
+- Pages updated: [[index]]

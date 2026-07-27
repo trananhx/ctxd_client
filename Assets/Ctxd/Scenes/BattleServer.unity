@@ -768,7 +768,7 @@ MonoBehaviour:
   uiManager: {fileID: 1020095413}
   host: 127.0.0.1
   port: 5005
-  eventPace: 0.28
+  eventPace: 0.05
   autoStance: 0
   _externallyDriven: 1
   rowSpacing: 1.5
@@ -776,6 +776,15 @@ MonoBehaviour:
   spriteSpacing: 2
   unitScale: 0.7
   frontGap: 2.6
+  skillFxFormat: skill/{f}/skill_01
+  awakenFx: eff/wujiangjuexing
+  buffFxFormat: eff/formation/{f}/down/1
+  stanceDotKichFx: eff/formation/{f}/top/3
+  stanceTanCongFx: eff/formation/{f}/top/6
+  stancePhongThuFx: eff/formation/{f}/top/2
+  underFootY: -0.05
+  offenseBarColor: {r: 0.25, g: 0.62, b: 1, a: 0.95}
+  defenseBarColor: {r: 0.9, g: 0.2, b: 0.18, a: 0.95}
 --- !u!4 &1931527612
 Transform:
   m_ObjectHideFlags: 0

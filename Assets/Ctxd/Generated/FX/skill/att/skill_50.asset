@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99f86585f98c9cf428f68a1016aa9725, type: 3}
+  m_Name: skill_50
+  m_EditorClassIdentifier: Assembly-CSharp::Ctxd.Data.EffectVisualDefinition
+  _id: 
+  kind: 0
+  sourceId: skill/att/skill_50
+  prefab: {fileID: 3020964336220539935, guid: e41c138cde7e920468a65e35b8f8021d, type: 3}
+  resourcesPath: sprite/skill/att/skill_50
+  fps: 16
+  scale: 1
+  lifetime: 1.2125

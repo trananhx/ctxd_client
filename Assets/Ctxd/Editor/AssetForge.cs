@@ -21,12 +21,13 @@ namespace Ctxd.EditorTools
     /// </summary>
     public static class AssetForge
     {
-        const string ArmyRoot   = "Assets/Resources/sprite/army";
-        const string EffRoot    = "Assets/Resources/sprite/eff";
+        const string SpriteRoot = "Assets/Resources/sprite";
+        const string ArmyRoot   = SpriteRoot + "/army";
         const string Gen        = "Assets/Ctxd/Generated";
         const string AnimDir    = Gen + "/Anim";
         const string CtrlDir    = Gen + "/Controllers";
         const string PrefabDir  = Gen + "/Prefabs";
+        const string FxRoot     = Gen + "/FX";            // mirrors the sprite tree, one prefab per FX
         const string VisualsDir = "Assets/Ctxd/Sample/Visuals";
         const string EffectsDir = "Assets/Ctxd/Sample/Effects";
 
@@ -39,12 +40,25 @@ namespace Ctxd.EditorTools
             (1, "Idle", true), (2, "Move", true), (3, "Attack", false), (4, "Hurt", false), (5, "Die", false),
         };
 
-        // effect sprite folder → (lookup sourceId, SO asset file name, scale, lifetime)
-        static readonly (string res, string sourceId, string assetKey, float scale, float life)[] Effects =
+        /// <summary>Legacy lookup slug → FX id, so hand-authored SOs under Sample/Effects keep a live prefab.</summary>
+        static readonly (string legacySo, string fxId)[] LegacyEffectAliases =
         {
-            ("gjjl",           "skill_generic",  "skill_generic", 1.2f, 1.1f),
-            ("WuShenFuTi",     "wushen",         "wushen",        1.5f, 1.5f),
-            ("wujiangjuexing", "wujiangjuexing", "awaken",        1.5f, 1.5f),
+            ("skill_generic", "eff/gjjl"),
+            ("wushen",        "eff/WuShenFuTi"),
+            ("awaken",        "eff/wujiangjuexing"),
+        };
+
+        /// <summary>
+        /// Sprite roots that are NOT battle FX and must never become FX prefabs: general portraits, battle
+        /// backdrops and window chrome are consumed directly as sprites by the UI, so baking them here would add
+        /// hundreds of dead prefabs and bury the real effects.
+        /// </summary>
+        static readonly string[] NonFxRoots = { "army", "tacticalGeneralPicMax", "warBG", "windowBG" };
+
+        /// <summary>Per-FX scale overrides (id prefix → scale); everything else bakes at 1.</summary>
+        static readonly (string prefix, float scale)[] ScaleOverrides =
+        {
+            ("eff/gjjl", 1.2f), ("eff/WuShenFuTi", 1.5f), ("eff/wujiangjuexing", 1.5f),
         };
 
         [MenuItem("CTXD/Forge/Bake All Prefabs (.anim + controller + prefab → SO)", priority = 0)]
@@ -62,13 +76,13 @@ namespace Ctxd.EditorTools
             int linked = RelinkControllers(links);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log($"[AssetForge] baked {units} unit prefabs + {effs} effect prefabs + 1 floating-text prefab, " +
-                      $"linked {linked} controllers, assigned into SOs under {Gen}.");
+            Debug.Log($"[AssetForge] baked {units} unit prefabs + {effs} FX prefabs (mirrored under {FxRoot}) " +
+                      $"+ 1 floating-text prefab, linked {linked} controllers, assigned into SOs under {Gen}.");
         }
 
         static void EnsureFolders()
         {
-            Folder(Gen); Folder(AnimDir); Folder(CtrlDir); Folder(PrefabDir);
+            Folder(Gen); Folder(AnimDir); Folder(CtrlDir); Folder(PrefabDir); Folder(FxRoot);
             Folder("Assets/Ctxd/Sample"); Folder(VisualsDir); Folder(EffectsDir);
         }
 
@@ -125,78 +139,186 @@ namespace Ctxd.EditorTools
             string ctrlPath = $"{CtrlDir}/{facing}_{id}.controller";
             var controller = BuildController(ctrlPath, clips, defaultState: "Idle");
 
-            var go = new GameObject($"unit_{facing}_{id}");
-            var sr = go.AddComponent<SpriteRenderer>();
-            sr.sprite = idleSprite ?? firstSprite;
-            var anim = go.AddComponent<Animator>();
-            anim.runtimeAnimatorController = controller;   // re-linked authoritatively in RelinkControllers
-            var uv = go.AddComponent<UnitVisual>();
-            uv.spriteRenderer = sr;
-            uv.animator = anim;
-
             string prefabPath = $"{PrefabDir}/unit_{facing}_{id}.prefab";
-            var prefab = PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
-            Object.DestroyImmediate(go);
+            var go = new GameObject($"unit_{facing}_{id}");
+            GameObject prefab;
+            try
+            {
+                var sr = go.AddComponent<SpriteRenderer>();
+                sr.sprite = idleSprite ?? firstSprite;
+                var anim = go.AddComponent<Animator>();
+                anim.runtimeAnimatorController = controller;   // re-linked authoritatively in RelinkControllers
+                var uv = go.AddComponent<UnitVisual>();
+                uv.spriteRenderer = sr;
+                uv.animator = anim;
+                prefab = PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
+            }
+            finally { Object.DestroyImmediate(go); }   // temp lives in the OPEN scene — must die even on failure
+
             links.Add((prefabPath, ctrlPath));
             return prefab;
         }
 
-        // ── EFFECTS ────────────────────────────────────────────────────────────
+        // ── EFFECTS / FX ───────────────────────────────────────────────────────
+        /// <summary>
+        /// Bakes EVERY sprite folder under <c>Assets/Resources/sprite</c> (except <c>army</c>, handled as units) into
+        /// its own prefab, mirroring the source tree under <see cref="FxRoot"/>.
+        /// <para>Classification rule, per folder: sprites named with a bare number (<c>1.png, 2.png…</c>) form ONE
+        /// animated sequence; every other sprite becomes its own static prefab. Handling both in the same folder
+        /// matters — several extracted FX ship a stray <c>tip.png</c> next to their frames, and an all-or-nothing
+        /// rule would demote the whole sequence to loose stills.</para>
+        /// The FX id is the source path relative to <c>sprite/</c> (e.g. <c>eff/formation/att/down/1</c>,
+        /// <c>warBuff/12</c>) — that id is both the SO lookup key and the on-disk location of the prefab.
+        /// </summary>
         static int BakeEffects(List<(string, string)> links)
         {
+            var prefabById = new Dictionary<string, GameObject>();
             int count = 0;
-            foreach (var e in Effects)
+            foreach (var folder in AllFolders(SpriteRoot))
             {
-                var frames = LoadFrames($"{EffRoot}/{e.res}");
-                if (frames.Length == 0) { Debug.LogWarning($"[AssetForge] no frames at {EffRoot}/{e.res}"); continue; }
+                if (IsNonFx(folder)) continue;
+                var sprites = LoadSprites(folder);
+                if (sprites.Length == 0) continue;
 
-                var clip = BuildClip(frames, loop: false, EffFps);
-                SaveAsset(clip, $"{AnimDir}/eff_{e.sourceId}.anim");
-                string ctrlPath = $"{CtrlDir}/eff_{e.sourceId}.controller";
-                var controller = BuildController(ctrlPath,
-                    new Dictionary<string, AnimationClip> { { "Play", clip } }, defaultState: "Play");
+                string folderId = folder.Substring(SpriteRoot.Length + 1);
+                var frames = sprites.Where(s => IsBareNumber(s.name)).OrderBy(s => Num(s.name)).Select(s => s.sprite).ToArray();
+                if (frames.Length > 0)
+                    count += BakeSequenceFx(folderId, frames, links, prefabById) ? 1 : 0;
+                foreach (var s in sprites.Where(s => !IsBareNumber(s.name)))
+                    count += BakeStaticFx($"{folderId}/{CleanName(s.name)}", s.sprite, prefabById) ? 1 : 0;
+            }
 
-                var go = new GameObject($"fx_{e.sourceId}");
-                if (e.scale > 0f) go.transform.localScale = Vector3.one * e.scale;
-                var sr = go.AddComponent<SpriteRenderer>();
-                sr.sprite = frames[0];
-                sr.sortingOrder = 600;   // above units (~400), below floating text (1000)
+            // Hand-authored SOs under Sample/Effects keep working: point them at the newly baked prefabs.
+            foreach (var (legacySo, fxId) in LegacyEffectAliases)
+            {
+                var so = AssetDatabase.LoadAssetAtPath<EffectVisualDefinition>($"{EffectsDir}/{legacySo}.asset");
+                if (so == null || !prefabById.TryGetValue(fxId, out var prefab)) continue;
+                so.prefab = prefab;
+                EditorUtility.SetDirty(so);
+            }
+            return count;
+        }
+
+        static bool IsNonFx(string folder)
+        {
+            foreach (var root in NonFxRoots)
+            {
+                string p = $"{SpriteRoot}/{root}";
+                if (folder == p || folder.StartsWith(p + "/")) return true;
+            }
+            return false;
+        }
+
+        static bool BakeSequenceFx(string id, Sprite[] frames, List<(string, string)> links, Dictionary<string, GameObject> map)
+        {
+            if (frames.Length == 0) return false;
+            Folder(ParentFolder($"{FxRoot}/{id}"));   // .anim/.controller are written before the prefab exists
+            float scale = ScaleFor(id);
+            float life = frames.Length / EffFps + 0.15f;
+
+            var clip = BuildClip(frames, loop: false, EffFps);
+            SaveAsset(clip, $"{FxRoot}/{id}.anim");
+            string ctrlPath = $"{FxRoot}/{id}.controller";
+            var controller = BuildController(ctrlPath,
+                new Dictionary<string, AnimationClip> { { "Play", clip } }, defaultState: "Play");
+
+            var go = NewFxObject(id, frames[0], scale, out var sr);
+            GameObject prefab;
+            try
+            {
                 var anim = go.AddComponent<Animator>();
                 anim.runtimeAnimatorController = controller;
                 var ev = go.AddComponent<EffectVisual>();
-                ev.spriteRenderer = sr; ev.animator = anim; ev.lifetime = e.life;
-
-                string prefabPath = $"{PrefabDir}/fx_{e.sourceId}.prefab";
-                var prefab = PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
-                Object.DestroyImmediate(go);
-                links.Add((prefabPath, ctrlPath));
-
-                var so = LoadOrCreate<EffectVisualDefinition>($"{EffectsDir}/{e.assetKey}.asset");
-                so.sourceId = e.sourceId;
-                so.prefab = prefab;
-                so.resourcesPath = $"sprite/eff/{e.res}"; // documentation only; prefab is the spawn source
-                so.fps = EffFps; so.scale = e.scale; so.lifetime = e.life;
-                EditorUtility.SetDirty(so);
-                count++;
+                ev.spriteRenderer = sr; ev.animator = anim; ev.lifetime = life;
+                prefab = PrefabUtility.SaveAsPrefabAsset(go, $"{FxRoot}/{id}.prefab");
             }
-            return count;
+            finally { Object.DestroyImmediate(go); }   // temp lives in the OPEN scene — must die even on failure
+
+            links.Add(($"{FxRoot}/{id}.prefab", ctrlPath));
+            map[id] = prefab;
+            WriteFxDefinition(id, prefab, scale, life, animated: true);
+            return true;
+        }
+
+        static bool BakeStaticFx(string id, Sprite sprite, Dictionary<string, GameObject> map)
+        {
+            float scale = ScaleFor(id);
+            var go = NewFxObject(id, sprite, scale, out var sr);
+            GameObject prefab;
+            try
+            {
+                var ev = go.AddComponent<EffectVisual>();
+                ev.spriteRenderer = sr; ev.lifetime = 0f;   // static: the caller decides when it goes away
+                prefab = PrefabUtility.SaveAsPrefabAsset(go, $"{FxRoot}/{id}.prefab");
+            }
+            finally { Object.DestroyImmediate(go); }   // temp lives in the OPEN scene — must die even on failure
+
+            map[id] = prefab;
+            WriteFxDefinition(id, prefab, scale, 0f, animated: false);
+            return true;
+        }
+
+        static GameObject NewFxObject(string id, Sprite first, float scale, out SpriteRenderer sr)
+        {
+            Folder(ParentFolder($"{FxRoot}/{id}"));
+            var go = new GameObject("fx_" + id.Replace('/', '_'));
+            if (scale > 0f) go.transform.localScale = Vector3.one * scale;
+            sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = first;
+            sr.sortingOrder = SortingFor(id);
+            return go;
+        }
+
+        static void WriteFxDefinition(string id, GameObject prefab, float scale, float life, bool animated)
+        {
+            var so = LoadOrCreate<EffectVisualDefinition>($"{FxRoot}/{id}.asset");
+            so.kind = KindFor(id);
+            so.sourceId = id;
+            so.prefab = prefab;
+            so.resourcesPath = $"sprite/{id}";   // documentation only; the prefab is the spawn source
+            so.fps = animated ? EffFps : 0f;
+            so.scale = scale;
+            so.lifetime = life;
+            EditorUtility.SetDirty(so);
+        }
+
+        // Ground auras must sit UNDER the troops; unit sorting is 500 − y·50 (roughly 350…650), so 100 clears it.
+        static int SortingFor(string id) => id.StartsWith("eff/formation/") ? 100 : 600;
+
+        static EffectVisualDefinition.EffectKind KindFor(string id)
+        {
+            if (id.StartsWith("eff/formation/")) return EffectVisualDefinition.EffectKind.Formation;
+            if (id.StartsWith("eff/Arrow/"))     return EffectVisualDefinition.EffectKind.Arrow;
+            if (id.StartsWith("eff/wujiangjuexing")) return EffectVisualDefinition.EffectKind.Awaken;
+            if (id.StartsWith("warFeatAnger/"))  return EffectVisualDefinition.EffectKind.Anger;
+            if (id.StartsWith("skill/"))         return EffectVisualDefinition.EffectKind.Skill;
+            return EffectVisualDefinition.EffectKind.Misc;
+        }
+
+        static float ScaleFor(string id)
+        {
+            foreach (var (prefix, scale) in ScaleOverrides) if (id.StartsWith(prefix)) return scale;
+            return 1f;
         }
 
         // ── FLOATING TEXT (damage / EXP popups are spawned too → a prefab) ───────
         static void BakeFloatingText()
         {
             var go = new GameObject("FloatingText");
-            var tmp = go.AddComponent<TextMeshPro>();
-            if (TMP_Settings.defaultFontAsset != null) tmp.font = TMP_Settings.defaultFontAsset;
-            tmp.text = "0"; tmp.fontSize = 5; tmp.alignment = TextAlignmentOptions.Center;
-            tmp.color = Color.white;
-            var mr = go.GetComponent<MeshRenderer>();
-            if (mr != null) mr.sortingOrder = 1000;
-            var ft = go.AddComponent<FloatingText>();
-            ft.label = tmp;
-
-            var prefab = PrefabUtility.SaveAsPrefabAsset(go, $"{PrefabDir}/FloatingText.prefab");
-            Object.DestroyImmediate(go);
+            GameObject prefab;
+            try
+            {
+                var tmp = go.AddComponent<TextMeshPro>();
+                if (TMP_Settings.defaultFontAsset != null) tmp.font = TMP_Settings.defaultFontAsset;
+                tmp.text = "0"; tmp.fontSize = 5; tmp.alignment = TextAlignmentOptions.Center;
+                tmp.color = Color.white;
+                var mr = go.GetComponent<MeshRenderer>();
+                if (mr != null) mr.sortingOrder = 1000;
+                var ft = go.AddComponent<FloatingText>();
+                ft.label = tmp;
+                prefab = PrefabUtility.SaveAsPrefabAsset(go, $"{PrefabDir}/FloatingText.prefab");
+            }
+            finally { Object.DestroyImmediate(go); }   // temp lives in the OPEN scene — must die even on failure
 
             var db = AssetDatabase.LoadAssetAtPath<CtxdGameDatabase>("Assets/Ctxd/Resources/CtxdGameDatabase.asset");
             if (db != null) { db.floatingText = prefab.GetComponent<FloatingText>(); EditorUtility.SetDirty(db); }
@@ -269,6 +391,43 @@ namespace Ctxd.EditorTools
                 if (s != null) list.Add((Num(Path.GetFileNameWithoutExtension(p)), s));
             }
             return list.OrderBy(x => x.n).Select(x => x.s).ToArray();
+        }
+
+        /// <summary>Direct-child sprites of a folder, with their file names (unsorted).</summary>
+        static (string name, Sprite sprite)[] LoadSprites(string folder)
+        {
+            if (!AssetDatabase.IsValidFolder(folder)) return new (string, Sprite)[0];
+            var list = new List<(string, Sprite)>();
+            foreach (var guid in AssetDatabase.FindAssets("t:Sprite", new[] { folder }))
+            {
+                string p = AssetDatabase.GUIDToAssetPath(guid);
+                if (Path.GetDirectoryName(p).Replace('\\', '/') != folder) continue; // direct children only
+                var s = AssetDatabase.LoadAssetAtPath<Sprite>(p);
+                if (s != null) list.Add((Path.GetFileNameWithoutExtension(p), s));
+            }
+            return list.ToArray();
+        }
+
+        /// <summary>The folder and every folder beneath it, depth-first.</summary>
+        static IEnumerable<string> AllFolders(string root)
+        {
+            if (!AssetDatabase.IsValidFolder(root)) yield break;
+            yield return root;
+            foreach (var sub in AssetDatabase.GetSubFolders(root))
+            foreach (var f in AllFolders(sub))
+                yield return f;
+        }
+
+        static bool IsBareNumber(string n) => !string.IsNullOrEmpty(n) && n.All(char.IsDigit);
+
+        /// <summary>Drops the APK extraction hash suffix: <c>10_467f1de1f02e8638</c> → <c>10</c>.</summary>
+        static string CleanName(string n)
+            => System.Text.RegularExpressions.Regex.Replace(n ?? "", @"_[0-9a-f]{8,}$", "");
+
+        static string ParentFolder(string assetPath)
+        {
+            int i = assetPath.LastIndexOf('/');
+            return i <= 0 ? assetPath : assetPath.Substring(0, i);
         }
 
         static int Num(string n)
