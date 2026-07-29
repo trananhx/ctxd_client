@@ -290,3 +290,9 @@ Chronological record of all wiki operations.
 - Config: roster `zhaoyun` thành 1 hình to (VisualId 43, UnitScale 1.5, **bỏ Deputy** — Deputy phá single-figure); `guanyu` RowShape CanhCung ở roster + 3 stage; stage_fxdemo có Triệu Vân nối sau Hoàng Trung.
 - **Verify**: 112/112 + selftest OK; Unity 0 lỗi; playtest: 3 đạo quân xếp dọc, giết 2 hàng → dồn lên đúng; screenshot cột quân + Triệu Vân to đứng giữa.
 - Pages updated: [[technical/battle-fx-system]] (đợt 3 ghi ở log này), [[log]]
+
+## [2026-07-30] implement (đợt 4) | Cung dàn đều lính + hàng cánh 2 bên (Trương Phi)
+- Cung dàn đều: `LayoutSprites` xếp lính hàng CanhCung giao tranh thành MỘT DẢI dọc parabol (offset ngang kín span nhóm + hiệu parabol theo vị trí toàn cục) — phá khối 3×2; `cell.arcMode` tự chuyển khi hàng thành/thôi hàng đầu.
+- Hàng cánh: `RowShape` append `CanhTrai/CanhPhai` (guard int 2/3); `GroupStyle.RowShapes` per-hàng (JSON "RowShapes"); client đặt cánh làm CỘT bên hông (`wingOffset`), không chiếm slot sâu, rowSlot=0 → luôn giao tranh. Roster `zhangfei` 4 hàng [3,3,2,2] + shapes.
+- **Verify**: 114/114 + selftest OK; Unity 0 lỗi; screenshot: Trương Phi 2 cánh 2 bên, Hoàng Trung dải cung liền mạch như game gốc.
+- Pages updated: [[log]]
