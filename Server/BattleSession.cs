@@ -155,7 +155,7 @@ namespace Ctxd.Server
                 c.Faction = side;
                 if (c.MaxTroops <= 0) c.MaxTroops = Math.Max(1, c.Troops);
                 c.Morale = c.FiveStar ? _cfg.MoraleFull : _cfg.MoraleStart;
-                if (!c.HasFormation) c.Formation.AddRange(FormationBuilder.Uniform(c.Rows, _cfg.GroupsPerRow, c.Troop, c.MaxTroops));
+                if (!c.HasFormation) c.Formation.AddRange(FormationBuilder.Uniform(c.Rows, _cfg.GroupsPerRow, c.Troop, c.MaxTroops, c.Style));
                 c.SyncTroops();
             }
             else c = MakeReinforcement(side, ++_reinforcements);
@@ -201,9 +201,11 @@ namespace Ctxd.Server
                 Morale = _cfg.PhantomStartMorale, Skill1 = src.Skill1, Skill2 = src.Skill2,
                 IsPhantom = true, Phantom = kind,
                 XianzhengStars = kind == PhantomKind.Xianzheng ? Math.Max(1, src.XianzhengStars) : 0,
+                Style = src.Style,   // ảo ảnh của một boss đơn phải vẫn là MỘT hình, không tách lại thành 3 nhóm
+                EngageRows = src.EngageRows,   // [G1] ảo ảnh diễn đánh cùng số hàng với bản gốc
             };
             // DEEP-COPY: dựng formation MỚI hoàn toàn (không share Row/Group reference với src).
-            p.Formation.AddRange(FormationBuilder.Uniform(p.Rows, FormationBuilder.DefaultGroupsPerRow, src.Troop, troops));
+            p.Formation.AddRange(FormationBuilder.Uniform(p.Rows, FormationBuilder.DefaultGroupsPerRow, src.Troop, troops, p.Style));
             p.SyncTroops();
             return p;
         }
@@ -224,7 +226,7 @@ namespace Ctxd.Server
                 MaxTroops = troops, Troops = troops, Rows = 4,
                 Morale = _cfg.MoraleStart,
             };
-            c.Formation.AddRange(FormationBuilder.Uniform(4, 3, c.Troop, troops));
+            c.Formation.AddRange(FormationBuilder.Uniform(4, 3, c.Troop, troops, c.Style));
             c.SyncTroops();
             return c;
         }

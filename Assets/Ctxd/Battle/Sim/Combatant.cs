@@ -26,12 +26,18 @@ namespace Ctxd.Battle.Sim
         public int XianzhengStars;    // [2D] số sao Hãm Trận (khi Phantom==Xianzheng)
         public string FormationId;
         public int Rows = 4;
+        public int EngageRows;        // [G1] số hàng TRƯỚC được diễn animation đánh (0 = mặc định 1 — chỉ hàng đầu)
         public Stance LastStance;
         public bool HasLastStance;
 
         /// <summary>Rows of troop-groups (server-authoritative geometry). Combat depletes the FRONT living row first.</summary>
         public readonly List<Row> Formation = new List<Row>();
         public bool HasFormation => Formation.Count > 0;
+
+        /// <summary>How this unit is DRAWN (sprite count / scale / art). Null = a normal block of soldiers.
+        /// Lives on the combatant — not just on the authored layout — because reinforcement, phantom and deputy
+        /// all rebuild the formation from scratch and would otherwise lose the look mid-battle.</summary>
+        public GroupStyle Style;
 
         public bool Alive => Troops > 0;
         public bool Confused => ConfusedTurns > 0;

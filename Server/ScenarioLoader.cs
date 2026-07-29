@@ -141,6 +141,12 @@ namespace Ctxd.Server
         /// <summary>Chỉ định art cụ thể theo <c>UnitVisualDefinition.unitId</c> (vd "102"). Bỏ trống = art theo binh chủng.</summary>
         public string VisualId;
 
+        // ── [G2] Dáng hàng: "CanhCung" → hàng ĐANG giao tranh cong hình cánh cung (client uốn rowSlot 0). ──
+        /// <summary>"HangNgang" (mặc định) | "CanhCung". Hàng sau thẳng; tiến lên hàng đầu mới cong.</summary>
+        public string RowShape;
+        /// <summary>[G1] Số hàng TRƯỚC được diễn animation đánh. 0 = mặc định 1 (chỉ hàng đầu). Vd 2 = cung binh hàng 2 cùng bắn.</summary>
+        public int EngageRows;
+
         // ── Package D: nhóm GIỮA hàng CUỐI thành 1 hình lớn (số lượng 1 SPRITE, +30%) ──
         /// <summary>true → nhóm giữa (floor(n/2)) của HÀNG CUỐI thành 1 hình lớn. Bỏ trống = không đổi.</summary>
         public bool LastRowMiddleSingle;
@@ -151,7 +157,8 @@ namespace Ctxd.Server
 
         /// <summary>Gom các khoá VẼ thành style, hoặc null nếu không khai khoá nào (tướng cũ giữ nguyên hình).</summary>
         public GroupStyle ToStyle()
-            => (GroupsPerRow > 0 || SpriteCols > 0 || SpriteRows > 0 || UnitScale > 0 || !string.IsNullOrEmpty(VisualId) || LastRowMiddleSingle)
+            => (GroupsPerRow > 0 || SpriteCols > 0 || SpriteRows > 0 || UnitScale > 0 || !string.IsNullOrEmpty(VisualId)
+                || LastRowMiddleSingle || !string.IsNullOrEmpty(RowShape))
                 ? new GroupStyle
                 {
                     GroupsPerRow = GroupsPerRow, SpriteCols = SpriteCols, SpriteRows = SpriteRows,
@@ -159,6 +166,7 @@ namespace Ctxd.Server
                     LastRowMiddleSingle = LastRowMiddleSingle,
                     LastRowMiddleVisualId = LastRowMiddleVisualId,
                     LastRowMiddleScale = (float)LastRowMiddleScale,
+                    RowShape = Enum.TryParse<RowShape>(RowShape, true, out var rs) ? rs : Battle.Sim.RowShape.HangNgang,
                 }
                 : null;
 
@@ -196,6 +204,7 @@ namespace Ctxd.Server
                 Skill2 = skill2,
                 Awakened = StartAwakened || (CanAwaken && skill2 != null && skill2.IsAwakening),
                 Style = ToStyle(),
+                EngageRows = EngageRows,   // [G1]
             };
 
             if (Formation != null && Formation.Count > 0)

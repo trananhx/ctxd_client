@@ -21,12 +21,13 @@ namespace Ctxd.Battle
         public bool barSegmented;     // [C1] thanh máu CHIA NGĂN thay vì fill liền
         public int barSegments;       // số ngăn khi segmented
         public float advanceDelay;    // [C2] giây chờ SAU anim chết trước khi hàng sau tiến lên (0 = như cũ)
+        public float bowDepth;        // [G2] độ nhô của tâm hàng CanhCung về phía địch (0 = tắt cong)
         public static FieldLayout Default => new FieldLayout
         {
             rowSpacing = 1.5f, groupSpacing = 1.1f, spriteSpacing = 2.0f, unitScale = 0.7f,
             offenseBarColor = new Color(0.25f, 0.62f, 1f, 0.95f),
             defenseBarColor = new Color(0.90f, 0.20f, 0.18f, 0.95f),
-            barSegmented = false, barSegments = 10, advanceDelay = 0f,
+            barSegmented = false, barSegments = 10, advanceDelay = 0f, bowDepth = 0.55f,
         };
     }
 
@@ -135,6 +136,14 @@ namespace Ctxd.Battle
 
                     int rowSlot = rowSlotOf[r];
                     Vector2 target = _rowAxis * rowSlot + _groupAxis * (gi - (row.Groups.Count - 1) * 0.5f);
+                    // [G2] Thế cánh cung: CHỈ hàng đang giao tranh (rowSlot 0) cong — tâm hàng nhô về phía địch,
+                    // hai cánh lùi (parabol). Hàng sau đứng thẳng; khi tiến lên hàng đầu, diff tự tween sang thế cong.
+                    if (row.Shape == Sim.RowShape.CanhCung && rowSlot == 0 && row.Groups.Count > 1 && _layout.bowDepth > 0f)
+                    {
+                        float mid = (row.Groups.Count - 1) * 0.5f;
+                        float tt = (gi - mid) / Mathf.Max(1f, mid);                  // -1..1 (giữa = 0)
+                        target -= _rowAxis * (_layout.bowDepth * (1f - tt * tt));    // -_rowAxis = hướng về địch
+                    }
                     if (cell == null)
                     {
                         cell = SpawnCell(g, r, gi, target);
@@ -311,20 +320,24 @@ namespace Ctxd.Battle
         }
 
         // ── whole-general action animations (attack lunge, hurt) ─────────────────────
+        /// <summary>[G1] Số hàng TRƯỚC được diễn đánh — server config (`EngageRows` per-tướng), mặc định 1 (chỉ hàng đầu).</summary>
+        private int EngageRowLimit => Mathf.Max(1, _snap != null ? _snap.EngageRows : 1);
+
         public void PlayAction(UnitAction action)
         {
-            // Mặc định CHỈ hàng đầu (rowSlot 0) giao chiến → diễn Attack/Hurt; hàng sau đứng Idle chờ tiến lên.
-            // (Điểm mở rộng: sau này có thể cho phép hàng cụ thể được config cùng đánh — vd cung binh bắn từ sau.)
+            // CHỈ các hàng giao tranh (rowSlot < EngageRows, mặc định hàng đầu) diễn Attack/Hurt;
+            // hàng sau đứng Idle chờ tiến lên — vd cung binh hàng 2 cùng bắn khi server khai EngageRows=2.
+            int engage = EngageRowLimit;
             foreach (var cell in _cells.Values)
             {
-                if (cell.rowSlot != 0) continue;
+                if (cell.rowSlot >= engage) continue;
                 foreach (var uv in cell.sprites) if (uv != null) uv.Play(action);
             }
 
             if (action == UnitAction.Attack && isActiveAndEnabled)
             {
                 if (_lunge != null) StopCoroutine(_lunge);
-                _lunge = StartCoroutine(LungeCo());
+                _lunge = StartCoroutine(CellLungeCo(0.18f, 0.3f, engage));
             }
             if (action == UnitAction.Attack || action == UnitAction.Hurt)
             {
@@ -336,9 +349,10 @@ namespace Ctxd.Battle
         private IEnumerator ReturnIdle(float delay)
         {
             yield return new WaitForSeconds(delay);
+            int engage = EngageRowLimit;
             foreach (var cell in _cells.Values)
             {
-                if (cell.rowSlot != 0) continue;
+                if (cell.rowSlot >= engage) continue;
                 foreach (var uv in cell.sprites)
                     if (uv != null && uv.Current != UnitAction.Move && uv.Current != UnitAction.Die) uv.PlayIdle();
             }
@@ -475,29 +489,41 @@ namespace Ctxd.Battle
         /// <summary>[E] Cú xô về phía địch khi 2 quân va nhau lúc đổi hàng — dài và xa hơn lunge đánh thường.</summary>
         public void PlayClash()
         {
+            int engage = EngageRowLimit;
             foreach (var cell in _cells.Values)
             {
-                if (cell.rowSlot != 0) continue;
+                if (cell.rowSlot >= engage) continue;
                 foreach (var uv in cell.sprites) if (uv != null) uv.Play(UnitAction.Attack);
             }
             if (!isActiveAndEnabled) return;
             if (_lunge != null) StopCoroutine(_lunge);
-            _lunge = StartCoroutine(LungeCo(0.24f, 0.45f));
+            _lunge = StartCoroutine(CellLungeCo(0.24f, 0.45f, engage));
             if (_idleCo != null) StopCoroutine(_idleCo);
             _idleCo = StartCoroutine(ReturnIdle(0.6f));
         }
 
-        private IEnumerator LungeCo(float dur = 0.18f, float dist = 0.3f)
+        /// <summary>[G1] Lunge PER-CELL: chỉ các hàng giao tranh lao lên. (Trước đây dịch cả field root
+        /// nên MỌI hàng cùng nhào theo — sai ngữ pháp "chỉ hàng đầu đánh".) Anchor dao động quanh slotPos
+        /// rồi trả về đúng slotPos; cell đang Move (moveCo != null) được bỏ qua để không giằng vị trí.</summary>
+        private IEnumerator CellLungeCo(float dur, float dist, int engageRows)
         {
+            var moving = new List<Cell>();
+            foreach (var cell in _cells.Values)
+                if (!cell.dying && cell.anchor != null && cell.rowSlot < engageRows && cell.moveCo == null) moving.Add(cell);
             float t = 0f;
             while (t < dur)
             {
                 if (this == null) yield break;
                 t += Time.deltaTime;
-                transform.localPosition = _lungeDir * (Mathf.Sin(Mathf.Clamp01(t / dur) * Mathf.PI) * dist);
+                float k = Mathf.Sin(Mathf.Clamp01(t / dur) * Mathf.PI) * dist;
+                foreach (var cell in moving)
+                    if (cell.anchor != null && cell.moveCo == null)
+                        cell.anchor.localPosition = new Vector3(cell.slotPos.x, cell.slotPos.y, 0f) + _lungeDir * k;
                 yield return null;
             }
-            if (this != null) transform.localPosition = Vector3.zero;
+            foreach (var cell in moving)
+                if (cell.anchor != null && cell.moveCo == null)
+                    cell.anchor.localPosition = new Vector3(cell.slotPos.x, cell.slotPos.y, 0f);
             _lunge = null;
         }
     }

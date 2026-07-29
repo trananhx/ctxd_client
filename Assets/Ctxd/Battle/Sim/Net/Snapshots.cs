@@ -37,6 +37,7 @@ namespace Ctxd.Battle.Sim.Net
         public PhantomKind Phantom;               // [2D] loại giao chiến/ảo ảnh
         public int XianzhengStars;                // [2D] số sao Hãm Trận
         public int Rows;                          // configured row count
+        public int EngageRows;                    // [G1] số hàng trước diễn animation đánh (0 = 1)
         public string FormationId;
         public string Skill1Id, Skill1Name, Skill2Id, Skill2Name;
         public List<RowSnapshot> Formation;       // server-authoritative rows of groups (client renders these)
@@ -111,7 +112,7 @@ namespace Ctxd.Battle.Sim.Net
             Id = c.Id, DefId = c.DefId, DisplayName = c.DisplayName,
             Faction = c.Faction, Troop = c.Troop,
             MaxTroops = c.MaxTroops, Troops = c.Troops, Morale = c.Morale, MoraleFull = moraleFull,
-            Awakened = c.Awakened, FiveStar = c.FiveStar, Alive = c.Alive, Rows = c.Rows,
+            Awakened = c.Awakened, FiveStar = c.FiveStar, Alive = c.Alive, Rows = c.Rows, EngageRows = c.EngageRows,
             CanCast = c.UseAble(moraleFull) && !surrounded,
             IsPhantom = c.IsPhantom, Phantom = c.Phantom, XianzhengStars = c.XianzhengStars,
             FormationId = c.FormationId,

@@ -39,6 +39,10 @@ namespace Ctxd.Battle.Sim
         public bool LastRowMiddleSingle;      // true → middle group of the LAST row = one enlarged figure
         public string LastRowMiddleVisualId;  // art "B" cho hình đó; null → giữ art của nhóm
         public float LastRowMiddleScale;      // 0 → FormationBuilder.DefaultLastRowMiddleScale (1.3)
+
+        // ── [G2] Dáng hàng (thế trận cánh cung). Client chỉ UỐN hàng ĐANG giao tranh (rowSlot 0) —
+        // ngữ nghĩa "engagedShape": hàng sau thẳng, tiến lên hàng đầu mới cong. Nằm trên style để sống qua 6 đường rebuild.
+        public RowShape RowShape = RowShape.HangNgang;
     }
 
     /// <summary>One row of groups. Rows engage SEQUENTIALLY: only the front living row fights; cleared → the next advances.</summary>
@@ -93,6 +97,7 @@ namespace Ctxd.Battle.Sim
             {
                 if (rl == null) continue;
                 var row = new Row();
+                if (style != null && style.RowShape != RowShape.HangNgang) row.Shape = style.RowShape;   // [G2]
                 foreach (var t in rl)
                 {
                     int s = per + (remainder > 0 ? 1 : 0);

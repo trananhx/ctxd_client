@@ -79,12 +79,24 @@ namespace Ctxd.Battle
         [Tooltip("[C2] Giây chờ SAU animation chết rồi hàng sau mới tiến lên (demo pacing; ≥ 0.4 để xác kịp biến mất)")]
         public float advanceDelay = 0.6f;
 
+        [Header("Thế cánh cung (G2) — server khai RowShape:\"CanhCung\" per-tướng")]
+        [Tooltip("Độ nhô của TÂM hàng giao tranh về phía địch (0 = tắt cong)")] public float bowDepth = 0.55f;
+
+        [Header("Tướng chờ (G3) — các tướng trong queue chưa ra trận đứng 2 bên đường")]
+        [Tooltip("Bật/tắt hiển thị tướng chờ")] public bool benchEnabled = true;
+        [Tooltip("Lệch VUÔNG GÓC trục giao tranh, ra rìa đường")] public float benchSideOffset = 3.4f;
+        [Tooltip("Khoảng cách giữa các tướng chờ (dọc theo trục)")] public float benchSpacing = 1.1f;
+        [Tooltip("Cỡ tướng chờ (nhân với unitScale)")] public float benchScale = 1.15f;
+
         public event System.Action<CombatantSnapshot, CombatantSnapshot> ActiveGeneralsChanged;
         public event System.Action<BattleOutcome> Finished;
 
         private BattleSnapshot _state;
         private BattleSideField _offField, _defField;
         private Transform _offRoot, _defRoot;
+        private Vector2 _facing;   // trục giao tranh iso (đặt ở Start) — bench + seam dùng chung
+        private readonly Dictionary<string, UnitVisual> _offBench = new Dictionary<string, UnitVisual>();
+        private readonly Dictionary<string, UnitVisual> _defBench = new Dictionary<string, UnitVisual>();
         private BattleHudUI _hud;
         private TestApiPanelUI _panel;
         private LineupUI _lineup;
@@ -101,7 +113,8 @@ namespace Ctxd.Battle
 
             // 2 đạo quân đối mặt theo trục chéo iso (công dưới-trái ↔ thủ trên-phải), đối xứng qua tâm.
             // frontGap = khoảng cách giữa HÀNG ĐẦU của 2 bên → mỗi root lùi ra nửa khoảng cách từ tâm.
-            Vector2 facing = new Vector2(1.9f, 1.25f).normalized;
+            _facing = new Vector2(1.9f, 1.25f).normalized;
+            Vector2 facing = _facing;
             Vector3 half = facing * (Mathf.Max(0f, frontGap) * 0.5f);
             _offRoot = new GameObject("OffenseRoot").transform; _offRoot.SetParent(transform, false); _offRoot.localPosition = -half;
             _defRoot = new GameObject("DefenseRoot").transform; _defRoot.SetParent(transform, false); _defRoot.localPosition =  half;
@@ -188,6 +201,9 @@ namespace Ctxd.Battle
             _playing = false; _over = false; _state = null;
             if (_offField != null) { Destroy(_offField.gameObject); _offField = null; }
             if (_defField != null) { Destroy(_defField.gameObject); _defField = null; }
+            foreach (var kv in _offBench) if (kv.Value != null) Destroy(kv.Value.gameObject);
+            foreach (var kv in _defBench) if (kv.Value != null) Destroy(kv.Value.gameObject);
+            _offBench.Clear(); _defBench.Clear();
             if (uiManager != null)
             {
                 uiManager.HideAsync(UIId.BattleHud, new UIHideOptions { Instant = true }).Forget();
@@ -262,8 +278,60 @@ namespace Ctxd.Battle
             // [A] FX bền: diff Ở ĐÂY (seam áp snapshot) chứ KHÔNG trong PlayEvent — buff giữ liên tục, không nhấp nháy.
             SyncPersistentFx(_offField, _state.Offense);
             SyncPersistentFx(_defField, _state.Defense);
+            // [G3] Tướng chờ trong queue đứng 2 bên đường quan chiến (diff theo Id — không rebuild mỗi snapshot).
+            SyncBench(_offRoot, _state.Offense, _offBench);
+            SyncBench(_defRoot, _state.Defense, _defBench);
             ActiveGeneralsChanged?.Invoke(off, def);
             if (_hud != null) _hud.SetActiveGenerals(off, def);
+        }
+
+        /// <summary>
+        /// [G3] Render các tướng CHƯA ra trận (queue, khác ActiveIndex, còn sống) thành hình đại diện đứng dọc
+        /// RÌA đường giao tranh — như game gốc: đại quân đánh giữa, chư tướng đứng hai bên chờ tới lượt.
+        /// Diff theo Id: tướng vào trận / tử trận thì hình chờ biến mất; đội hình data-driven từ snapshot Queue.
+        /// </summary>
+        private void SyncBench(Transform root, SideSnapshot side, Dictionary<string, UnitVisual> live)
+        {
+            if (root == null || side?.Queue == null) return;
+            var seen = new HashSet<string>();
+            if (benchEnabled && database != null)
+            {
+                Vector3 perp = new Vector3(-_facing.y, _facing.x, 0f);                     // vuông góc trục giao tranh
+                float sideSign = side.Faction == Faction.Offense ? -1f : 1f;               // mỗi phe một bên đường
+                Vector3 along = (Vector3)_facing * (side.Faction == Faction.Offense ? -1f : 1f);   // lùi về hậu phương phe mình
+                int slot = 0;
+                for (int i = 0; i < side.Queue.Count; i++)
+                {
+                    var c = side.Queue[i];
+                    if (c == null || i == side.ActiveIndex || !c.Alive) continue;
+                    seen.Add(c.Id);
+                    Vector3 pos = root.position + perp * (sideSign * benchSideOffset) + along * (slot * benchSpacing);
+                    if (live.TryGetValue(c.Id, out var uv) && uv != null) { uv.transform.position = pos; slot++; continue; }
+
+                    var visual = database.GetVisualForTroop(c.Troop);
+                    uv = VisualSpawner.SpawnUnit(visual, side.Faction, root);
+                    if (uv == null) { slot++; continue; }
+                    float s = unitScale * benchScale;
+                    uv.transform.localScale = Vector3.one * s;
+                    // đứng bằng CHÂN + sort theo chân — cùng quy tắc với lính trong field
+                    Vector3 ext = uv.spriteRenderer != null && uv.spriteRenderer.sprite != null
+                        ? uv.spriteRenderer.sprite.bounds.extents * s : Vector3.zero;
+                    uv.transform.position = pos + Vector3.up * ext.y;
+                    int order = 500 - Mathf.RoundToInt((uv.transform.position.y - ext.y) * 50f);
+                    uv.baseSortingOrder = order; uv.SetSortingOrder(order);
+                    uv.PlayIdle();
+                    live[c.Id] = uv;
+                    slot++;
+                }
+            }
+            // huỷ hình chờ của tướng đã ra trận / tử trận / tắt bench
+            var stale = new List<string>();
+            foreach (var kv in live) if (!seen.Contains(kv.Key) || kv.Value == null) stale.Add(kv.Key);
+            foreach (var k in stale)
+            {
+                var uv = live[k]; live.Remove(k);
+                if (uv != null) Destroy(uv.gameObject);
+            }
         }
 
         private void SyncPersistentFx(BattleSideField field, SideSnapshot side)
@@ -295,7 +363,7 @@ namespace Ctxd.Battle
             if (c == null) return null;
             var go = new GameObject($"Field_{faction}"); go.transform.SetParent(root, false);
             var fv = go.AddComponent<BattleSideField>();
-            try { fv.Build(c, faction, database, new FieldLayout { rowSpacing = rowSpacing, groupSpacing = groupSpacing, spriteSpacing = spriteSpacing, unitScale = unitScale, offenseBarColor = offenseBarColor, defenseBarColor = defenseBarColor, barSegmented = barSegmented, barSegments = barSegments, advanceDelay = advanceDelay }); }
+            try { fv.Build(c, faction, database, new FieldLayout { rowSpacing = rowSpacing, groupSpacing = groupSpacing, spriteSpacing = spriteSpacing, unitScale = unitScale, offenseBarColor = offenseBarColor, defenseBarColor = defenseBarColor, barSegmented = barSegmented, barSegments = barSegments, advanceDelay = advanceDelay, bowDepth = bowDepth }); }
             catch (System.Exception ex) { Debug.LogError($"[Director] field build: {ex}"); Destroy(go); return null; }
             return fv;
         }
