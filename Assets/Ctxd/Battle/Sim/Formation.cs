@@ -3,8 +3,9 @@ using System.Collections.Generic;
 
 namespace Ctxd.Battle.Sim
 {
-    /// <summary>Visual/tactical shape of a troop row (set by formation/situation). The sim treats it as a hint.</summary>
-    public enum RowShape { HangNgang, CanhCung }
+    /// <summary>Visual/tactical shape of a troop row (set by formation/situation). The sim treats it as a hint.
+    /// APPEND-ONLY (wire enum = int): CanhTrai/CanhPhai = hàng đứng làm CÁNH trái/phải bên hông đội chính, luôn giao tranh.</summary>
+    public enum RowShape { HangNgang, CanhCung, CanhTrai, CanhPhai }
 
     /// <summary>
     /// A cluster of soldiers of one troop type. <see cref="Soldiers"/> act as HP; <see cref="SpriteCols"/>×<see cref="SpriteRows"/>
@@ -43,6 +44,9 @@ namespace Ctxd.Battle.Sim
         // ── [G2] Dáng hàng (thế trận cánh cung). Client chỉ UỐN hàng ĐANG giao tranh (rowSlot 0) —
         // ngữ nghĩa "engagedShape": hàng sau thẳng, tiến lên hàng đầu mới cong. Nằm trên style để sống qua 6 đường rebuild.
         public RowShape RowShape = RowShape.HangNgang;
+        /// <summary>Dáng RIÊNG từng hàng (theo index hàng ĐÃ dựng); null = dùng RowShape chung. Cho phép
+        /// đội hình hỗn hợp: hàng chính thẳng + 2 hàng CÁNH trái/phải (Trương Phi).</summary>
+        public RowShape[] RowShapes;
 
         // ── [F] Đổi hình khi TỔN THƯƠNG (gãy giáp): nhóm dưới LowHpPct máu → server đổi VisualId,
         // client SwapVisual dựng lại tại chỗ. Server-authoritative — client chỉ nghe snapshot.
@@ -102,7 +106,13 @@ namespace Ctxd.Battle.Sim
             {
                 if (rl == null) continue;
                 var row = new Row();
-                if (style != null && style.RowShape != RowShape.HangNgang) row.Shape = style.RowShape;   // [G2]
+                // [G2] dáng hàng: ưu tiên per-row (RowShapes[index hàng đã dựng]), rơi về RowShape chung
+                if (style != null)
+                {
+                    int shapeIdx = rows.Count;
+                    if (style.RowShapes != null && shapeIdx < style.RowShapes.Length) row.Shape = style.RowShapes[shapeIdx];
+                    else if (style.RowShape != RowShape.HangNgang) row.Shape = style.RowShape;
+                }
                 foreach (var t in rl)
                 {
                     int s = per + (remainder > 0 ? 1 : 0);

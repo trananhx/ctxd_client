@@ -81,6 +81,7 @@ namespace Ctxd.Battle
 
         [Header("Thế cánh cung (G2) — server khai RowShape:\"CanhCung\" per-tướng")]
         [Tooltip("Độ nhô của TÂM hàng giao tranh về phía địch (0 = tắt cong)")] public float bowDepth = 0.55f;
+        [Tooltip("[cánh] Độ lệch ngang (đơn vị groupAxis) của hàng CanhTrai/CanhPhai so với trục giữa")] public float wingOffset = 2.4f;
 
         [Header("Tướng chờ (G3) — các tướng trong queue chưa ra trận đứng 2 bên đường")]
         [Tooltip("Bật/tắt hiển thị tướng chờ")] public bool benchEnabled = true;
@@ -404,7 +405,7 @@ namespace Ctxd.Battle
             return n;
         }
 
-        private FieldLayout Layout() => new FieldLayout { rowSpacing = rowSpacing, groupSpacing = groupSpacing, spriteSpacing = spriteSpacing, unitScale = unitScale, offenseBarColor = offenseBarColor, defenseBarColor = defenseBarColor, barSegmented = barSegmented, barSegments = barSegments, advanceDelay = advanceDelay, bowDepth = bowDepth };
+        private FieldLayout Layout() => new FieldLayout { rowSpacing = rowSpacing, groupSpacing = groupSpacing, spriteSpacing = spriteSpacing, unitScale = unitScale, offenseBarColor = offenseBarColor, defenseBarColor = defenseBarColor, barSegmented = barSegmented, barSegments = barSegments, advanceDelay = advanceDelay, bowDepth = bowDepth, wingOffset = wingOffset };
 
         private IEnumerator PlayEvent(BattleEvent e)
         {

@@ -50,6 +50,46 @@ namespace Ctxd.Tests
         }
 
         [Fact]
+        public void RowShapes_PerRow_Applied_By_Index_And_Reach_Wire()
+        {
+            var dto = new GeneralDto
+            {
+                Id = "zf", DisplayName = "Trương Phi", Troop = "ThuongBinh", TroopCapacity = 12000, Rows = 4,
+                Formation = new List<List<string>>
+                {
+                    new List<string> { "ThuongBinh", "ThuongBinh", "ThuongBinh" },
+                    new List<string> { "ThuongBinh", "ThuongBinh", "ThuongBinh" },
+                    new List<string> { "ThuongBinh", "ThuongBinh" },
+                    new List<string> { "ThuongBinh", "ThuongBinh" },
+                },
+                RowShapes = new List<string> { "HangNgang", "HangNgang", "CanhTrai", "CanhPhai" },
+            };
+            var c = dto.ToCombatant(Faction.Offense, "off0");
+
+            Assert.Equal(RowShape.HangNgang, c.Formation[0].Shape);
+            Assert.Equal(RowShape.HangNgang, c.Formation[1].Shape);
+            Assert.Equal(RowShape.CanhTrai, c.Formation[2].Shape);   // hàng cánh TRÁI
+            Assert.Equal(RowShape.CanhPhai, c.Formation[3].Shape);   // hàng cánh PHẢI
+
+            var setup = new BattleSetup { Seed = 1 };
+            setup.OffenseLineup.Add(c);
+            setup.DefenseLineup.Add(new GeneralDto { Id = "d", Troop = "KyBinh", TroopCapacity = 9000 }.ToCombatant(Faction.Defense, "def0"));
+            var r = new BattleRunner(setup); r.Begin();
+            var back = Wire.Deserialize<BattleSnapshot>(Wire.Serialize(BattleSnapshot.From(r.State)));
+            Assert.Equal(RowShape.CanhTrai, back.Offense.Queue[0].Formation[2].Shape);
+            Assert.Equal(RowShape.CanhPhai, back.Offense.Queue[0].Formation[3].Shape);
+        }
+
+        [Fact]
+        public void RowShape_Enum_Wire_Values_Are_Stable()
+        {
+            Assert.Equal(0, (int)RowShape.HangNgang);
+            Assert.Equal(1, (int)RowShape.CanhCung);
+            Assert.Equal(2, (int)RowShape.CanhTrai);   // append 2026-07-30
+            Assert.Equal(3, (int)RowShape.CanhPhai);
+        }
+
+        [Fact]
         public void Defaults_Stay_HangNgang_And_Zero()
         {
             var c = new GeneralDto { Id = "x", Troop = "KyBinh", TroopCapacity = 9000, Rows = 2 }.ToCombatant(Faction.Offense, "off0");

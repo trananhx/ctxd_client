@@ -13,6 +13,13 @@
       "Id": "zhangfei", "DisplayName": "Trương Phi", "Troop": "ThuongBinh", "Level": 205,
       "NormalAtk": 600, "NormalDef": 360, "TacticAtk": 540, "TacticDef": 320, "Strategy": 70, "Resilience": 0.10,
       "TroopCapacity": 13770, "Rows": 4, "CanAwaken": true,
+      "Formation": [
+        [ "ThuongBinh", "ThuongBinh", "ThuongBinh" ],
+        [ "ThuongBinh", "ThuongBinh", "ThuongBinh" ],
+        [ "ThuongBinh", "ThuongBinh" ],
+        [ "ThuongBinh", "ThuongBinh" ]
+      ],
+      "RowShapes": [ "HangNgang", "HangNgang", "CanhTrai", "CanhPhai" ],
       "TerrainBonus": { "Mountain": 0.25 },
       "Skill2": { "Id": "roar", "Name": "Diệt Thế Bào Hao", "Kind": "Pushback", "RowsHit": 3, "Power": 1.6, "PushbackTroops": 800 }
     },

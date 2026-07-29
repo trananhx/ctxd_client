@@ -22,12 +22,13 @@ namespace Ctxd.Battle
         public int barSegments;       // số ngăn khi segmented
         public float advanceDelay;    // [C2] giây chờ SAU anim chết trước khi hàng sau tiến lên (0 = như cũ)
         public float bowDepth;        // [G2] độ nhô của tâm hàng CanhCung về phía địch (0 = tắt cong)
+        public float wingOffset;      // [cánh] độ lệch NGANG (đơn vị groupAxis) của hàng CanhTrai/CanhPhai so với trục giữa
         public static FieldLayout Default => new FieldLayout
         {
             rowSpacing = 1.5f, groupSpacing = 1.1f, spriteSpacing = 2.0f, unitScale = 0.7f,
             offenseBarColor = new Color(0.25f, 0.62f, 1f, 0.95f),
             defenseBarColor = new Color(0.90f, 0.20f, 0.18f, 0.95f),
-            barSegmented = false, barSegments = 10, advanceDelay = 0f, bowDepth = 0.55f,
+            barSegmented = false, barSegments = 10, advanceDelay = 0f, bowDepth = 0.55f, wingOffset = 2.4f,
         };
     }
 
@@ -54,6 +55,7 @@ namespace Ctxd.Battle
             public Coroutine moveCo;
             public string visualId;                  // [F] hình đã dựng (null = art theo binh chủng) — phát hiện server đổi hình giữa trận
             public float scale = 1f;                 // [F] scale đã dựng — đổi scale cũng phải dựng lại (foot-anchor + bar phụ thuộc)
+            public bool arcMode;                     // [cung dàn đều] sprite đang xếp DỌC CUNG (true) hay khối cols×rows (false)
         }
 
         private readonly Dictionary<(int row, int grp), Cell> _cells = new Dictionary<(int, int), Cell>();
@@ -150,10 +152,13 @@ namespace Ctxd.Battle
             if (snap?.Formation == null) return;
 
             // render slot for each LIVING row (formation order) → living rows behind a cleared row advance forward.
+            // Hàng CÁNH (CanhTrai/CanhPhai) KHÔNG chiếm slot chiều sâu — chúng đứng bên hông đội chính.
             var rowSlotOf = new Dictionary<int, int>();
             int slot = 0;
             for (int r = 0; r < snap.Formation.Count; r++)
             {
+                var shape = snap.Formation[r].Shape;
+                if (shape == Sim.RowShape.CanhTrai || shape == Sim.RowShape.CanhPhai) continue;
                 int s = 0; foreach (var g in snap.Formation[r].Groups) s += g.Soldiers;
                 if (s > 0) { rowSlotOf[r] = slot; slot++; }
             }
@@ -173,15 +178,28 @@ namespace Ctxd.Battle
                         continue;
                     }
 
-                    int rowSlot = rowSlotOf[r];
-                    Vector2 target = _rowAxis * rowSlot + _groupAxis * (gi - (row.Groups.Count - 1) * 0.5f);
-                    // [G2] Thế cánh cung: CHỈ hàng đang giao tranh (rowSlot 0) cong — tâm hàng nhô về phía địch,
-                    // hai cánh lùi (parabol). Hàng sau đứng thẳng; khi tiến lên hàng đầu, diff tự tween sang thế cong.
-                    if (row.Shape == Sim.RowShape.CanhCung && rowSlot == 0 && row.Groups.Count > 1 && _layout.bowDepth > 0f)
+                    bool wing = row.Shape == Sim.RowShape.CanhTrai || row.Shape == Sim.RowShape.CanhPhai;
+                    int rowSlot = wing ? 0 : rowSlotOf[r];   // cánh luôn "giao tranh" (đánh được — yêu cầu Trương Phi)
+                    Vector2 target;
+                    bool arc = false;
+                    if (wing)
                     {
-                        float mid = (row.Groups.Count - 1) * 0.5f;
-                        float tt = (gi - mid) / Mathf.Max(1f, mid);                  // -1..1 (giữa = 0)
-                        target -= _rowAxis * (_layout.bowDepth * (1f - tt * tt));    // -_rowAxis = hướng về địch
+                        // [cánh] hàng đứng làm CỘT bên hông đội chính: lệch ngang wingOffset, các nhóm xếp lùi dần.
+                        float sideSign = row.Shape == Sim.RowShape.CanhTrai ? -1f : 1f;
+                        target = _groupAxis * (sideSign * _layout.wingOffset) + _rowAxis * (gi * 0.8f);
+                    }
+                    else
+                    {
+                        target = _rowAxis * rowSlot + _groupAxis * (gi - (row.Groups.Count - 1) * 0.5f);
+                        // [G2] Thế cánh cung: CHỈ hàng đang giao tranh (rowSlot 0) cong — tâm hàng nhô về phía địch,
+                        // hai cánh lùi (parabol). Hàng sau thẳng; tiến lên hàng đầu, diff tự tween sang thế cong.
+                        if (row.Shape == Sim.RowShape.CanhCung && rowSlot == 0 && row.Groups.Count > 1 && _layout.bowDepth > 0f)
+                        {
+                            float mid = (row.Groups.Count - 1) * 0.5f;
+                            float tt = (gi - mid) / Mathf.Max(1f, mid);                  // -1..1 (giữa = 0)
+                            target -= _rowAxis * (_layout.bowDepth * (1f - tt * tt));    // -_rowAxis = hướng về địch
+                            arc = true;   // [cung dàn đều] lính trong nhóm dàn dọc cung thay vì khối 3×2
+                        }
                     }
                     if (cell == null)
                     {
@@ -201,6 +219,8 @@ namespace Ctxd.Battle
                             MoveCell(cell, target, _layout.advanceDelay);   // [C2] hàng sau tiến lên — đợi anim chết xong
                         else if (initial) { cell.slotPos = target; if (cell.anchor != null) cell.anchor.localPosition = target; }
                     }
+                    // [cung dàn đều] hàng thành/thôi cánh cung → xếp lại lính trong nhóm (dọc cung ↔ khối cols×rows)
+                    if (cell.arcMode != arc) { cell.arcMode = arc; LayoutSprites(cell, row.Groups.Count); }
                     cell.rowSlot = rowSlot;
                 }
             }
@@ -226,6 +246,7 @@ namespace Ctxd.Battle
         private void BuildVisuals(Cell cell, GroupSnapshot g)
         {
             cell.soldiers = g.Soldiers; cell.maxSoldiers = g.MaxSoldiers;
+            cell.arcMode = false;   // sprite mới dựng theo khối; diff kế sẽ dàn cung lại nếu hàng đang CanhCung
             int cols = Mathf.Max(1, g.SpriteCols), srows = Mathf.Max(1, g.SpriteRows);
             cell.cols = cols; cell.srows = srows; cell.capacity = cols * srows;
 
@@ -270,6 +291,44 @@ namespace Ctxd.Battle
             }
             RefreshBar(cell);
 
+            UpdateSorting(cell);
+        }
+
+        /// <summary>
+        /// [cung dàn đều] Xếp lại vị trí lính TRONG nhóm theo chế độ:
+        /// <list type="bullet">
+        /// <item>khối (mặc định): lưới cols×rows như BuildVisuals;</item>
+        /// <item>cung (arcMode): cả HÀNG là MỘT đường cung liền — lính dàn MỘT HÀNG dọc cung, mỗi lính lệch
+        /// parabol theo vị trí TOÀN CỤC của nó trên hàng (không còn khối 3×2 cứng; cụm 3/4/6 đều nối mượt).</item>
+        /// </list>
+        /// </summary>
+        private void LayoutSprites(Cell cell, int groupsInRow)
+        {
+            int n = cell.sprites.Count;
+            if (n == 0) return;
+            float midC = (Mathf.Max(1, groupsInRow) - 1) * 0.5f;
+            float tc = groupsInRow > 1 ? (cell.groupIndex - midC) / Mathf.Max(1f, midC) : 0f;   // t của TÂM nhóm (anchor đã mang bow này)
+            for (int k = 0; k < n; k++)
+            {
+                var uv = cell.sprites[k];
+                if (uv == null) continue;
+                Vector3 ext = uv.spriteRenderer != null && uv.spriteRenderer.sprite != null
+                    ? uv.spriteRenderer.sprite.bounds.extents * cell.scale : Vector3.zero;
+                Vector2 off;
+                if (cell.arcMode && groupsInRow > 0)
+                {
+                    off = _groupAxis * (((k + 0.5f) / n - 0.5f) * 0.92f);                        // dàn ngang kín span nhóm
+                    float u = (cell.groupIndex + (k + 0.5f) / n) / groupsInRow;                  // 0..1 trên CẢ hàng
+                    float t = u * 2f - 1f;
+                    off -= _rowAxis * (_layout.bowDepth * ((1f - t * t) - (1f - tc * tc)));      // hiệu parabol so với anchor
+                }
+                else
+                {
+                    int sc = k % Mathf.Max(1, cell.cols), sr = k / Mathf.Max(1, cell.cols);
+                    off = _spriteCol * (sc - (cell.cols - 1) * 0.5f) + _spriteRow * sr;
+                }
+                uv.transform.localPosition = new Vector3(off.x, off.y + ext.y, 0f);
+            }
             UpdateSorting(cell);
         }
 

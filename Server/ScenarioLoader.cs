@@ -144,6 +144,9 @@ namespace Ctxd.Server
         // ── [G2] Dáng hàng: "CanhCung" → hàng ĐANG giao tranh cong hình cánh cung (client uốn rowSlot 0). ──
         /// <summary>"HangNgang" (mặc định) | "CanhCung". Hàng sau thẳng; tiến lên hàng đầu mới cong.</summary>
         public string RowShape;
+        /// <summary>Dáng RIÊNG từng hàng theo index, vd ["HangNgang","HangNgang","CanhTrai","CanhPhai"] —
+        /// 2 hàng cuối đứng làm CÁNH 2 bên và luôn giao tranh. Đè RowShape chung.</summary>
+        public List<string> RowShapes;
         /// <summary>[G1] Số hàng TRƯỚC được diễn animation đánh. 0 = mặc định 1 (chỉ hàng đầu). Vd 2 = cung binh hàng 2 cùng bắn.</summary>
         public int EngageRows;
 
@@ -164,7 +167,8 @@ namespace Ctxd.Server
         /// <summary>Gom các khoá VẼ thành style, hoặc null nếu không khai khoá nào (tướng cũ giữ nguyên hình).</summary>
         public GroupStyle ToStyle()
             => (GroupsPerRow > 0 || SpriteCols > 0 || SpriteRows > 0 || UnitScale > 0 || !string.IsNullOrEmpty(VisualId)
-                || LastRowMiddleSingle || !string.IsNullOrEmpty(RowShape) || !string.IsNullOrEmpty(LowHpVisualId))
+                || LastRowMiddleSingle || !string.IsNullOrEmpty(RowShape) || (RowShapes != null && RowShapes.Count > 0)
+                || !string.IsNullOrEmpty(LowHpVisualId))
                 ? new GroupStyle
                 {
                     GroupsPerRow = GroupsPerRow, SpriteCols = SpriteCols, SpriteRows = SpriteRows,
@@ -173,9 +177,19 @@ namespace Ctxd.Server
                     LastRowMiddleVisualId = LastRowMiddleVisualId,
                     LastRowMiddleScale = (float)LastRowMiddleScale,
                     RowShape = Enum.TryParse<RowShape>(RowShape, true, out var rs) ? rs : Battle.Sim.RowShape.HangNgang,
+                    RowShapes = ParseRowShapes(RowShapes),
                     LowHpVisualId = LowHpVisualId, LowHpPct = (float)LowHpPct,
                 }
                 : null;
+
+        private static RowShape[] ParseRowShapes(List<string> src)
+        {
+            if (src == null || src.Count == 0) return null;
+            var arr = new RowShape[src.Count];
+            for (int i = 0; i < src.Count; i++)
+                arr[i] = Enum.TryParse<RowShape>(src[i], true, out var v) ? v : Battle.Sim.RowShape.HangNgang;
+            return arr;
+        }
 
         /// <summary>Optional deputy general (phó tướng): takes ONE row of this general — own stats, HP = total/rows.</summary>
         public GeneralDto Deputy;
