@@ -39,14 +39,36 @@ Spec đầy đủ: `docs/superpowers/specs/2026-07-29-battle-fx-demo-design.md`.
 - dotnet: **107/107** (90 gốc + 17 mới), selftest OK, 0-drift.
 - Unity compile 0 lỗi. Play thật màn `stage_fxdemo`: aura buff server đăng ký `rounds=3` → client 1 FX loop → đếm `2→1→GONE`, client tự huỷ (leak = 0). Screenshot xác nhận thanh máu chia ngăn 2 phe + Bạch Hổ 102 to ở hàng cuối.
 
+## Đợt 2 cùng ngày (feedback ảnh mẫu game gốc) — G1/G2/G3 + Fire + LowHp
+
+- **G1 — chỉ hàng đầu diễn đánh**: lunge đổi từ dịch-cả-field-root sang **PER-CELL** (chỉ hàng giao tranh lao lên).
+  Config `EngageRows` per-tướng (JSON, wire `CombatantSnapshot.EngageRows`) — vd 2 = cung binh hàng 2 cùng bắn.
+- **G2 — thế cánh cung**: `GroupStyle.RowShape="CanhCung"` (JSON `RowShape`, sống qua 6 đường rebuild — phantom giữ thế);
+  client uốn **CHỈ hàng rowSlot 0** thành cung parabol nhô về địch (`bowDepth` Inspector). Nối dây `RowSnapshot.Shape`
+  vốn ride wire từ đầu mà không ai set/đọc.
+- **G3 — tướng chờ 2 bên đường**: `SyncBench` render các tướng queue chưa ra trận (khác ActiveIndex, còn sống) thành
+  hình đại diện đứng dọc rìa (diff theo Id; đứng bằng chân + sort theo chân; dọn khi vào trận/chết/reset).
+  Knob: `benchEnabled/benchSideOffset/benchSpacing/benchScale`.
+- **Fire tactic**: `TacticEffectKind.Fire` (append CUỐI enum; guard test khoá Rule=7/Fire=8) → damage `ApplyFire`
+  theo hàng + FX bền `"fire"` (`FireDurationRounds` hiệp, sort 750) trên phe **bị đốt** — nguồn kích thật cho lửa.
+- **Gãy giáp end-to-end**: `GroupStyle.LowHpVisualId/LowHpPct` (JSON) — cuối mỗi round server đổi `VisualId` nhóm
+  dưới ngưỡng (mặc định 50%), client `SwapVisual` dựng lại tại chỗ. Một chiều, không hồi.
+- Nút TEST `KillRow/KillRandom/Attack` đã thread `_cfg` → panel test kích được va chạm đổi hàng.
+- ⚠️ `TroopType` KHÔNG có `BoBinh` — bộ binh là `ThuongBinh`; JSON ghi "BoBinh" sẽ fallback lặng lẽ.
+
+**Verify đợt 2**: dotnet **112/112** + selftest OK; Unity 0 lỗi; playtest `stage_fxdemo`: shape=CanhCung/engageRows=2/bench=2
+tới client; fire `r=2 sort=750` trên phe công + 1 FX loop; 3/6 nhóm thủ đổi hình "43" sau khi tụt dưới 50%;
+screenshot hàng đầu cong hình cung + hổ 102 hàng cuối.
+
 ## Màn demo & việc còn lại
 
-- `Server/data/stage_fxdemo.json` ("Thao Trường FX"): Hoàng Trung (FiveStar, skill Buff) vs Trấn Quan Tướng (3 hàng, hình giữa hàng cuối = 102), `AdvanceClashPct=0.05`.
+- `Server/data/stage_fxdemo.json` ("Thao Trường FX"): Hoàng Trung (3 hàng **cánh cung**, EngageRows 2, skill Buff)
+  + 2 tướng chờ (Ngụy Diên, Mã Đại) vs Trấn Quan Tướng (FiveStar cast **Hỏa công**, hình giữa hàng cuối 102,
+  **LowHpVisualId 43**), `AdvanceClashPct=0.05`.
 - > [!question] Còn mở
->   1. Nút TEST `KillRow` (BattleSession) chưa thread `cfg` → không kích clash qua panel test (đường combat thật thì có). Thread 3 call site nếu muốn demo nhanh bằng nút.
->   2. `ApplyFire` chưa có caller trong `BattleRunner` → FX `"fire"` bền đã sẵn cơ chế nhưng chưa có nguồn kích trong trận thật.
->   3. Field `barSegmented/advanceDelay` là default script — scene chưa serialize; demo phải bật qua Inspector/runtime.
->   4. FX gãy giáp (F) cần server đổi VisualId theo ngưỡng máu — cơ chế client xong, thiếu rule server + art 2 trạng thái.
+>   1. Field mới (`barSegmented/advanceDelay/bowDepth/bench*`) là default script — scene CHƯA serialize; demo bật qua Inspector/runtime.
+>   2. Art fire (`persistentFireFx="warBuff/fc2"`) + clash (`clashFx`) là placeholder — chọn art đẹp hơn trong 303 prefab baked.
+>   3. Vị trí bench có thể đè UI dưới màn — tinh chỉnh `benchSideOffset` theo camera.
 
 ---
 ## Backlinks

@@ -276,3 +276,10 @@ Chronological record of all wiki operations.
 - Còn mở (ghi trong trang): KillRow chưa thread cfg; ApplyFire chưa có caller; scene chưa serialize field mới; rule server đổi VisualId theo ngưỡng máu.
 - Pages created: [[technical/battle-fx-system]]
 - Pages updated: [[index]], [[log]]
+
+## [2026-07-29] implement (đợt 2) | G1/G2/G3 + Fire tactic + gãy giáp LowHp — từ ảnh mẫu game gốc
+- Feedback ảnh game gốc → 3 hạng mục: chỉ-hàng-đầu-đánh (lunge PER-CELL + EngageRows config), thế CÁNH CUNG (GroupStyle.RowShape, client uốn rowSlot 0, nối dây RowSnapshot.Shape bị bỏ rơi), tướng chờ đứng 2 BÊN ĐƯỜNG (SyncBench diff theo Id từ Queue).
+- Đóng nốt backlog: TacticEffectKind.Fire (append cuối, guard wire int) + FX lửa bền trên phe bị đốt; GroupStyle.LowHpVisualId → server đổi hình nhóm dưới 50% máu, client SwapVisual (gãy giáp end-to-end); TEST panel thread _cfg (nút KillRow kích được clash).
+- Bẫy ghi lại: TroopType KHÔNG có BoBinh (bộ binh = ThuongBinh — JSON sai sẽ fallback lặng lẽ); enum RowShape trùng tên giữa Ctxd.Data và Ctxd.Battle.Sim (client phải qualify Sim.RowShape).
+- **Verify**: dotnet **112/112** + selftest OK; Unity 0 lỗi; playtest: shape/engage/bench/fire/LowHp-swap đều xác nhận sống bằng data + screenshot.
+- Pages updated: [[technical/battle-fx-system]], [[log]]
