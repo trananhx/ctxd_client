@@ -1,0 +1,29 @@
+{
+  "Terrain": "Plain",
+  "Seed": 20260729,
+  "OffenseNation": "Thục",
+  "DefenseNation": "Quân Demo",
+
+  "AdvanceClashPct": 0.05,
+
+  "Offense": [
+    { "Id": "demo_buffer", "DisplayName": "Hoàng Trung", "Troop": "CungBinh", "TroopCapacity": 20000, "FiveStar": true,
+      "NormalAtk": 620, "NormalDef": 330, "TacticAtk": 640, "TacticDef": 310, "Strategy": 90,
+      "Skill2": { "Id": "demo_warcry", "Name": "Chiến Cổ Lôi Minh", "Kind": "Buff", "Power": 1.6 } }
+  ],
+
+  "Defense": [
+    { "Id": "demo_guard", "DisplayName": "Trấn Quan Tướng", "Troop": "BoBinh", "TroopCapacity": 26000,
+      "Rows": 3,
+      "Formation": [
+        [ "BoBinh", "BoBinh", "BoBinh" ],
+        [ "BoBinh", "BoBinh", "BoBinh" ],
+        [ "BoBinh", "BoBinh", "BoBinh" ]
+      ],
+      "LastRowMiddleSingle": true,
+      "LastRowMiddleVisualId": "102",
+
+      "NormalAtk": 480, "NormalDef": 300, "TacticAtk": 460, "TacticDef": 280, "Strategy": 78, "Resilience": 0.12,
+      "Skill2": { "Id": "demo_aoe", "Name": "Loạn Tiễn Tề Phát", "Kind": "AoeDamage", "RowsHit": 2, "Power": 1.8 } }
+  ]
+}

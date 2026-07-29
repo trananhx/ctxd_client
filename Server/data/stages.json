@@ -2,6 +2,8 @@
   "Stages": [
     { "Id": "stage_khanhvang", "Name": "Trấn Áp Khăn Vàng", "Terrain": "Plain",  "DefenseNation": "Khăn Vàng", "Desc": "184 — Khởi nghĩa Hoàng Cân bùng nổ.", "EnemyCount": 3, "Locked": false },
     { "Id": "stage_quando",    "Name": "Đại Chiến Quan Độ", "Terrain": "Pass",   "DefenseNation": "Viên Thiệu", "Desc": "200 — Tào Tháo quyết chiến Viên Thiệu.", "EnemyCount": 4, "Locked": false },
-    { "Id": "stage_xichbich",  "Name": "Xích Bích Hỏa Công", "Terrain": "Water", "DefenseNation": "Tào Ngụy",  "Desc": "208 — Liên minh Tôn-Lưu chống Tào.", "EnemyCount": 5, "Locked": false }
+    { "Id": "stage_xichbich",  "Name": "Xích Bích Hỏa Công", "Terrain": "Water", "DefenseNation": "Tào Ngụy",  "Desc": "208 — Liên minh Tôn-Lưu chống Tào.", "EnemyCount": 5, "Locked": false },
+    { "Id": "stage_bachho",    "Name": "Bạch Hổ Sơn Lâm",   "Terrain": "Mountain", "DefenseNation": "Yêu Thú", "Desc": "Trấn thú đơn độc — một mình một cõi.", "EnemyCount": 1, "Locked": false },
+    { "Id": "stage_fxdemo",    "Name": "Thao Trường FX",    "Terrain": "Plain",  "DefenseNation": "Quân Demo", "Desc": "Demo: buff bền theo hiệp, va chạm đổi hàng, hình lớn hàng cuối.", "EnemyCount": 1, "Locked": false }
   ]
 }

@@ -267,6 +267,7 @@ namespace Ctxd.Server
         public ulong Seed = 20260630;
         public string OffenseNation = "Thục", DefenseNation = "Ngụy";
         public bool EnableCityTower;   // [2E] bật trụ tên (chỉ có tác dụng khi Terrain=City)
+        public double AdvanceClashPct; // [E] % quân hàng vừa tiến lên chịu "va nhẹ" khi đổi hàng (0 = tắt — mặc định, 0-drift)
         public List<GeneralDto> Offense = new List<GeneralDto>();
         public List<GeneralDto> Defense = new List<GeneralDto>();
         public List<GeneralDto> OffenseReserve = new List<GeneralDto>();   // 借兵 pool (strongest added on Mượn Binh)
@@ -283,6 +284,7 @@ namespace Ctxd.Server
                 Config = new BattleConfig(),
             };
             setup.Config.EnableCityTower = EnableCityTower;   // [2E]
+            if (AdvanceClashPct > 0) setup.Config.AdvanceClashPct = AdvanceClashPct;   // [E] va chạm đổi hàng per-màn
             for (int i = 0; i < Offense.Count; i++) AddWithDeputy(setup.OffenseLineup, Offense[i], Faction.Offense, "off", i);
             for (int i = 0; i < Defense.Count; i++) AddWithDeputy(setup.DefenseLineup, Defense[i], Faction.Defense, "def", i);
             if (OffenseReserve != null)

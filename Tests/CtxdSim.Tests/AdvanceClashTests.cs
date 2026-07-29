@@ -84,6 +84,16 @@ namespace Ctxd.Tests
         }
 
         [Fact]
+        public void Scenario_AdvanceClashPct_Flows_To_Config()
+        {
+            var setup = new ScenarioDto { AdvanceClashPct = 0.05 }.ToSetup();
+            Assert.Equal(0.05, setup.Config.AdvanceClashPct, 6);
+
+            var off = new ScenarioDto().ToSetup();                       // không khai → giữ 0 (0-drift)
+            Assert.Equal(0.0, off.Config.AdvanceClashPct, 6);
+        }
+
+        [Fact]
         public void Clash_Is_Deterministic()
         {
             Assert.Equal(ClashAmount(), ClashAmount());
