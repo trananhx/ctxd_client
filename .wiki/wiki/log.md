@@ -283,3 +283,10 @@ Chronological record of all wiki operations.
 - Bẫy ghi lại: TroopType KHÔNG có BoBinh (bộ binh = ThuongBinh — JSON sai sẽ fallback lặng lẽ); enum RowShape trùng tên giữa Ctxd.Data và Ctxd.Battle.Sim (client phải qualify Sim.RowShape).
 - **Verify**: dotnet **112/112** + selftest OK; Unity 0 lỗi; playtest: shape/engage/bench/fire/LowHp-swap đều xác nhận sống bằng data + screenshot.
 - Pages updated: [[technical/battle-fx-system]], [[log]]
+
+## [2026-07-29] implement (đợt 3) | Đạo quân NỐI ĐUÔI + Triệu Vân single-figure + Quan Vũ cánh cung
+- Đính chính từ chủ dự án: bench chỉ là phụ — cái chính là các ĐẠO QUÂN xếp HÀNG DỌC nối đuôi, quân trước rụng hàng thì quân sau DỒN LÊN. Data có sẵn trong Queue → thuần client.
+- `ServerBattleDirector.SyncSideFields`: mỗi tướng sống (từ ActiveIndex) 1 `BattleSideField`, offset dọc `RowAxis` = tổng hàng sống phía trước + `tailGapRows`; `BattleSideField.SetHomeOffset` tween cả đạo quân (Move→Idle). Thay hẳn mô hình 1-field Reconcile/Rebuild.
+- Config: roster `zhaoyun` thành 1 hình to (VisualId 43, UnitScale 1.5, **bỏ Deputy** — Deputy phá single-figure); `guanyu` RowShape CanhCung ở roster + 3 stage; stage_fxdemo có Triệu Vân nối sau Hoàng Trung.
+- **Verify**: 112/112 + selftest OK; Unity 0 lỗi; playtest: 3 đạo quân xếp dọc, giết 2 hàng → dồn lên đúng; screenshot cột quân + Triệu Vân to đứng giữa.
+- Pages updated: [[technical/battle-fx-system]] (đợt 3 ghi ở log này), [[log]]
