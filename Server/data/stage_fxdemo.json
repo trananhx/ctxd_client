@@ -13,8 +13,11 @@
       "EngageRows": 2,
       "NormalAtk": 620, "NormalDef": 330, "TacticAtk": 640, "TacticDef": 310, "Strategy": 90,
       "Skill2": { "Id": "demo_warcry", "Name": "Chiến Cổ Lôi Minh", "Kind": "Buff", "Power": 1.6 } },
-    { "Id": "demo_bench1", "DisplayName": "Ngụy Diên", "Troop": "KyBinh", "TroopCapacity": 15000,
-      "NormalAtk": 560, "NormalDef": 300, "TacticAtk": 520, "TacticDef": 280, "Strategy": 80 },
+    { "Id": "zhaoyun_demo", "DisplayName": "Triệu Vân", "Troop": "KyBinh", "TroopCapacity": 18000, "FiveStar": true,
+      "Rows": 1, "Formation": [ [ "KyBinh" ] ],
+      "GroupsPerRow": 1, "SpriteCols": 1, "SpriteRows": 1, "UnitScale": 1.5, "VisualId": "43",
+      "NormalAtk": 720, "NormalDef": 380, "TacticAtk": 680, "TacticDef": 350, "Strategy": 88,
+      "Skill2": { "Id": "dragonspear", "Name": "Long Thương Ngạo Thế", "Kind": "AoeDamage", "RowsHit": 2, "Power": 1.9 } },
     { "Id": "demo_bench2", "DisplayName": "Mã Đại", "Troop": "ThuongBinh", "TroopCapacity": 14000,
       "NormalAtk": 520, "NormalDef": 320, "TacticAtk": 480, "TacticDef": 300, "Strategy": 76 }
   ],

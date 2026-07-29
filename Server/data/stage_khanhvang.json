@@ -5,6 +5,7 @@
   "DefenseNation": "Khăn Vàng",
   "Offense": [
     { "Id": "guanyu", "DisplayName": "Quan Vũ", "Troop": "KyBinh", "TroopCapacity": 16043, "FiveStar": true,
+      "RowShape": "CanhCung",
       "NormalAtk": 640, "NormalDef": 320, "TacticAtk": 600, "TacticDef": 300, "Strategy": 92,
       "Skill2": { "Id": "wushen", "Name": "Võ Thần Phụ Thể", "Kind": "AoeDamage", "RowsHit": 3, "Power": 1.9 } }
   ],

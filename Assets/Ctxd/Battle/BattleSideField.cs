@@ -76,6 +76,45 @@ namespace Ctxd.Battle
 
         public Vector3 Center => transform.position + Vector3.up * 0.7f;
         public string CombatantId => _snap != null ? _snap.Id : null;
+        public Vector2 RowAxis => _rowAxis;   // trục lùi về hậu phương — director xếp các đạo quân NỐI ĐUÔI theo trục này
+
+        // ── [nối đuôi] vị trí "nhà" của CẢ đạo quân trong hàng dọc ────────────────
+        private Coroutine _homeCo;
+        private Vector2 _homeOffset;
+        private bool _homeSet;
+
+        /// <summary>Đặt vị trí đạo quân trong HÀNG DỌC nối đuôi: quân trước rụng hàng → offset co lại → cả đạo
+        /// quân sau bước lên (diễn Move rồi về Idle). Lunge per-cell chỉ đụng anchor con nên không giằng nhau.</summary>
+        public void SetHomeOffset(Vector2 offset, bool instant)
+        {
+            if (_homeSet && (offset - _homeOffset).sqrMagnitude < 0.0001f) return;
+            _homeOffset = offset; _homeSet = true;
+            if (_homeCo != null) StopCoroutine(_homeCo);
+            if (instant || !isActiveAndEnabled) { transform.localPosition = new Vector3(offset.x, offset.y, 0f); return; }
+            _homeCo = StartCoroutine(HomeCo(offset));
+        }
+
+        private IEnumerator HomeCo(Vector2 target)
+        {
+            Vector3 from = transform.localPosition, to = new Vector3(target.x, target.y, 0f);
+            const float dur = 0.45f;
+            foreach (var cell in _cells.Values)
+                foreach (var uv in cell.sprites)
+                    if (uv != null && uv.Current == UnitAction.Idle) uv.Play(UnitAction.Move);
+            float t = 0f;
+            while (t < dur)
+            {
+                if (this == null) yield break;
+                t += Time.deltaTime;
+                transform.localPosition = Vector3.Lerp(from, to, Mathf.Clamp01(t / dur));
+                yield return null;
+            }
+            transform.localPosition = to;
+            foreach (var cell in _cells.Values)
+                foreach (var uv in cell.sprites)
+                    if (uv != null && uv.Current == UnitAction.Move) uv.PlayIdle();
+            _homeCo = null;
+        }
 
         // ── build / update ─────────────────────────────────────────────────────────
         public void Build(CombatantSnapshot snap, Faction faction, CtxdGameDatabase db, FieldLayout layout)

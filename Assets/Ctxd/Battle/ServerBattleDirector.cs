@@ -92,11 +92,16 @@ namespace Ctxd.Battle
         public event System.Action<BattleOutcome> Finished;
 
         private BattleSnapshot _state;
-        private BattleSideField _offField, _defField;
+        private BattleSideField _offField, _defField;   // field của tướng ACTIVE (mọi anim/FX combat trỏ vào đây)
         private Transform _offRoot, _defRoot;
         private Vector2 _facing;   // trục giao tranh iso (đặt ở Start) — bench + seam dùng chung
         private readonly Dictionary<string, UnitVisual> _offBench = new Dictionary<string, UnitVisual>();
         private readonly Dictionary<string, UnitVisual> _defBench = new Dictionary<string, UnitVisual>();
+        // [nối đuôi] MỖI đạo quân trong queue một field, xếp hàng dọc sau lưng đạo quân active
+        private readonly Dictionary<string, BattleSideField> _offFields = new Dictionary<string, BattleSideField>();
+        private readonly Dictionary<string, BattleSideField> _defFields = new Dictionary<string, BattleSideField>();
+        [Tooltip("[nối đuôi] Khoảng đệm (đơn vị HÀNG) giữa đuôi đạo quân trước và đầu đạo quân sau")]
+        public float tailGapRows = 1.2f;
         private BattleHudUI _hud;
         private TestApiPanelUI _panel;
         private LineupUI _lineup;
@@ -199,8 +204,10 @@ namespace Ctxd.Battle
             StopAllCoroutines();
             _pending.Clear();
             _playing = false; _over = false; _state = null;
-            if (_offField != null) { Destroy(_offField.gameObject); _offField = null; }
-            if (_defField != null) { Destroy(_defField.gameObject); _defField = null; }
+            _offField = null; _defField = null;
+            foreach (var kv in _offFields) if (kv.Value != null) Destroy(kv.Value.gameObject);
+            foreach (var kv in _defFields) if (kv.Value != null) Destroy(kv.Value.gameObject);
+            _offFields.Clear(); _defFields.Clear();
             foreach (var kv in _offBench) if (kv.Value != null) Destroy(kv.Value.gameObject);
             foreach (var kv in _defBench) if (kv.Value != null) Destroy(kv.Value.gameObject);
             _offBench.Clear(); _defBench.Clear();
@@ -273,8 +280,8 @@ namespace Ctxd.Battle
             if (_state == null) return;
             var off = Active(_state.Offense);
             var def = Active(_state.Defense);
-            _offField = Reconcile(_offField, _offRoot, off, Faction.Offense);
-            _defField = Reconcile(_defField, _defRoot, def, Faction.Defense);
+            _offField = SyncSideFields(_offRoot, _state.Offense, _offFields, Faction.Offense);
+            _defField = SyncSideFields(_defRoot, _state.Defense, _defFields, Faction.Defense);
             // [A] FX bền: diff Ở ĐÂY (seam áp snapshot) chứ KHÔNG trong PlayEvent — buff giữ liên tục, không nhấp nháy.
             SyncPersistentFx(_offField, _state.Offense);
             SyncPersistentFx(_defField, _state.Defense);
@@ -349,24 +356,55 @@ namespace Ctxd.Battle
             _      => fxId,
         };
 
-        /// <summary>Same active general → diff/animate in place; different general (or first) → hard rebuild.</summary>
-        private BattleSideField Reconcile(BattleSideField existing, Transform root, CombatantSnapshot c, Faction faction)
+        /// <summary>
+        /// [nối đuôi] Render MỌI đạo quân còn sống từ ActiveIndex trở đi thành HÀNG DỌC: đạo quân active ở đầu
+        /// (offset 0), đạo quân sau đứng ngay sau ĐUÔI đạo quân trước (offset = tổng hàng sống phía trước + đệm).
+        /// Quân trước rụng hàng → offset co lại → cả đạo quân sau bước lên (SetHomeOffset tween). Diff theo Id.
+        /// </summary>
+        private BattleSideField SyncSideFields(Transform root, SideSnapshot side, Dictionary<string, BattleSideField> fields, Faction faction)
         {
-            if (c == null) { if (existing != null) Destroy(existing.gameObject); return null; }
-            if (existing != null && existing.CombatantId == c.Id) { existing.ApplyState(c); return existing; }
-            return Rebuild(existing, root, c, faction);
+            if (root == null || side?.Queue == null) return null;
+            var seen = new HashSet<string>();
+            BattleSideField active = null;
+            float rowsAhead = 0f; int armiesAhead = 0;
+            for (int i = side.ActiveIndex; i < side.Queue.Count; i++)
+            {
+                var c = side.Queue[i];
+                if (c == null) continue;
+                bool isActive = i == side.ActiveIndex;
+                if (!isActive && !c.Alive) continue;   // tướng chết ở sau không render (active thua thì ActiveIndex đã nhảy)
+                seen.Add(c.Id);
+                fields.TryGetValue(c.Id, out var f);
+                bool fresh = f == null;
+                if (fresh)
+                {
+                    var go = new GameObject($"Field_{faction}_{c.Id}"); go.transform.SetParent(root, false);
+                    f = go.AddComponent<BattleSideField>();
+                    try { f.Build(c, faction, database, Layout()); }
+                    catch (System.Exception ex) { Debug.LogError($"[Director] field build: {ex}"); Destroy(go); continue; }
+                    fields[c.Id] = f;
+                }
+                else f.ApplyState(c);
+                f.SetHomeOffset(f.RowAxis * (rowsAhead + armiesAhead * tailGapRows), instant: fresh);
+                rowsAhead += LivingRows(c);
+                armiesAhead++;
+                if (isActive) active = f;
+            }
+            var stale = new List<string>();
+            foreach (var kv in fields) if (!seen.Contains(kv.Key) || kv.Value == null) stale.Add(kv.Key);
+            foreach (var k in stale) { var f = fields[k]; fields.Remove(k); if (f != null) Destroy(f.gameObject); }
+            return active;
         }
 
-        private BattleSideField Rebuild(BattleSideField existing, Transform root, CombatantSnapshot c, Faction faction)
+        private static float LivingRows(CombatantSnapshot c)
         {
-            if (existing != null) Destroy(existing.gameObject);
-            if (c == null) return null;
-            var go = new GameObject($"Field_{faction}"); go.transform.SetParent(root, false);
-            var fv = go.AddComponent<BattleSideField>();
-            try { fv.Build(c, faction, database, new FieldLayout { rowSpacing = rowSpacing, groupSpacing = groupSpacing, spriteSpacing = spriteSpacing, unitScale = unitScale, offenseBarColor = offenseBarColor, defenseBarColor = defenseBarColor, barSegmented = barSegmented, barSegments = barSegments, advanceDelay = advanceDelay, bowDepth = bowDepth }); }
-            catch (System.Exception ex) { Debug.LogError($"[Director] field build: {ex}"); Destroy(go); return null; }
-            return fv;
+            if (c?.Formation == null) return 0f;
+            int n = 0;
+            foreach (var r in c.Formation) { int s = 0; foreach (var g in r.Groups) s += g.Soldiers; if (s > 0) n++; }
+            return n;
         }
+
+        private FieldLayout Layout() => new FieldLayout { rowSpacing = rowSpacing, groupSpacing = groupSpacing, spriteSpacing = spriteSpacing, unitScale = unitScale, offenseBarColor = offenseBarColor, defenseBarColor = defenseBarColor, barSegmented = barSegmented, barSegments = barSegments, advanceDelay = advanceDelay, bowDepth = bowDepth };
 
         private IEnumerator PlayEvent(BattleEvent e)
         {
