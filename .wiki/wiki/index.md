@@ -50,6 +50,8 @@ Master catalog. Read first to find relevant pages. Project = recreation of **Cô
 - [[technical/luzart-assetmodifier]] — Luzart `AssetModifier`: EditorWindow làm hàng loạt SO
 - [[technical/asset-pipeline]] — Bố cục `Assets/Resources/` & toolchain 2D
 - [[technical/asset-system-mapping]] — Ánh xạ thư mục asset ↔ hệ thống game
+- [[technical/single-figure-unit]] — Tướng đơn cỡ lớn (boss): 5 khoá JSON server (GroupsPerRow/SpriteCols/SpriteRows/UnitScale/VisualId)
+- [[technical/battle-fx-system]] — Hệ FX trận 2 kênh vòng đời (một-phát vs bền-theo-hiệp), client data-driven; thanh máu chia ngăn, va chạm đổi hàng, đổi hình giữa trận
 - [[technical/game-flow-navigation]] — Luồng điều hướng Lobby→ChọnTướng→ChọnMàn→Đánh→Kết quả (GameFlowController + LuzartUI)
 
 ## Decisions

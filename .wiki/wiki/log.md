@@ -255,3 +255,24 @@ Chronological record of all wiki operations.
 - **Verify**: 84/84 test, Unity compile 0 lỗi, play-test thật (Quan Độ/Chiến Thần): 3/12 nhóm mất máu hiện thanh đúng màu; FX đòn đánh tại tâm phe thủ `(1.09,1.41)`; FX buff 4 cái tại 4 tâm hàng phe công order 100.
 - Pages created: [[decisions/battle-visual-grammar-2026-07-27]]
 - Pages updated: [[index]]
+
+## [2026-07-27] impl | Tướng đơn cỡ lớn (boss) cấu hình từ server JSON
+- Chủ dự án hỏi cách setup "1 con tướng to đùng, không có đội quân". Workflow 5 agent khảo sát chuỗi JSON→sim→snapshot→render, 1 agent thiết kế, 3 agent phản biện đối nghịch (đo THẬT bằng probe test) → bắt được 5 vấn đề CHẶN trước khi code.
+- **Kết luận khảo sát**: JSON hiện tại đã đủ cho SIM (`"Formation": [["KyBinh"]]` cho 1 hàng 1 nhóm, không chia-cho-0, không chỗ nào giả định >=2 hàng), nhưng bế tắc ở HIỂN THỊ: số sprite mỗi nhóm là hằng 3×2 trong field-initializer của `Group`, và `unitScale` là một biến Inspector global.
+- **Giải pháp**: `GroupStyle { GroupsPerRow, SpriteCols, SpriteRows, Scale, VisualId }` chảy `GeneralDto → Combatant.Style → FormationBuilder (tham số optional) → Group → GroupSnapshot (append 2 field) → BattleSideField`. 5 khoá JSON mới, tất cả optional → tướng cũ giữ nguyên hình.
+- **`GroupsPerRow` PHẢI nằm trên style** (phản biện bắt): đội hình bị dựng lại ở 6 chỗ chỉ biết `Combatant`; thiếu nó thì ảo ảnh của boss ra BA con boss mỗi con 1/3 máu.
+- **Sửa kèm ở tầng render**: neo CHÂN sprite (pivot giữa làm boss phóng to lún mấy hàng), sorting theo `bounds.min.y` thay vì tâm, thanh máu bám bao đóng thật + dày theo cỡ.
+- **Verify**: **90/90 test** (84 cũ + 6 `SingleFigureUnitTests` phủ đúng các ca phản biện bắt được: phantom giữ 1 nhóm, `[[]]` không làm Rows=0, tướng thường không đổi), selftest OK, Unity 0 lỗi, play-test thật màn mới "Bạch Hổ Sơn Lâm" — phe Thủ đúng 1 sprite `unit_def_102` 3.91×3.29 unit ôm 42.000 quân; trận thường không hồi quy.
+- Pages created: [[technical/single-figure-unit]]
+- Pages updated: [[index]]
+
+## [2026-07-29] implement | Hệ FX trận 6 gói (A-F) từ feedback khách — sim+wire+client end-to-end
+- Feedback khách (9 hạng mục) → spec 6 gói (`docs/superpowers/specs/2026-07-29-battle-fx-demo-design.md`) → thực thi trọn trên nhánh `feature/battle-fx-demo` (7 commit).
+- **Kiến trúc 2 kênh FX theo vòng đời**: một-phát = event log (4 field render mới trên `BattleEvent`); bền-theo-HIỆP = `ActiveEffect` trên `SideState` → `SideSnapshot.Effects` (null khi rỗng = 0-drift), client `SyncActiveEffects` diff spawn/keep/destroy FX loop tại seam `RenderFields`.
+- **Client data-driven tối đa** (chủ dự án chốt hướng): fxId lạ chứa `/` tra thẳng làm id FX; sorting/vị trí/lifetime đều từ server data; thêm FX mới không cần sửa client.
+- Gói D (hình giữa hàng cuối) đặt tại `FormationBuilder.FromLayout` — choke point 6 đường rebuild → phantom giữ hình (test khoá).
+- Gói E clash deterministic (không RNG — giữ baseline RE), dùng lại `RowAdvanced.Amount`, gate `AdvanceClashPct=0` mặc định.
+- **Verify**: dotnet **107/107** + selftest OK; Unity compile 0 lỗi; play thật `stage_fxdemo`: aura buff `3→2→1→GONE` server-driven, client 1 FX loop tự huỷ (0 leak); screenshot xác nhận thanh máu CHIA NGĂN 2 phe + Bạch Hổ 102 hàng cuối.
+- Còn mở (ghi trong trang): KillRow chưa thread cfg; ApplyFire chưa có caller; scene chưa serialize field mới; rule server đổi VisualId theo ngưỡng máu.
+- Pages created: [[technical/battle-fx-system]]
+- Pages updated: [[index]], [[log]]
