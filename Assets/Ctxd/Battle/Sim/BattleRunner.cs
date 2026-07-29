@@ -47,7 +47,7 @@ namespace Ctxd.Battle.Sim
                 if (c.Troops <= 0) c.Troops = c.MaxTroops;
                 c.Morale = c.FiveStar ? _cfg.MoraleFull : _cfg.MoraleStart;
                 if (!c.HasFormation)
-                    c.Formation.AddRange(FormationBuilder.Uniform(c.Rows, _cfg.GroupsPerRow, c.Troop, c.MaxTroops));
+                    c.Formation.AddRange(FormationBuilder.Uniform(c.Rows, _cfg.GroupsPerRow, c.Troop, c.MaxTroops, c.Style));
                 c.SyncTroops();
                 side.Queue.Add(c);
                 RegisterTactic(c.Skill1); RegisterTactic(c.Skill2);   // [2A] cho chuỗi nextTacticId
@@ -116,6 +116,7 @@ namespace Ctxd.Battle.Sim
             if (first.Alive && second.Alive) PerformAction(second, first, secondInput, secondMult, secondHold, ev);
 
             Decrement(off); Decrement(def);
+            DecrementEffects(State.Offense); DecrementEffects(State.Defense);   // [FX] FX bền: giảm hiệp, bỏ hết hạn
             HandleDefeats(ev);
             CheckEnd(ev);
             return ev;
@@ -365,5 +366,17 @@ namespace Ctxd.Battle.Sim
         private BattleEvent StanceEvent(Faction side, Combatant c, Stance s) => new BattleEvent
             { Round = State.Round, Type = BattleEventType.StanceChosen, Side = side, ActorId = c?.Id, Stance = s };
         private static void Decrement(Combatant c) { if (c == null) return; if (c.ConfusedTurns > 0) c.ConfusedTurns--; if (c.LuanwuTurns > 0) c.LuanwuTurns--; }
+
+        /// <summary>[FX] Giảm hiệp mọi FX bền của phe, gỡ khi về 0; UntilRemoved (&lt;0) sống tới khi server chủ động gỡ.</summary>
+        private static void DecrementEffects(SideState s)
+        {
+            if (s == null) return;
+            for (int i = s.Effects.Count - 1; i >= 0; i--)
+            {
+                var e = s.Effects[i];
+                if (e.UntilRemoved) continue;
+                if (--e.RemainingRounds <= 0) s.Effects.RemoveAt(i);
+            }
+        }
     }
 }

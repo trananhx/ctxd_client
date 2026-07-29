@@ -35,6 +35,12 @@ namespace Ctxd.Battle.Sim
         public int VariantRecommend = -1;              // index 1-3 biến thể server gợi ý (khớp địa hình)
         public bool StrategyUseAble;                   // nút nộ khả dụng lượt này
 
+        // [FX] Chỉ dẫn render FX MỘT-PHÁT của đòn skill (nullable → wire bỏ qua khi không set).
+        public int? Sorting;                           // B1: độ sâu vẽ (null = default theo loại: buff 100 / skill 780)
+        public int? AnchorRows;                        // #4: null = hiện tại; 0/1 = hàng trước; N = tâm N hàng trước
+        public bool AnchorWholeGroup;                  // B2: 1 FX ôm cả nhóm thay vì per-hàng/per-nhóm
+        public float LifetimeSec = -1f;                // 4b: thời gian tồn tại (giây); <0 = dùng lifetime baked của prefab
+
         public override string ToString()
             => $"[R{Round}] {Type} {Side} {ActorId}->{TargetId} amt={Amount:0} {(Crit ? "CRIT " : "")}{(Miss ? "MISS " : "")}{Text}".Trim();
     }

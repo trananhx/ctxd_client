@@ -13,8 +13,17 @@ namespace Ctxd.Battle.Sim
         public bool Surrounded;
         public int SurroundSince = -1, SlamCd;
         public Tower Tower;   // [2E] trụ tên phòng thủ (chỉ phe Thủ ở trận City); null = không có.
+        public readonly List<ActiveEffect> Effects = new List<ActiveEffect>();   // [FX] FX bền (buff/lửa), server-owned; giảm theo hiệp.
 
         public Combatant Active => (ActiveIndex >= 0 && ActiveIndex < Queue.Count) ? Queue[ActiveIndex] : null;
+
+        /// <summary>Thêm/làm mới FX bền: trùng (FxId,RowIndex) thì bump lại hiệp (không nhân đôi); khác thì thêm mới.</summary>
+        public void AddOrRefreshEffect(string fxId, int rounds, FxAnchorKind anchor = FxAnchorKind.UnderFoot, int rowIndex = -1, int sorting = 100)
+        {
+            foreach (var e in Effects)
+                if (e.FxId == fxId && e.RowIndex == rowIndex) { e.RemainingRounds = rounds; e.Anchor = anchor; e.SortingOrder = sorting; return; }
+            Effects.Add(new ActiveEffect { FxId = fxId, RemainingRounds = rounds, Anchor = anchor, RowIndex = rowIndex, SortingOrder = sorting });
+        }
 
         public bool HasLiving
         {

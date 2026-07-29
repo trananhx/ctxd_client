@@ -49,6 +49,10 @@ namespace Ctxd.Battle.Sim
         public int CityTowerBreakPerRound = 300;         // phe công phá trụ mỗi hiệp
         public double FirePerRowScale = 50.0;            // hệ số sát thương hoả công theo hàng
 
+        // [FX bền] số hiệp tồn tại của FX chiếu xuống client (server-driven; A: đo bằng HIỆP).
+        public int FireDurationRounds = 3;               // FX lửa cháy sống mấy hiệp
+        public int BuffAuraRounds = 3;                   // aura buff dưới chân giữ mấy hiệp (<0 = UntilRemoved, 0 = tắt)
+
         public BattleConfig Clone()
         {
             var c = (BattleConfig)MemberwiseClone();   // shallow: Dictionary chia sẻ tham chiếu → deep-copy ring dưới đây.

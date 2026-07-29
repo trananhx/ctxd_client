@@ -90,6 +90,9 @@ namespace Ctxd.Battle.Sim
             int heal = (int)Math.Round(c.Actor.Stats.TacticAtk * c.Tactic.Power);
             CombatOps.HealFront(c.Actor, heal);
             c.Emit(CombatOps.DamageEvent(c.Round, c.Actor, c.Actor, -heal, false, c.Tactic.Kind));
+            // [FX bền] aura buff dưới chân phe CAST, giữ liên tục BuffAuraRounds hiệp (server-driven; feedback #1).
+            if (c.Cfg.BuffAuraRounds != 0)
+                c.State?.Side(c.Actor.Faction).AddOrRefreshEffect("buff", c.Cfg.BuffAuraRounds, FxAnchorKind.UnderFoot, -1, 100);
         }
     }
 

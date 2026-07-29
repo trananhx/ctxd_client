@@ -12,6 +12,9 @@ namespace Ctxd.Battle.Sim.Net
         public TroopType Troop;
         public int MaxSoldiers, Soldiers;
         public int SpriteCols, SpriteRows;
+        // APPEND-ONLY (see Protocol): how the group is drawn. Defaults keep every existing scenario identical.
+        public float Scale = 1f;   // multiplies the field-wide unit scale
+        public string VisualId;    // null = art by troop type
     }
 
     /// <summary>One row of groups (engages as a unit; front living row fights first).</summary>
@@ -47,6 +50,7 @@ namespace Ctxd.Battle.Sim.Net
         public bool Surrounded;                   // [2D] phe đang bị bao vây
         public int SlamCd;                        // [2D] đếm ngược tới đòn phong toả kế
         public TowerSnapshot Tower;               // [2E] trụ tên phe Thủ (null = không có)
+        public List<ActiveEffectSnapshot> Effects; // [FX] FX bền (buff/lửa); null khi rỗng → wire byte-identical
         public List<CombatantSnapshot> Queue = new List<CombatantSnapshot>();
     }
 
@@ -54,6 +58,16 @@ namespace Ctxd.Battle.Sim.Net
     public sealed class TowerSnapshot
     {
         public int Blood, MaxBlood, NextAttackRound;
+    }
+
+    /// <summary>[FX] Một FX BỀN chiếu xuống client (buff/lửa). Client diff theo (FxId, RowIndex): spawn/keep/destroy.</summary>
+    public sealed class ActiveEffectSnapshot
+    {
+        public string FxId;
+        public FxAnchorKind Anchor;
+        public int RowIndex = -1;
+        public int SortingOrder;
+        public int RemainingRounds = -1;
     }
 
     public sealed class BattleSnapshot
@@ -76,9 +90,20 @@ namespace Ctxd.Battle.Sim.Net
         {
             var snap = new SideSnapshot { Faction = side.Faction, Nation = side.Nation, ActiveIndex = side.ActiveIndex,
                 Surrounded = side.Surrounded, SlamCd = side.SlamCd,
-                Tower = side.Tower == null ? null : new TowerSnapshot { Blood = side.Tower.Blood, MaxBlood = side.Tower.MaxBlood, NextAttackRound = side.Tower.NextAttackRound } };
+                Tower = side.Tower == null ? null : new TowerSnapshot { Blood = side.Tower.Blood, MaxBlood = side.Tower.MaxBlood, NextAttackRound = side.Tower.NextAttackRound },
+                Effects = EffectsFrom(side.Effects) };
             foreach (var c in side.Queue) snap.Queue.Add(From(c, moraleFull, side.Surrounded));
             return snap;
+        }
+
+        /// <summary>[FX] Chiếu danh sách FX bền; rỗng → null để wire bỏ qua (0-drift với scenario không có FX).</summary>
+        private static List<ActiveEffectSnapshot> EffectsFrom(List<ActiveEffect> src)
+        {
+            if (src == null || src.Count == 0) return null;
+            var l = new List<ActiveEffectSnapshot>(src.Count);
+            foreach (var e in src)
+                l.Add(new ActiveEffectSnapshot { FxId = e.FxId, Anchor = e.Anchor, RowIndex = e.RowIndex, SortingOrder = e.SortingOrder, RemainingRounds = e.RemainingRounds });
+            return l;
         }
 
         public static CombatantSnapshot From(Combatant c, int moraleFull = 100, bool surrounded = false) => new CombatantSnapshot
@@ -107,6 +132,7 @@ namespace Ctxd.Battle.Sim.Net
                     {
                         Troop = g.Troop, MaxSoldiers = g.MaxSoldiers, Soldiers = g.Soldiers,
                         SpriteCols = g.SpriteCols, SpriteRows = g.SpriteRows,
+                        Scale = g.Scale, VisualId = g.VisualId,
                     });
                 list.Add(rs);
             }
