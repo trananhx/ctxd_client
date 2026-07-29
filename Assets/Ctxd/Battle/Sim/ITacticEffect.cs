@@ -45,7 +45,7 @@ namespace Ctxd.Battle.Sim
         {
             if (!miss)
             {
-                CombatOps.ApplyDamageToFront(Target, amount, Round, Events);
+                CombatOps.ApplyDamageToFront(Target, amount, Round, Events, Cfg);
                 CombatOps.GainMorale(Target, Cfg.MoraleOnTakeDamage, Cfg, Round, Events);
             }
             Events.Add(CombatOps.DamageEvent(Round, Actor, Target, miss ? 0 : amount, crit, Tactic.Kind, miss));

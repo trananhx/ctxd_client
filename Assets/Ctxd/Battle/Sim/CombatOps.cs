@@ -18,7 +18,7 @@ namespace Ctxd.Battle.Sim
         /// overkill spills into the new front row. Returns total soldiers killed. Falls back to a flat pool if the
         /// combatant has no formation. <paramref name="ev"/> may be null (no events emitted).
         /// </summary>
-        public static int ApplyDamageToFront(Combatant target, int amount, int round, List<BattleEvent> ev)
+        public static int ApplyDamageToFront(Combatant target, int amount, int round, List<BattleEvent> ev, BattleConfig cfg = null)
         {
             if (amount < 0) amount = 0;
             if (!target.HasFormation)
@@ -44,13 +44,26 @@ namespace Ctxd.Battle.Sim
 
                 if (!row.Alive)
                 {
+                    // [E] Va chạm: hàng sau lao lên chịu 1 nhát "va nhẹ" server tính (deterministic). Gated AdvanceClashPct>0.
+                    int clash = 0;
+                    if (cfg != null && cfg.AdvanceClashPct > 0.0)
+                    {
+                        var newFront = target.FrontRow;                            // row vừa chết → FrontRow trả hàng SAU (null = hết hàng)
+                        if (newFront != null && newFront.Alive)
+                        {
+                            int want = (int)Math.Round(newFront.Soldiers * cfg.AdvanceClashPct);
+                            clash = SpreadEven(newFront.Groups, Math.Min(want, newFront.Soldiers));
+                            killed += clash;
+                        }
+                    }
                     if (ev != null)
                     {
                         foreach (var g in row.Groups)                              // cả hàng tan cùng lúc
                             ev.Add(new BattleEvent { Round = round, Type = BattleEventType.GroupKilled, Side = target.Faction,
                                 ActorId = target.Id, Amount = g.MaxSoldiers, Text = $"{target.DisplayName}: 1 nhóm {g.Troop} tan" });
                         ev.Add(new BattleEvent { Round = round, Type = BattleEventType.RowAdvanced, Side = target.Faction,
-                            ActorId = target.Id, Count = target.LivingRows, Text = $"{target.DisplayName}: hàng {rowIndex + 1} tan, hàng sau tiến lên" });
+                            ActorId = target.Id, Count = target.LivingRows, Amount = clash,      // Amount>0 = va chạm trừ máu (client render)
+                            Text = $"{target.DisplayName}: hàng {rowIndex + 1} tan, hàng sau tiến lên" });
                     }
                     // loop: sát thương dư tràn sang hàng mới
                 }

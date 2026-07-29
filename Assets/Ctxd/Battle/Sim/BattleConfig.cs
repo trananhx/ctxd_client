@@ -53,6 +53,10 @@ namespace Ctxd.Battle.Sim
         public int FireDurationRounds = 3;               // FX lửa cháy sống mấy hiệp
         public int BuffAuraRounds = 3;                   // aura buff dưới chân giữ mấy hiệp (<0 = UntilRemoved, 0 = tắt)
 
+        // [E] Va chạm khi hàng sau tiến lên: % quân hàng vừa lên chịu 1 nhát "va nhẹ" (deterministic, không RNG).
+        // 0 = TẮT → RowAdvanced.Amount == 0, giữ baseline RE + mọi test/scenario byte-identical.
+        public double AdvanceClashPct = 0.0;
+
         public BattleConfig Clone()
         {
             var c = (BattleConfig)MemberwiseClone();   // shallow: Dictionary chia sẻ tham chiếu → deep-copy ring dưới đây.

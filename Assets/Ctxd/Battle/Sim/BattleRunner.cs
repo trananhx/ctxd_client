@@ -274,7 +274,7 @@ namespace Ctxd.Battle.Sim
         private void BasicAttack(Combatant actor, Combatant target, double stanceMult, List<BattleEvent> ev)
         {
             int dmg = CombatOps.BasicDamage(actor, target, stanceMult, State.Terrain, _cfg, Rng, out bool crit, out bool miss);
-            int killed = miss ? 0 : CombatOps.ApplyDamageToFront(target, dmg, State.Round, ev);
+            int killed = miss ? 0 : CombatOps.ApplyDamageToFront(target, dmg, State.Round, ev, _cfg);
             if (!miss)   // [2A] né → không sát thương, không tích nộ đòn đó
             {
                 CombatOps.GainMorale(actor, _cfg.MoraleOnDealDamage, _cfg, State.Round, ev);
