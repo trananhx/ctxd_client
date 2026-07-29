@@ -100,6 +100,56 @@ namespace Ctxd.Tests
         }
 
         [Fact]
+        public void FireTactic_Damages_And_Registers_Persistent_Fire_On_Target_Side()
+        {
+            var actor = new GeneralDto { Id = "a", Troop = "KyBinh", TroopCapacity = 10000 }.ToCombatant(Faction.Offense, "off0");
+            var target = new GeneralDto { Id = "t", Troop = "BoBinh", TroopCapacity = 12000, Rows = 2 }.ToCombatant(Faction.Defense, "def0");
+            var state = new BattleState { Offense = new SideState { Faction = Faction.Offense }, Defense = new SideState { Faction = Faction.Defense } };
+            state.Offense.Queue.Add(actor); state.Defense.Queue.Add(target);
+            // target cần formation để ApplyFire lan theo hàng
+            target.Formation.AddRange(FormationBuilder.Uniform(2, 3, TroopType.ThuongBinh, 12000));
+            target.SyncTroops();
+            var ev = new List<BattleEvent>();
+            var cfg = new BattleConfig();
+
+            TacticEffects.Get(TacticEffectKind.Fire).Apply(new TacticContext
+            {
+                Actor = actor, Target = target, State = state, Cfg = cfg, Round = 1, Events = ev,
+                Tactic = new TacticSpec { Kind = TacticEffectKind.Fire, RowsHit = 2 },
+            });
+
+            Assert.True(target.Troops < 12000);                                        // có sát thương
+            Assert.Contains(ev, e => e.Type == BattleEventType.Fire);                  // event lửa phát ra
+            Assert.Single(state.Defense.Effects);                                      // FX bền trên phe BỊ ĐỐT
+            Assert.Equal("fire", state.Defense.Effects[0].FxId);
+            Assert.Equal(cfg.FireDurationRounds, state.Defense.Effects[0].RemainingRounds);
+            Assert.Empty(state.Offense.Effects);                                       // phe đốt không có lửa
+        }
+
+        [Fact]
+        public void LowHp_Swaps_Group_VisualId_ServerSide()
+        {
+            var setup = new BattleSetup { Seed = 1 };
+            setup.OffenseLineup.Add(new GeneralDto { Id = "h", Troop = "KyBinh", TroopCapacity = 30000 }.ToCombatant(Faction.Offense, "off0"));
+            setup.DefenseLineup.Add(new GeneralDto { Id = "g", Troop = "BoBinh", TroopCapacity = 12000, Rows = 2, LowHpVisualId = "43" }
+                .ToCombatant(Faction.Defense, "def0"));
+            var r = new BattleRunner(setup); r.Begin();
+
+            var def = setup.DefenseLineup[0];
+            Assert.Null(def.Formation[0].Groups[0].VisualId);                          // đầu trận: hình gốc
+
+            // đánh hàng đầu xuống dưới 50% rồi bước 1 hiệp → rule server đổi hình các nhóm tổn thương
+            CombatOps.ApplyDamageRaw(def, def.FrontRow.Soldiers * 6 / 10);
+            r.StepRound(new TurnInput(Stance.TanCong));
+
+            bool swapped = false;
+            foreach (var row in def.Formation)
+                foreach (var g in row.Groups)
+                    if (g.Alive && g.Soldiers < g.MaxSoldiers * 0.5f) { Assert.Equal("43", g.VisualId); swapped = true; }
+            Assert.True(swapped);                                                      // có ít nhất 1 nhóm đã gãy giáp
+        }
+
+        [Fact]
         public void BattleEvent_Fx_Fields_Default_Omit_And_RoundTrip()
         {
             var e = new BattleEvent { Round = 1, Type = BattleEventType.TacticCast };

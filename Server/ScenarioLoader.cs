@@ -147,6 +147,12 @@ namespace Ctxd.Server
         /// <summary>[G1] Số hàng TRƯỚC được diễn animation đánh. 0 = mặc định 1 (chỉ hàng đầu). Vd 2 = cung binh hàng 2 cùng bắn.</summary>
         public int EngageRows;
 
+        // ── [F] Gãy giáp: nhóm dưới LowHpPct máu đổi sang art này (server tự đổi, client swap tại chỗ). ──
+        /// <summary>Art khi tổn thương (UnitVisualDefinition.unitId). Bỏ trống = không đổi hình.</summary>
+        public string LowHpVisualId;
+        /// <summary>Ngưỡng máu đổi hình. 0 = 0.5 (dưới 50%).</summary>
+        public double LowHpPct;
+
         // ── Package D: nhóm GIỮA hàng CUỐI thành 1 hình lớn (số lượng 1 SPRITE, +30%) ──
         /// <summary>true → nhóm giữa (floor(n/2)) của HÀNG CUỐI thành 1 hình lớn. Bỏ trống = không đổi.</summary>
         public bool LastRowMiddleSingle;
@@ -158,7 +164,7 @@ namespace Ctxd.Server
         /// <summary>Gom các khoá VẼ thành style, hoặc null nếu không khai khoá nào (tướng cũ giữ nguyên hình).</summary>
         public GroupStyle ToStyle()
             => (GroupsPerRow > 0 || SpriteCols > 0 || SpriteRows > 0 || UnitScale > 0 || !string.IsNullOrEmpty(VisualId)
-                || LastRowMiddleSingle || !string.IsNullOrEmpty(RowShape))
+                || LastRowMiddleSingle || !string.IsNullOrEmpty(RowShape) || !string.IsNullOrEmpty(LowHpVisualId))
                 ? new GroupStyle
                 {
                     GroupsPerRow = GroupsPerRow, SpriteCols = SpriteCols, SpriteRows = SpriteRows,
@@ -167,6 +173,7 @@ namespace Ctxd.Server
                     LastRowMiddleVisualId = LastRowMiddleVisualId,
                     LastRowMiddleScale = (float)LastRowMiddleScale,
                     RowShape = Enum.TryParse<RowShape>(RowShape, true, out var rs) ? rs : Battle.Sim.RowShape.HangNgang,
+                    LowHpVisualId = LowHpVisualId, LowHpPct = (float)LowHpPct,
                 }
                 : null;
 

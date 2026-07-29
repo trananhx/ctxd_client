@@ -15,6 +15,7 @@ namespace Ctxd.Battle.Sim
     public enum TacticEffectKind
     {
         Damage, AoeDamage, Confusion, InstantTo1Hp, Pushback, Buff, Heal, Rule,
+        Fire,   // [FX] hoả công: sát thương theo hàng + FX lửa BỀN cháy FireDurationRounds hiệp (APPEND-ONLY — wire enum = int)
     }
 
     // ── Rule-engine enums (data-driven skill targeting) ──────────────────────

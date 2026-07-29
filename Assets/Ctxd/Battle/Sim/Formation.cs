@@ -43,6 +43,11 @@ namespace Ctxd.Battle.Sim
         // ── [G2] Dáng hàng (thế trận cánh cung). Client chỉ UỐN hàng ĐANG giao tranh (rowSlot 0) —
         // ngữ nghĩa "engagedShape": hàng sau thẳng, tiến lên hàng đầu mới cong. Nằm trên style để sống qua 6 đường rebuild.
         public RowShape RowShape = RowShape.HangNgang;
+
+        // ── [F] Đổi hình khi TỔN THƯƠNG (gãy giáp): nhóm dưới LowHpPct máu → server đổi VisualId,
+        // client SwapVisual dựng lại tại chỗ. Server-authoritative — client chỉ nghe snapshot.
+        public string LowHpVisualId;          // null = tắt
+        public float LowHpPct;                // 0 → mặc định 0.5 (50%)
     }
 
     /// <summary>One row of groups. Rows engage SEQUENTIALLY: only the front living row fights; cleared → the next advances.</summary>

@@ -117,6 +117,7 @@ namespace Ctxd.Battle.Sim
 
             Decrement(off); Decrement(def);
             DecrementEffects(State.Offense); DecrementEffects(State.Defense);   // [FX] FX bền: giảm hiệp, bỏ hết hạn
+            ApplyLowHpLooks(State.Offense); ApplyLowHpLooks(State.Defense);     // [F] gãy giáp: đổi VisualId khi máu thấp
             HandleDefeats(ev);
             CheckEnd(ev);
             return ev;
@@ -366,6 +367,23 @@ namespace Ctxd.Battle.Sim
         private BattleEvent StanceEvent(Faction side, Combatant c, Stance s) => new BattleEvent
             { Round = State.Round, Type = BattleEventType.StanceChosen, Side = side, ActorId = c?.Id, Stance = s };
         private static void Decrement(Combatant c) { if (c == null) return; if (c.ConfusedTurns > 0) c.ConfusedTurns--; if (c.LuanwuTurns > 0) c.LuanwuTurns--; }
+
+        /// <summary>[F] Gãy giáp server-driven: nhóm sống dưới LowHpPct máu đổi sang LowHpVisualId — snapshot kế
+        /// mang VisualId mới, client SwapVisual dựng lại hình tại chỗ (máu/slot giữ nguyên). Một chiều, không hồi.</summary>
+        private static void ApplyLowHpLooks(SideState s)
+        {
+            if (s == null) return;
+            foreach (var c in s.Queue)
+            {
+                var style = c?.Style;
+                if (style == null || string.IsNullOrEmpty(style.LowHpVisualId) || c.Formation == null) continue;
+                float pct = style.LowHpPct > 0f ? style.LowHpPct : 0.5f;
+                foreach (var row in c.Formation)
+                    foreach (var g in row.Groups)
+                        if (g.Alive && g.MaxSoldiers > 0 && g.Soldiers < g.MaxSoldiers * pct && g.VisualId != style.LowHpVisualId)
+                            g.VisualId = style.LowHpVisualId;
+            }
+        }
 
         /// <summary>[FX] Giảm hiệp mọi FX bền của phe, gỡ khi về 0; UntilRemoved (&lt;0) sống tới khi server chủ động gỡ.</summary>
         private static void DecrementEffects(SideState s)

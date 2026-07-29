@@ -21,6 +21,7 @@ namespace Ctxd.Battle.Sim
             Register(new BuffEffect());
             Register(new HealEffect());
             Register(new RuleEffect());
+            Register(new FireEffect());
         }
 
         public static void Register(ITacticEffect effect) => _map[effect.Kind] = effect;
@@ -93,6 +94,21 @@ namespace Ctxd.Battle.Sim
             // [FX bền] aura buff dưới chân phe CAST, giữ liên tục BuffAuraRounds hiệp (server-driven; feedback #1).
             if (c.Cfg.BuffAuraRounds != 0)
                 c.State?.Side(c.Actor.Faction).AddOrRefreshEffect("buff", c.Cfg.BuffAuraRounds, FxAnchorKind.UnderFoot, -1, 100);
+        }
+    }
+
+    /// <summary>[FX] Hoả công: sát thương lan RowsHit hàng + đăng ký FX lửa BỀN trên phe BỊ ĐỐT (cháy qua vài hiệp).</summary>
+    public sealed class FireEffect : ITacticEffect
+    {
+        public TacticEffectKind Kind => TacticEffectKind.Fire;
+        public void Apply(TacticContext c)
+        {
+            int killed = CombatOps.ApplyFire(c.Target, Math.Max(1, c.Tactic.RowsHit), c.Cfg.FirePerRowScale, c.Round, c.Events);
+            c.Emit(new BattleEvent { Round = c.Round, Type = BattleEventType.Fire, Side = c.Target.Faction,
+                ActorId = c.Actor.Id, TargetId = c.Target.Id, Amount = killed,
+                Text = $"{c.Target.DisplayName} trúng hoả công (-{killed})" });
+            if (c.Cfg.FireDurationRounds != 0)
+                c.State?.Side(c.Target.Faction).AddOrRefreshEffect("fire", c.Cfg.FireDurationRounds, FxAnchorKind.RowCenter, -1, 750);
         }
     }
 

@@ -77,7 +77,7 @@ namespace Ctxd.Server
             if (victim == null) return;
             var front = victim.FrontRow;
             int rowSoldiers = front != null ? front.Soldiers : victim.Troops;  // exactly clears the front row
-            int killed = CombatOps.ApplyDamageToFront(victim, rowSoldiers, St.Round, ev);
+            int killed = CombatOps.ApplyDamageToFront(victim, rowSoldiers, St.Round, ev, _cfg);   // [E] nút TEST cũng kích va chạm
             EmitKill(ev, side, victim, killed, rows: 1);
             PostMutate(ev, side, victim);
         }
@@ -88,7 +88,7 @@ namespace Ctxd.Server
             if (victim == null || victim.Troops <= 0) return;
             int lo = Math.Max(1, victim.Troops / 10);
             int hi = Math.Max(lo + 1, victim.Troops / 2);
-            int killed = CombatOps.ApplyDamageToFront(victim, _runner.Rng.Range(lo, hi), St.Round, ev); // [~10%, 50%)
+            int killed = CombatOps.ApplyDamageToFront(victim, _runner.Rng.Range(lo, hi), St.Round, ev, _cfg); // [~10%, 50%)
             EmitKill(ev, side, victim, killed, rows: 0);
             PostMutate(ev, side, victim);
         }
@@ -128,7 +128,7 @@ namespace Ctxd.Server
             var target = St.Enemy(side).Active;
             if (actor == null || target == null) return;
             int dmg = CombatOps.BasicDamage(actor, target, 1.0, _terrain, _cfg, _runner.Rng, out bool crit);
-            int killed = CombatOps.ApplyDamageToFront(target, dmg, St.Round, ev);
+            int killed = CombatOps.ApplyDamageToFront(target, dmg, St.Round, ev, _cfg);
             CombatOps.GainMorale(actor, _cfg.MoraleOnDealDamage, _cfg, St.Round, ev);
             ev.Add(new BattleEvent
             {

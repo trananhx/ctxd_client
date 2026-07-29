@@ -17,10 +17,14 @@ namespace Ctxd.Tests
         }
 
         [Fact]
-        public void RuleKind_Is_Appended_Last()
+        public void TacticEffectKind_Wire_Values_Are_Stable()
         {
+            // Guard append-only của wire (enum serialize = int): giá trị các member CŨ không bao giờ đổi;
+            // member mới chỉ được THÊM VÀO CUỐI (Fire=8 append 2026-07-29 cho FX lửa bền).
+            Assert.Equal(7, (int)TacticEffectKind.Rule);
+            Assert.Equal(8, (int)TacticEffectKind.Fire);
             var values = System.Enum.GetValues(typeof(TacticEffectKind));
-            Assert.Equal(TacticEffectKind.Rule, (TacticEffectKind)values.GetValue(values.Length - 1));
+            Assert.Equal(TacticEffectKind.Fire, (TacticEffectKind)values.GetValue(values.Length - 1));
         }
 
         [Fact]
