@@ -59,9 +59,25 @@ namespace Ctxd.Battle
         [Tooltip("Cỡ FX dưới chân (art gốc vẽ to hơn đội hình hiện tại)")] public float underFootScale = 0.45f;
         [Tooltip("Bật = mỗi NHÓM một vầng sáng; tắt = mỗi HÀNG một vầng (art gốc vẽ theo hàng)")] public bool underFootPerGroup = false;
 
+        [Header("FX BỀN server-driven (client diff từ snapshot ActiveEffects — đo bằng HIỆP)")]
+        [Tooltip("FX cho fxId 'buff' (aura giữ liên tục dưới chân). fxId lạ chứa '/' được tra THẲNG làm id — server tự do gửi đường dẫn FX bất kỳ.")]
+        public string persistentBuffFx = "eff/formation/{f}/down/1";
+        [Tooltip("FX cho fxId 'fire' (lửa cháy qua vài hiệp)")] public string persistentFireFx = "warBuff/fc2";
+
+        [Header("Lớp vẽ FX (B1) — override được per-event qua BattleEvent.Sorting")]
+        [Tooltip("Buff: DƯỚI lính (lính ~300-700)")] public int buffSortingOrder = 100;
+        [Tooltip("Skill: TRÊN lính, dưới thanh máu (800)")] public int skillSortingOrder = 780;
+
+        [Header("Va chạm đổi hàng (E) — render khi RowAdvanced.Amount > 0")]
+        [Tooltip("FX nổ tại điểm giao 2 quân khi hàng sau lao lên va nhau")] public string clashFx = "skill/{f}/skill_01";
+
         [Header("Thanh máu nhóm (chỉ hiện khi nhóm mất máu)")]
         [Tooltip("Màu thanh máu phe Công — sprite att là giáp XANH")] public Color offenseBarColor = new Color(0.25f, 0.62f, 1f, 0.95f);
         [Tooltip("Màu thanh máu phe Thủ — sprite def là giáp ĐỎ")] public Color defenseBarColor = new Color(0.90f, 0.20f, 0.18f, 0.95f);
+        [Tooltip("[C1] Bật = thanh máu CHIA NGĂN từng ngăn; tắt = fill liền như cũ")] public bool barSegmented = false;
+        [Tooltip("[C1] Số ngăn khi bật chia ngăn")] public int barSegments = 10;
+        [Tooltip("[C2] Giây chờ SAU animation chết rồi hàng sau mới tiến lên (demo pacing; ≥ 0.4 để xác kịp biến mất)")]
+        public float advanceDelay = 0.6f;
 
         public event System.Action<CombatantSnapshot, CombatantSnapshot> ActiveGeneralsChanged;
         public event System.Action<BattleOutcome> Finished;
@@ -243,9 +259,27 @@ namespace Ctxd.Battle
             var def = Active(_state.Defense);
             _offField = Reconcile(_offField, _offRoot, off, Faction.Offense);
             _defField = Reconcile(_defField, _defRoot, def, Faction.Defense);
+            // [A] FX bền: diff Ở ĐÂY (seam áp snapshot) chứ KHÔNG trong PlayEvent — buff giữ liên tục, không nhấp nháy.
+            SyncPersistentFx(_offField, _state.Offense);
+            SyncPersistentFx(_defField, _state.Defense);
             ActiveGeneralsChanged?.Invoke(off, def);
             if (_hud != null) _hud.SetActiveGenerals(off, def);
         }
+
+        private void SyncPersistentFx(BattleSideField field, SideSnapshot side)
+        {
+            if (field == null || side == null) return;
+            field.SyncActiveEffects(side.Effects, id => Fx(PersistentFxFormat(id), side.Faction), underFootY, underFootScale);
+        }
+
+        /// <summary>fxId ngắn ("buff"/"fire") map qua Inspector; fxId LẠ được coi là id FX trực tiếp (vd server gửi
+        /// thẳng "warBuff/12" hay "eff/...{f}...") — client hỗ trợ server tối đa, thêm FX mới không cần sửa client.</summary>
+        private string PersistentFxFormat(string fxId) => fxId switch
+        {
+            "buff" => persistentBuffFx,
+            "fire" => persistentFireFx,
+            _      => fxId,
+        };
 
         /// <summary>Same active general → diff/animate in place; different general (or first) → hard rebuild.</summary>
         private BattleSideField Reconcile(BattleSideField existing, Transform root, CombatantSnapshot c, Faction faction)
@@ -261,7 +295,7 @@ namespace Ctxd.Battle
             if (c == null) return null;
             var go = new GameObject($"Field_{faction}"); go.transform.SetParent(root, false);
             var fv = go.AddComponent<BattleSideField>();
-            try { fv.Build(c, faction, database, new FieldLayout { rowSpacing = rowSpacing, groupSpacing = groupSpacing, spriteSpacing = spriteSpacing, unitScale = unitScale, offenseBarColor = offenseBarColor, defenseBarColor = defenseBarColor }); }
+            try { fv.Build(c, faction, database, new FieldLayout { rowSpacing = rowSpacing, groupSpacing = groupSpacing, spriteSpacing = spriteSpacing, unitScale = unitScale, offenseBarColor = offenseBarColor, defenseBarColor = defenseBarColor, barSegmented = barSegmented, barSegments = barSegments, advanceDelay = advanceDelay }); }
             catch (System.Exception ex) { Debug.LogError($"[Director] field build: {ex}"); Destroy(go); return null; }
             return fv;
         }
@@ -312,7 +346,21 @@ namespace Ctxd.Battle
                     SpawnExp(FieldOf(e.Side), e.Exp);
                     break;
                 case BattleEventType.RowAdvanced:
-                    yield return Wait(eventPace * 0.25f);
+                    if (e.Amount > 0)   // [E] server tính va chạm khi hàng sau lao lên → 2 quân xô nhau + FX + số trừ máu
+                    {
+                        var adv = FieldOf(e.Side);      // e.Side = phe MẤT hàng (đang tiến lên và chịu va chạm)
+                        var foe = TargetField(e.Side);
+                        adv?.PlayClash();
+                        foe?.PlayClash();
+                        if (adv != null && foe != null)
+                        {
+                            var cfx = Fx(clashFx, e.Side);
+                            if (cfx != null) VisualSpawner.SpawnEffect(cfx, (adv.Center + foe.Center) * 0.5f, transform, skillSortingOrder);
+                        }
+                        SpawnDamage(adv, e.Amount, false, false);
+                        yield return Wait(eventPace * 0.5f);
+                    }
+                    else yield return Wait(eventPace * 0.25f);
                     break;
                 case BattleEventType.GeneralDefeated:
                     if (!string.IsNullOrEmpty(e.Text)) Say(e.Text, 1.3f);
@@ -367,16 +415,23 @@ namespace Ctxd.Battle
         /// </summary>
         private void SpawnSkillEffect(BattleEvent e)
         {
-            if (IsSupportEffect(e.Effect)) { PlayUnderFoot(e.Side, buffFxFormat); return; }
+            if (IsSupportEffect(e.Effect)) { PlayUnderFoot(e.Side, buffFxFormat, e); return; }
 
             var target = TargetField(e.Side);
             if (target == null || database == null) return;
             var ev = SkillFx(e);
-            if (ev != null) VisualSpawner.SpawnEffect(ev, target.Center, transform);
+            if (ev != null)
+            {
+                // [B] Server data điều khiển render: AnchorRows (hàng 1 / tâm N hàng), Sorting (trên/dưới lính),
+                // LifetimeSec (FX 1 lượt tự tắt vs cháy lâu). Không set → default Inspector, hành vi cũ giữ nguyên.
+                Vector3 pos = e.AnchorRows.HasValue ? target.RowCenter(Mathf.Max(1, e.AnchorRows.Value)) : target.Center;
+                VisualSpawner.SpawnEffect(ev, pos, transform,
+                    e.Sorting ?? skillSortingOrder, e.LifetimeSec >= 0f ? e.LifetimeSec : (float?)null);
+            }
             if (e.Awakened && AttackerField(e.Side) != null)
             {
                 var aw = database.GetEffectVisual(awakenFx);
-                if (aw != null) VisualSpawner.SpawnEffect(aw, AttackerField(e.Side).Center, transform);
+                if (aw != null) VisualSpawner.SpawnEffect(aw, AttackerField(e.Side).Center, transform, skillSortingOrder);
             }
         }
 
@@ -395,11 +450,18 @@ namespace Ctxd.Battle
             return Fx(skillFxFormat, e.Side);
         }
 
-        private void PlayUnderFoot(Faction side, string format)
+        /// <summary>Aura dưới chân. Có <paramref name="e"/> (đòn buff từ server) → event data điều khiển:
+        /// ôm cả nhóm (B2), giới hạn hàng (4), lớp vẽ (B1, stack không lệch — B3), thời gian sống (4b).</summary>
+        private void PlayUnderFoot(Faction side, string format, BattleEvent e = null)
         {
             var field = FieldOf(side);
             var fx = Fx(format, side);
-            if (field != null && fx != null) field.SpawnUnderFootEffect(fx, underFootY, underFootScale, underFootPerGroup);
+            if (field == null || fx == null) return;
+            field.SpawnUnderFootEffect(fx, underFootY, underFootScale, underFootPerGroup,
+                wholeGroup: e != null && e.AnchorWholeGroup,
+                anchorRows: e?.AnchorRows,
+                sortingOverride: e != null ? (e.Sorting ?? buffSortingOrder) : (int?)null,
+                lifetimeSec: e != null && e.LifetimeSec >= 0f ? e.LifetimeSec : (float?)null);
         }
 
         private EffectVisualDefinition Fx(string format, Faction side)

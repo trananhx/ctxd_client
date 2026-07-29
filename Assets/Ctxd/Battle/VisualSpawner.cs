@@ -24,7 +24,14 @@ namespace Ctxd.Battle
             return Object.Instantiate(unit, parent);
         }
 
-        public static GameObject SpawnEffect(EffectVisualDefinition eff, Vector3 pos, Transform parent)
+        /// <summary>
+        /// Spawn an FX. Optional per-call overrides so SERVER DATA can drive the render (feedback B1/4b/A):
+        /// <paramref name="sortingOrder"/> = draw depth (above/below units), <paramref name="lifetimeSec"/> = seconds
+        /// before self-destroy, <paramref name="loop"/> = persistent FX (never self-destroys; caller owns removal).
+        /// All default to null/false → identical to the pre-override behavior (prefab-baked values).
+        /// </summary>
+        public static GameObject SpawnEffect(EffectVisualDefinition eff, Vector3 pos, Transform parent,
+                                             int? sortingOrder = null, float? lifetimeSec = null, bool loop = false)
         {
             if (eff == null) return null;
             if (eff.prefab == null)
@@ -34,6 +41,17 @@ namespace Ctxd.Battle
             }
             var go = Object.Instantiate(eff.prefab, pos, Quaternion.identity);   // EffectVisual self-plays on OnEnable
             if (parent != null) go.transform.SetParent(parent, true);
+
+            bool wantLoop = loop || eff.loopUntilRemoved;
+            if (wantLoop || lifetimeSec.HasValue)
+            {
+                // Instantiate đã chạy OnEnable→Play → phải Configure lại (Invoke huỷ được, nên retune an toàn).
+                // GetComponent 1 lần/FX-spawn: prefab GameObject không có typed ref (khác unit/floating-text).
+                var ev = go.GetComponent<EffectVisual>();
+                if (ev != null) ev.Configure(wantLoop, lifetimeSec ?? -1f);
+            }
+            if (sortingOrder.HasValue)
+                foreach (var sr in go.GetComponentsInChildren<SpriteRenderer>(true)) sr.sortingOrder = sortingOrder.Value;
             return go;
         }
 

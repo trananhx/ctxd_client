@@ -14,5 +14,7 @@ namespace Ctxd.Data
         public float fps = 16f;
         public float scale = 1f;
         public float lifetime = 1.5f;
+        [Tooltip("FX BỀN: lặp vô hạn, KHÔNG tự huỷ — vòng đời do server quyết (client diff ActiveEffects)")]
+        public bool loopUntilRemoved = false;
     }
 }

@@ -18,11 +18,15 @@ namespace Ctxd.Battle
         public float unitScale;       // per-sprite scale
         public Color offenseBarColor; // HP bar tint for Công (att sprites are blue-armoured)
         public Color defenseBarColor; // HP bar tint for Thủ (def sprites are red-armoured)
+        public bool barSegmented;     // [C1] thanh máu CHIA NGĂN thay vì fill liền
+        public int barSegments;       // số ngăn khi segmented
+        public float advanceDelay;    // [C2] giây chờ SAU anim chết trước khi hàng sau tiến lên (0 = như cũ)
         public static FieldLayout Default => new FieldLayout
         {
             rowSpacing = 1.5f, groupSpacing = 1.1f, spriteSpacing = 2.0f, unitScale = 0.7f,
             offenseBarColor = new Color(0.25f, 0.62f, 1f, 0.95f),
             defenseBarColor = new Color(0.90f, 0.20f, 0.18f, 0.95f),
+            barSegmented = false, barSegments = 10, advanceDelay = 0f,
         };
     }
 
@@ -47,6 +51,8 @@ namespace Ctxd.Battle
             public int rowSlot;                      // render slot among LIVING rows (0 = front, engages)
             public bool dying;
             public Coroutine moveCo;
+            public string visualId;                  // [F] hình đã dựng (null = art theo binh chủng) — phát hiện server đổi hình giữa trận
+            public float scale = 1f;                 // [F] scale đã dựng — đổi scale cũng phải dựng lại (foot-anchor + bar phụ thuộc)
         }
 
         private readonly Dictionary<(int row, int grp), Cell> _cells = new Dictionary<(int, int), Cell>();
@@ -63,7 +69,8 @@ namespace Ctxd.Battle
 
         private const float DieDuration = 0.4f;
         private const float MoveDuration = 0.3f;
-        private const float BarHeightAboveGroup = 0.5f;   // trên đỉnh cụm sprite của nhóm
+        private const float BarGapAboveSprite = 0.18f;    // khe hở trên ĐỈNH THẬT của sprite (nhân theo cỡ đơn vị)
+        private const float BarThickness = 0.14f;         // độ dày thanh máu ở cỡ lính thường
         private const int BarSortingOrder = 800;          // trên lính (~400) + FX (600), dưới floating text (1000)
 
         public Vector3 Center => transform.position + Vector3.up * 0.7f;
@@ -136,9 +143,14 @@ namespace Ctxd.Battle
                     else
                     {
                         cell.soldiers = g.Soldiers; cell.maxSoldiers = g.MaxSoldiers;
+                        // [F] Server đổi hình nhóm ĐANG SỐNG giữa trận (VisualId/Scale — vd còn giáp → gãy giáp):
+                        // swap sprite tại chỗ, giữ nguyên anchor/slot/máu. So cả scale vì foot-anchor + bar phụ thuộc nó.
+                        float wantScale = _unitScale * (g.Scale > 0f ? g.Scale : 1f);
+                        if (!cell.dying && (cell.visualId != g.VisualId || !Mathf.Approximately(cell.scale, wantScale)))
+                            SwapVisual(cell, g);
                         RefreshBar(cell);
                         if (!initial && (cell.slotPos - target).sqrMagnitude > 0.0001f)
-                            MoveCell(cell, target);       // hàng sau tiến lên → tween Move
+                            MoveCell(cell, target, _layout.advanceDelay);   // [C2] hàng sau tiến lên — đợi anim chết xong
                         else if (initial) { cell.slotPos = target; if (cell.anchor != null) cell.anchor.localPosition = target; }
                     }
                     cell.rowSlot = rowSlot;
@@ -154,40 +166,74 @@ namespace Ctxd.Battle
             anchor.SetParent(transform, false);
             anchor.localPosition = new Vector3(target.x, target.y, 0f);
 
-            int cols = Mathf.Max(1, g.SpriteCols), srows = Mathf.Max(1, g.SpriteRows);
-            var cell = new Cell
-            {
-                rowIndex = r, groupIndex = gi, troop = g.Troop, soldiers = g.Soldiers, maxSoldiers = g.MaxSoldiers,
-                capacity = cols * srows, cols = cols, srows = srows, anchor = anchor, slotPos = target,
-            };
+            var cell = new Cell { rowIndex = r, groupIndex = gi, troop = g.Troop, anchor = anchor, slotPos = target };
+            BuildVisuals(cell, g);
+            return cell;
+        }
 
-            var visual = _db != null ? _db.GetVisualForTroop(g.Troop) : null;
-            Vector2 lo = Vector2.positiveInfinity, hi = Vector2.negativeInfinity;
+        /// <summary>
+        /// Dựng (hoặc DỰNG LẠI khi server đổi hình giữa trận — gói F) sprite + thanh máu của nhóm vào anchor sẵn có.
+        /// Ghi lại <c>visualId/scale</c> đã dùng để nhánh diff phát hiện lần đổi kế tiếp.
+        /// </summary>
+        private void BuildVisuals(Cell cell, GroupSnapshot g)
+        {
+            cell.soldiers = g.Soldiers; cell.maxSoldiers = g.MaxSoldiers;
+            int cols = Mathf.Max(1, g.SpriteCols), srows = Mathf.Max(1, g.SpriteRows);
+            cell.cols = cols; cell.srows = srows; cell.capacity = cols * srows;
+
+            // Art: server may name a specific UnitVisualDefinition (a boss figure); otherwise it is picked by troop type.
+            var visual = _db == null ? null
+                : (!string.IsNullOrEmpty(g.VisualId) ? _db.GetUnitVisual(g.VisualId) : null) ?? _db.GetVisualForTroop(g.Troop);
+            float scale = _unitScale * (g.Scale > 0f ? g.Scale : 1f);
+            cell.visualId = g.VisualId; cell.scale = scale;
+
+            // Bao đóng THẬT của cụm (đơn vị local của anchor) — dùng để đặt thanh máu.
+            float minX = float.PositiveInfinity, maxX = float.NegativeInfinity, maxY = float.NegativeInfinity;
             for (int sr = 0; sr < srows; sr++)
             for (int sc = 0; sc < cols; sc++)
             {
                 Vector2 off = _spriteCol * (sc - (cols - 1) * 0.5f) + _spriteRow * sr;
-                lo = Vector2.Min(lo, off); hi = Vector2.Max(hi, off);
-                var uv = VisualSpawner.SpawnUnit(visual, _faction, anchor);
+                var uv = VisualSpawner.SpawnUnit(visual, _faction, cell.anchor);
                 if (uv == null) continue;
-                uv.transform.localPosition = new Vector3(off.x, off.y, 0f);
-                uv.transform.localScale = Vector3.one * _unitScale;
+                uv.transform.localScale = Vector3.one * scale;
+
+                // Sprite quân đều pivot GIỮA. Đặt thẳng vào `off` thì nửa dưới thò xuống dưới mốc hàng — với lính
+                // 0.7× chỉ lệch ~0.24 nên không ai thấy, nhưng một hình boss phóng to sẽ lún hẳn xuống mấy hàng.
+                // Nâng lên đúng nửa chiều cao → mọi đơn vị ĐỨNG BẰNG CHÂN trên mốc hàng, bất kể cỡ.
+                Vector3 ext = uv.spriteRenderer != null && uv.spriteRenderer.sprite != null
+                    ? uv.spriteRenderer.sprite.bounds.extents * scale
+                    : Vector3.zero;
+                uv.transform.localPosition = new Vector3(off.x, off.y + ext.y, 0f);
                 uv.PlayIdle();
                 cell.sprites.Add(uv);
+
+                minX = Mathf.Min(minX, off.x - ext.x); maxX = Mathf.Max(maxX, off.x + ext.x);
+                maxY = Mathf.Max(maxY, off.y + ext.y * 2f);
             }
 
-            // Thanh máu riêng của NHÓM: bám theo bao đóng thực tế của cụm sprite → tự đúng khi đổi spriteSpacing.
-            if (cell.sprites.Count > 0)
+            // Thanh máu riêng của NHÓM: bám bao đóng thật nên tự đúng khi đổi spriteSpacing HOẶC khi nhóm là 1 hình to.
+            if (cell.sprites.Count > 0 && maxX > minX)
             {
-                Vector2 span = hi - lo;
-                float width = Mathf.Max(0.5f, span.x + 0.35f);
-                var barPos = new Vector3((lo.x + hi.x) * 0.5f, hi.y + BarHeightAboveGroup, 0f);
-                cell.bar = HealthBar.Create(anchor, barPos, width, BarColor(), BarSortingOrder);
+                float width = Mathf.Max(0.5f, (maxX - minX) + 0.3f * scale);
+                float barY = maxY + BarGapAboveSprite * Mathf.Max(1f, scale);
+                cell.bar = HealthBar.Create(cell.anchor, new Vector3((minX + maxX) * 0.5f, barY, 0f),
+                                            width, BarColor(), BarSortingOrder, BarThickness * Mathf.Max(1f, scale),
+                                            _layout.barSegmented, _layout.barSegments);   // [C1] mode chia ngăn
             }
             RefreshBar(cell);
 
             UpdateSorting(cell);
-            return cell;
+        }
+
+        /// <summary>[F] Server đổi hình nhóm đang sống → despawn sprite + bar cũ, dựng hình mới vào CÙNG anchor.
+        /// Máu/slot/vị trí giữ nguyên; bar dựng lại vì bề ngang phụ thuộc bounds của hình mới.</summary>
+        private void SwapVisual(Cell cell, GroupSnapshot g)
+        {
+            if (cell.anchor == null) return;
+            foreach (var uv in cell.sprites) if (uv != null) Destroy(uv.gameObject);
+            cell.sprites.Clear();
+            if (cell.bar != null) { Destroy(cell.bar.gameObject); cell.bar = null; }
+            BuildVisuals(cell, g);
         }
 
         private Color BarColor()
@@ -218,11 +264,19 @@ namespace Ctxd.Battle
             if (t != null) Destroy(t.gameObject);
         }
 
-        private void MoveCell(Cell cell, Vector2 target)
+        private void MoveCell(Cell cell, Vector2 target, float delay = 0f)
         {
-            cell.slotPos = target;
+            cell.slotPos = target;   // claim NGAY để snapshot kế (đến trong lúc chờ) không kích hoạt double-move
             if (cell.moveCo != null) StopCoroutine(cell.moveCo);
-            cell.moveCo = StartCoroutine(MoveCo(cell, target));
+            cell.moveCo = StartCoroutine(MoveDelayedCo(cell, target, delay));
+        }
+
+        /// <summary>[C2] Chờ <paramref name="delay"/> giây (anim chết của hàng trước diễn xong) rồi mới tween lên.
+        /// Chạy trong coroutine của field nên KHÔNG chặn Drain của director.</summary>
+        private IEnumerator MoveDelayedCo(Cell cell, Vector2 target, float delay)
+        {
+            if (delay > 0f) yield return new WaitForSeconds(delay);
+            yield return MoveCo(cell, target);
         }
 
         private IEnumerator MoveCo(Cell cell, Vector2 target)
@@ -248,7 +302,10 @@ namespace Ctxd.Battle
             foreach (var uv in cell.sprites)
             {
                 if (uv == null) continue;
-                int order = 500 - Mathf.RoundToInt(uv.transform.position.y * 50f);
+                // Depth-sort by where the unit STANDS, not where its middle is: a tall figure has a much higher
+                // centre than its feet and would otherwise sort as if it stood several rows further back.
+                float footY = uv.spriteRenderer != null ? uv.spriteRenderer.bounds.min.y : uv.transform.position.y;
+                int order = 500 - Mathf.RoundToInt(footY * 50f);
                 uv.baseSortingOrder = order; uv.SetSortingOrder(order);
             }
         }
@@ -294,15 +351,30 @@ namespace Ctxd.Battle
         /// extracted <c>eff/formation</c> art is drawn row-wide (three linked shapes, one per group slot), so one
         /// copy per group would stack three redundant auras on top of each other.</para>
         /// </summary>
-        public void SpawnUnderFootEffect(EffectVisualDefinition eff, float yOffset, float scale, bool perGroup)
+        public void SpawnUnderFootEffect(EffectVisualDefinition eff, float yOffset, float scale, bool perGroup,
+                                         bool wholeGroup = false, int? anchorRows = null, int? sortingOverride = null, float? lifetimeSec = null)
         {
             if (eff == null) return;
+
+            if (wholeGroup)   // [B2] MỘT aura ôm trọn đội quân — tâm mọi nhóm sống
+            {
+                Vector3 sum = Vector3.zero; int n = 0;
+                foreach (var cell in _cells.Values)
+                {
+                    if (cell.dying || cell.anchor == null) continue;
+                    sum += cell.anchor.position; n++;
+                }
+                if (n > 0) Place(eff, sum / n + Vector3.up * yOffset, scale, sortingOverride, lifetimeSec);
+                return;
+            }
+
+            int rowLimit = anchorRows.HasValue ? Mathf.Max(1, anchorRows.Value) : int.MaxValue;   // [4] 0/1 = hàng trước; N = N hàng trước
             if (perGroup)
             {
                 foreach (var cell in _cells.Values)
                 {
-                    if (cell.dying || cell.anchor == null) continue;
-                    Place(eff, cell.anchor.position + Vector3.up * yOffset, scale);
+                    if (cell.dying || cell.anchor == null || cell.rowSlot >= rowLimit) continue;
+                    Place(eff, cell.anchor.position + Vector3.up * yOffset, scale, sortingOverride, lifetimeSec);
                 }
                 return;
             }
@@ -310,23 +382,113 @@ namespace Ctxd.Battle
             var centre = new Dictionary<int, (Vector3 sum, int n)>();
             foreach (var cell in _cells.Values)
             {
-                if (cell.dying || cell.anchor == null) continue;
+                if (cell.dying || cell.anchor == null || cell.rowSlot >= rowLimit) continue;
                 centre.TryGetValue(cell.rowIndex, out var acc);
                 centre[cell.rowIndex] = (acc.sum + cell.anchor.position, acc.n + 1);
             }
             foreach (var kv in centre)
-                Place(eff, kv.Value.sum / kv.Value.n + Vector3.up * yOffset, scale);
+                Place(eff, kv.Value.sum / kv.Value.n + Vector3.up * yOffset, scale, sortingOverride, lifetimeSec);
         }
 
-        private void Place(EffectVisualDefinition eff, Vector3 pos, float scale)
+        /// <summary>Tâm N hàng trước đang sống (theo rowSlot). N ≤ 0 → tâm cả đội. Dùng đặt FX skill "hàng 1 / giữa nhiều hàng".</summary>
+        public Vector3 RowCenter(int frontRows)
         {
-            var go = VisualSpawner.SpawnEffect(eff, pos, transform);
+            Vector3 sum = Vector3.zero; int n = 0;
+            foreach (var cell in _cells.Values)
+            {
+                if (cell.dying || cell.anchor == null) continue;
+                if (frontRows > 0 && cell.rowSlot >= frontRows) continue;
+                sum += cell.anchor.position; n++;
+            }
+            return n > 0 ? sum / n : Center;
+        }
+
+        private void Place(EffectVisualDefinition eff, Vector3 pos, float scale, int? sorting = null, float? lifetimeSec = null)
+        {
+            var go = VisualSpawner.SpawnEffect(eff, pos, transform, sorting, lifetimeSec);
             if (go != null && scale > 0f) go.transform.localScale *= scale;
         }
 
-        private IEnumerator LungeCo()
+        // ── [A] FX BỀN server-driven: diff danh sách ActiveEffects mỗi snapshot ────────
+        private readonly Dictionary<string, GameObject> _activeFx = new Dictionary<string, GameObject>();
+        private readonly HashSet<string> _fxSeen = new HashSet<string>();
+        private readonly List<string> _fxRemove = new List<string>();
+
+        /// <summary>
+        /// Đồng bộ FX bền theo danh sách server gửi trong snapshot: mục MỚI → spawn FX lặp; CÒN → giữ (và bám
+        /// theo vị trí hàng khi tiến lên); MẤT → huỷ. Gọi từ <c>ServerBattleDirector.RenderFields</c> — đúng seam
+        /// áp snapshot, nên buff "giữ liên tục xuyên suốt" không nhấp nháy theo event.
+        /// </summary>
+        public void SyncActiveEffects(List<ActiveEffectSnapshot> effects,
+                                      System.Func<string, EffectVisualDefinition> resolve, float yOffset, float scale)
         {
-            const float dur = 0.18f, dist = 0.3f;
+            _fxSeen.Clear();
+            if (effects != null)
+            {
+                foreach (var fx in effects)
+                {
+                    if (fx == null || string.IsNullOrEmpty(fx.FxId)) continue;
+                    string key = fx.FxId + "#" + fx.RowIndex;
+                    _fxSeen.Add(key);
+                    Vector3 pos = PersistentAnchor(fx.Anchor, fx.RowIndex, yOffset);
+                    if (_activeFx.TryGetValue(key, out var live) && live != null)
+                    {
+                        live.transform.position = pos;   // hàng tiến lên → aura bám theo
+                        continue;
+                    }
+                    var def = resolve != null ? resolve(fx.FxId) : null;
+                    if (def == null) continue;
+                    var go = VisualSpawner.SpawnEffect(def, pos, transform, fx.SortingOrder, null, loop: true);
+                    if (go == null) continue;
+                    if (scale > 0f) go.transform.localScale *= scale;
+                    _activeFx[key] = go;
+                }
+            }
+
+            _fxRemove.Clear();
+            foreach (var kv in _activeFx) if (!_fxSeen.Contains(kv.Key) || kv.Value == null) _fxRemove.Add(kv.Key);
+            foreach (var k in _fxRemove)
+            {
+                var go = _activeFx[k];
+                _activeFx.Remove(k);
+                if (go == null) continue;
+                var ev = go.GetComponent<EffectVisual>();
+                if (ev != null) ev.StopAndDestroy(); else Destroy(go);
+            }
+        }
+
+        /// <summary>Vị trí neo FX bền: SideCenter = tâm đội; RowIndex ≥ 0 = tâm ĐÚNG hàng đó; -1 = tâm hàng ĐẦU đang sống.</summary>
+        private Vector3 PersistentAnchor(FxAnchorKind anchor, int rowIndex, float yOffset)
+        {
+            if (anchor == FxAnchorKind.SideCenter) return Center;
+            Vector3 sum = Vector3.zero; int n = 0;
+            foreach (var cell in _cells.Values)
+            {
+                if (cell.dying || cell.anchor == null) continue;
+                bool match = rowIndex >= 0 ? cell.rowIndex == rowIndex : cell.rowSlot == 0;
+                if (!match) continue;
+                sum += cell.anchor.position; n++;
+            }
+            return (n > 0 ? sum / n : Center) + Vector3.up * yOffset;
+        }
+
+        /// <summary>[E] Cú xô về phía địch khi 2 quân va nhau lúc đổi hàng — dài và xa hơn lunge đánh thường.</summary>
+        public void PlayClash()
+        {
+            foreach (var cell in _cells.Values)
+            {
+                if (cell.rowSlot != 0) continue;
+                foreach (var uv in cell.sprites) if (uv != null) uv.Play(UnitAction.Attack);
+            }
+            if (!isActiveAndEnabled) return;
+            if (_lunge != null) StopCoroutine(_lunge);
+            _lunge = StartCoroutine(LungeCo(0.24f, 0.45f));
+            if (_idleCo != null) StopCoroutine(_idleCo);
+            _idleCo = StartCoroutine(ReturnIdle(0.6f));
+        }
+
+        private IEnumerator LungeCo(float dur = 0.18f, float dist = 0.3f)
+        {
             float t = 0f;
             while (t < dur)
             {
