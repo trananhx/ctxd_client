@@ -128,8 +128,39 @@ namespace Ctxd.Server
         public bool FiveStar, CanAwaken, StartAwakened;
         public TacticDto Skill1, Skill2;
 
-        /// <summary>Optional per-group troop-type layout (rows × groups). Absent → uniform Rows×3 of the general's Troop.</summary>
+        /// <summary>Optional per-group troop-type layout (rows × groups). Absent → uniform Rows×GroupsPerRow of the general's Troop.</summary>
         public List<List<string>> Formation;
+
+        // ── Cách VẼ đơn vị (không đụng tới cách nó đánh). Bỏ trống = lính thường. ────────────────────
+        /// <summary>Số NHÓM mỗi hàng. 0 = 3 (mặc định). Đặt 1 cho tướng đơn (boss / đấu tay đôi).</summary>
+        public int GroupsPerRow;
+        /// <summary>Số SPRITE mỗi nhóm (cột × hàng). 0 = 3 × 2 = 6. Đặt 1 và 1 cho đúng MỘT hình.</summary>
+        public int SpriteCols, SpriteRows;
+        /// <summary>Hệ số phóng to, NHÂN lên unitScale chung của sân. 0 = 1× (cỡ lính thường).</summary>
+        public double UnitScale;
+        /// <summary>Chỉ định art cụ thể theo <c>UnitVisualDefinition.unitId</c> (vd "102"). Bỏ trống = art theo binh chủng.</summary>
+        public string VisualId;
+
+        // ── Package D: nhóm GIỮA hàng CUỐI thành 1 hình lớn (số lượng 1 SPRITE, +30%) ──
+        /// <summary>true → nhóm giữa (floor(n/2)) của HÀNG CUỐI thành 1 hình lớn. Bỏ trống = không đổi.</summary>
+        public bool LastRowMiddleSingle;
+        /// <summary>Art "B" cho hình giữa hàng cuối (UnitVisualDefinition.unitId). Bỏ trống = giữ art nhóm.</summary>
+        public string LastRowMiddleVisualId;
+        /// <summary>Hệ số phóng to hình giữa hàng cuối. 0 = 1.3 (mặc định, +30%).</summary>
+        public double LastRowMiddleScale;
+
+        /// <summary>Gom các khoá VẼ thành style, hoặc null nếu không khai khoá nào (tướng cũ giữ nguyên hình).</summary>
+        public GroupStyle ToStyle()
+            => (GroupsPerRow > 0 || SpriteCols > 0 || SpriteRows > 0 || UnitScale > 0 || !string.IsNullOrEmpty(VisualId) || LastRowMiddleSingle)
+                ? new GroupStyle
+                {
+                    GroupsPerRow = GroupsPerRow, SpriteCols = SpriteCols, SpriteRows = SpriteRows,
+                    Scale = (float)UnitScale, VisualId = VisualId,
+                    LastRowMiddleSingle = LastRowMiddleSingle,
+                    LastRowMiddleVisualId = LastRowMiddleVisualId,
+                    LastRowMiddleScale = (float)LastRowMiddleScale,
+                }
+                : null;
 
         /// <summary>Optional deputy general (phó tướng): takes ONE row of this general — own stats, HP = total/rows.</summary>
         public GeneralDto Deputy;
@@ -164,6 +195,7 @@ namespace Ctxd.Server
                 Skill1 = Skill1?.ToSpec(),
                 Skill2 = skill2,
                 Awakened = StartAwakened || (CanAwaken && skill2 != null && skill2.IsAwakening),
+                Style = ToStyle(),
             };
 
             if (Formation != null && Formation.Count > 0)
@@ -177,10 +209,14 @@ namespace Ctxd.Server
                             rl.Add(Enum.TryParse<TroopType>(s, true, out var gt) ? gt : troop);
                     layout.Add(rl);
                 }
-                c.Formation.AddRange(FormationBuilder.FromLayout(layout, cap));
+                c.Formation.AddRange(FormationBuilder.FromLayout(layout, cap, c.Style));
                 c.SyncTroops();
+                // Rows is authored separately and is easy to forget; several systems read it as the row count
+                // (InstantTo1Hp scales by it, the HUD ships it). Trust the layout — but only if it produced rows,
+                // because a layout of empty rows yields none and would leave Rows = 0.
+                if (c.Formation.Count > 0) c.Rows = c.Formation.Count;
             }
-            // else: BattleRunner.BuildSide builds a uniform Rows×3 formation of `troop`.
+            // else: BattleRunner.BuildSide builds a uniform Rows×GroupsPerRow formation of `troop`.
 
             if (TerrainBonus != null && TerrainBonus.Count > 0)
             {
@@ -266,7 +302,7 @@ namespace Ctxd.Server
                 int mainRows = main.Rows - 1;
                 main.Rows = mainRows; main.MaxTroops = perRow * mainRows; main.Troops = main.MaxTroops;
                 main.Formation.Clear();
-                main.Formation.AddRange(FormationBuilder.Uniform(mainRows, FormationBuilder.DefaultGroupsPerRow, main.Troop, main.MaxTroops));
+                main.Formation.AddRange(FormationBuilder.Uniform(mainRows, FormationBuilder.DefaultGroupsPerRow, main.Troop, main.MaxTroops, main.Style));
                 main.SyncTroops();
                 dst.Add(main);
 
@@ -274,7 +310,7 @@ namespace Ctxd.Server
                 dep.DisplayName = (string.IsNullOrEmpty(g.Deputy.DisplayName) ? g.Deputy.Id : g.Deputy.DisplayName) + " (Phó)";
                 dep.Rows = 1; dep.MaxTroops = perRow; dep.Troops = perRow;
                 dep.Formation.Clear();
-                dep.Formation.AddRange(FormationBuilder.Uniform(1, FormationBuilder.DefaultGroupsPerRow, dep.Troop, perRow));
+                dep.Formation.AddRange(FormationBuilder.Uniform(1, FormationBuilder.DefaultGroupsPerRow, dep.Troop, perRow, dep.Style));
                 dep.SyncTroops();
                 dst.Add(dep);
             }
