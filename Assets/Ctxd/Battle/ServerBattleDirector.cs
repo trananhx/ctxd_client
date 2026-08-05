@@ -291,6 +291,7 @@ namespace Ctxd.Battle
             SyncBench(_defRoot, _state.Defense, _defBench);
             ActiveGeneralsChanged?.Invoke(off, def);
             if (_hud != null) _hud.SetActiveGenerals(off, def);
+            if (_hud != null) _hud.SyncSideEffects(_state.Offense, _state.Defense);   // [Reskin] dãy icon buff bền trên HUD
         }
 
         /// <summary>
@@ -421,6 +422,9 @@ namespace Ctxd.Battle
                 case BattleEventType.SkillCast:
                 case BattleEventType.TacticCast:   // FIX: sim phát TacticCast; gộp render như SkillCast (trước đây chiến pháp KHÔNG hiển thị)
                     if (!string.IsNullOrEmpty(e.Text)) Say(e.Text, 1.2f);
+                    // [Reskin] pop tên chiến pháp thư pháp giữa màn (ảnh rip nếu map, không thì text TacticName).
+                    if (_hud != null && (!string.IsNullOrEmpty(e.TacticId) || !string.IsNullOrEmpty(e.TacticName)))
+                        _hud.ShowSkillName(e.TacticId, e.TacticName);
                     AttackerField(e.Side)?.PlayAction(UnitAction.Attack);
                     SpawnSkillEffect(e);
                     yield return Wait(eventPace);

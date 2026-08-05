@@ -73,8 +73,12 @@ namespace Ctxd.UI
             return Load(fb);
         }
 
-        // FxId server → icon warBuff (điền ở đợt 2b sau khi xem icon thật); lạ → warBuff/1.
-        static readonly Dictionary<string, string> FxToBuff = new Dictionary<string, string>();
+        // FxId server → icon warBuff (đã xem mắt: 1=kiếm+khiên vàng, 60=ngọn lửa cam); lạ → warBuff/1.
+        static readonly Dictionary<string, string> FxToBuff = new Dictionary<string, string>
+        {
+            ["buff"] = "warBuff/1",
+            ["fire"] = "warBuff/60",
+        };
         public static Sprite BuffIcon(string fxId)
         {
             if (fxId != null && FxToBuff.TryGetValue(fxId, out var k)) { var s = Load(k); if (s != null) return s; }

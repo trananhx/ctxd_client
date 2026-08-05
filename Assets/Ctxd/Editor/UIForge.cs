@@ -94,20 +94,31 @@ namespace Ctxd.EditorTools
             Stretch(rt);
             var ui = root.AddComponent<BattleHudUI>();
 
-            // Offense corner (top-left)
-            var offName = Text("OffName", rt, new Vector2(0, 1), new Vector2(180, -30), new Vector2(320, 40), 26, "—", new Color(0.7f, 0.85f, 1f), TextAlignmentOptions.Left);
-            var offHp = Bar("OffHp", rt, new Vector2(0, 1), new Vector2(180, -64), new Vector2(300, 20), CtxdPalette.HpAlly);
-            var offMor = Bar("OffMorale", rt, new Vector2(0, 1), new Vector2(170, -86), new Vector2(280, 12), CtxdPalette.Morale);
-            // Defense corner (top-right)
-            var defName = Text("DefName", rt, new Vector2(1, 1), new Vector2(-180, -30), new Vector2(320, 40), 26, "—", new Color(1f, 0.7f, 0.7f), TextAlignmentOptions.Right);
-            var defHp = Bar("DefHp", rt, new Vector2(1, 1), new Vector2(-180, -64), new Vector2(300, 20), CtxdPalette.HpEnemy);
-            var defMor = Bar("DefMorale", rt, new Vector2(1, 1), new Vector2(-170, -86), new Vector2(280, 12), CtxdPalette.Morale);
+            // Cụm tướng mỗi góc: khung avatar (chân dung rip gán runtime theo DefId) + tên + máu/số quân + 6 sao nộ + dãy buff.
+            var offC = BuildGeneralCorner(rt, ui, left: true);
+            var defC = BuildGeneralCorner(rt, ui, left: false);
 
-            // Banner (center-top) with a CanvasGroup for fade.
+            // Banner ribbon (center-top): nền đen mờ + 2 kẻ vàng, CanvasGroup fade.
             var bannerGo = NewRect("Banner", rt, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -150), new Vector2(900, 60));
             var bannerGroup = bannerGo.gameObject.AddComponent<CanvasGroup>();
-            var banner = bannerGo.gameObject.AddComponent<TextMeshProUGUI>();
+            var bBg = NewRect("BannerBg", bannerGo, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            var bBgImg = bBg.gameObject.AddComponent<Image>(); bBgImg.color = new Color(0f, 0f, 0f, 0.55f); bBgImg.raycastTarget = false;
+            var lineT = NewRect("LineT", bannerGo, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1f), Vector2.zero, new Vector2(0, 2));
+            lineT.gameObject.AddComponent<Image>().color = CtxdPalette.BtnBorder;
+            var lineB = NewRect("LineB", bannerGo, new Vector2(0, 0), new Vector2(1, 0), new Vector2(0.5f, 0f), Vector2.zero, new Vector2(0, 2));
+            lineB.gameObject.AddComponent<Image>().color = CtxdPalette.BtnBorder;
+            var bTxtRt = NewRect("BannerTxt", bannerGo, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            var banner = bTxtRt.gameObject.AddComponent<TextMeshProUGUI>();
             StyleText(banner, 34, new Color(1f, 0.95f, 0.7f), TextAlignmentOptions.Center);
+
+            // Pop tên chiến pháp (giữa màn, hơi cao): ảnh thư pháp map được → ảnh; không → text thư pháp hồng.
+            var popRt = NewRect("SkillPop", rt, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 60), new Vector2(620, 150));
+            var popGroup = popRt.gameObject.AddComponent<CanvasGroup>();
+            popGroup.blocksRaycasts = false; popGroup.interactable = false;
+            var popPicRt = NewRect("Pic", popRt, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            var popPic = popPicRt.gameObject.AddComponent<Image>(); popPic.raycastTarget = false; popPic.enabled = false;
+            var popTxt = Text("Txt", popRt, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(620, 150), 60, "", CtxdPalette.SkillPop);
+            var ptRt = (RectTransform)popTxt.transform; ptRt.anchorMin = Vector2.zero; ptRt.anchorMax = Vector2.one; ptRt.offsetMin = Vector2.zero; ptRt.offsetMax = Vector2.zero;
 
             // Stance wheel (bottom-center): 4 buttons.
             var dot = Button(rt, "Đột Kích", new Vector2(0.5f, 0), new Vector2(0, 150), new Vector2(150, 56), CtxdPalette.BtnGold);
@@ -115,15 +126,80 @@ namespace Ctxd.EditorTools
             var atk = Button(rt, "Tấn Công", new Vector2(0.5f, 0), new Vector2(180, 90), new Vector2(150, 56), CtxdPalette.BtnCrimson);
             var giac = Button(rt, "GIÁC", new Vector2(0.5f, 0), new Vector2(0, 80), new Vector2(110, 56), CtxdPalette.BtnGold);
 
-            SetField(ui, "_offName", offName); SetField(ui, "_defName", defName);
-            SetField(ui, "_offHp", offHp); SetField(ui, "_defHp", defHp);
-            SetField(ui, "_offMorale", offMor); SetField(ui, "_defMorale", defMor);
+            SetField(ui, "_offName", offC.name); SetField(ui, "_defName", defC.name);
+            SetField(ui, "_offHp", offC.hp); SetField(ui, "_defHp", defC.hp);
+            SetField(ui, "_offTroops", offC.troops); SetField(ui, "_defTroops", defC.troops);
+            SetField(ui, "_offPortrait", offC.portrait); SetField(ui, "_defPortrait", defC.portrait);
+            SetField(ui, "_offStars", offC.stars); SetField(ui, "_defStars", defC.stars);
+            SetField(ui, "_offBuffRow", offC.buffRow); SetField(ui, "_defBuffRow", defC.buffRow);
+            SetField(ui, "_buffTemplate", offC.buffTemplate);
             SetField(ui, "_banner", banner); SetField(ui, "_bannerGroup", bannerGroup);
+            SetField(ui, "_skillPopGroup", popGroup); SetField(ui, "_skillPopImage", popPic); SetField(ui, "_skillPopText", popTxt);
             SetField(ui, "_dotKich", dot); SetField(ui, "_tanCong", atk); SetField(ui, "_phongThu", def); SetField(ui, "_giac", giac);
 
             var prefab = PrefabUtility.SaveAsPrefabAsset(root, HudPath);
             Object.DestroyImmediate(root);
             return prefab;
+        }
+
+        struct GeneralCorner
+        {
+            public TextMeshProUGUI name, troops;
+            public Image hp, portrait;
+            public Image[] stars;
+            public RectTransform buffRow;
+            public GameObject buffTemplate;   // chỉ phe trái tạo template (dùng chung)
+        }
+
+        /// <summary>Cụm HUD 1 tướng: khung avatar 96×96 + tên + BarLabeled máu + 6 sao nộ + hàng buff. Phe phải đối xứng.</summary>
+        static GeneralCorner BuildGeneralCorner(RectTransform rt, BattleHudUI ui, bool left)
+        {
+            string p = left ? "Off" : "Def";
+            float sx = left ? 1f : -1f;
+            Vector2 anchor = left ? new Vector2(0, 1) : new Vector2(1, 1);
+            var c = new GeneralCorner();
+
+            // Khung avatar: viền vàng đồng, nền tối; chân dung inset 4 (ảnh rip nền trong suốt).
+            var frame = Frame(p + "Avatar", rt, anchor, anchor, anchor, new Vector2(sx * 24, -24), new Vector2(96, 96), CtxdPalette.BtnBorder, CtxdPalette.BarSlot);
+            var portRt = NewRect("Portrait", frame, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            portRt.offsetMin = new Vector2(4, 4); portRt.offsetMax = new Vector2(-4, -4);
+            portRt.gameObject.AddComponent<RectMask2D>();
+            var portImgRt = NewRect("Img", portRt, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            c.portrait = portImgRt.gameObject.AddComponent<Image>(); c.portrait.raycastTarget = false; c.portrait.enabled = false;
+
+            c.name = Text(p + "Name", rt, anchor, new Vector2(sx * 132, -30), new Vector2(250, 34), 22, "—",
+                left ? new Color(0.7f, 0.85f, 1f) : new Color(1f, 0.7f, 0.7f), left ? TextAlignmentOptions.Left : TextAlignmentOptions.Right);
+            ((RectTransform)c.name.transform).pivot = new Vector2(left ? 0f : 1f, 0.5f);
+
+            c.hp = BarLabeled(p + "Hp", rt, anchor, new Vector2(sx * 132, -62), new Vector2(240, 20),
+                left ? CtxdPalette.HpAlly : CtxdPalette.HpEnemy, out c.troops, "—");
+
+            // 6 sao nộ (sprite featAnger gán runtime — SetStars).
+            c.stars = new Image[6];
+            for (int i = 0; i < 6; i++)
+            {
+                var sRt = NewRect(p + "Star" + i, rt, anchor, anchor, new Vector2(0.5f, 0.5f), new Vector2(sx * (132 + 13 + i * 27), -94), new Vector2(24, 24));
+                c.stars[i] = sRt.gameObject.AddComponent<Image>();
+                c.stars[i].raycastTarget = false; c.stars[i].enabled = false;
+                c.stars[i].color = new Color(1f, 1f, 1f, 0.28f);
+            }
+
+            // Hàng buff: layout ngang, template icon 40×40 + badge số hiệp.
+            c.buffRow = NewRect(p + "Buffs", rt, anchor, anchor, anchor, new Vector2(sx * 24, -128), new Vector2(420, 44));
+            var lay = c.buffRow.gameObject.AddComponent<HorizontalLayoutGroup>();
+            lay.spacing = 6; lay.childControlWidth = false; lay.childControlHeight = false;
+            lay.childForceExpandWidth = false; lay.childForceExpandHeight = false;
+            lay.childAlignment = left ? TextAnchor.UpperLeft : TextAnchor.UpperRight;
+            if (left)
+            {
+                var tmpl = NewRect("BuffIcon", c.buffRow, new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1), Vector2.zero, new Vector2(40, 40));
+                var timg = tmpl.gameObject.AddComponent<Image>(); timg.raycastTarget = false;
+                var badge = Text("N", tmpl, new Vector2(1, 0), new Vector2(-2, 8), new Vector2(22, 16), 14, "", CtxdPalette.TxtTitle);
+                ((RectTransform)badge.transform).pivot = new Vector2(1f, 0f);
+                tmpl.gameObject.SetActive(false);
+                c.buffTemplate = tmpl.gameObject;
+            }
+            return c;
         }
 
         // ── registry ─────────────────────────────────────────────────────────────
