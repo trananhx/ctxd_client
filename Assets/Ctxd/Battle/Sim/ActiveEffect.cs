@@ -1,7 +1,8 @@
 namespace Ctxd.Battle.Sim
 {
-    /// <summary>Neo một FX bền trên sân — dùng chung "ngữ pháp vị trí" với BattleSideField (dưới chân / tâm hàng / tâm phe).</summary>
-    public enum FxAnchorKind { SideCenter, RowCenter, UnderFoot }
+    /// <summary>Neo một FX bền trên sân — dùng chung "ngữ pháp vị trí" với BattleSideField (dưới chân / tâm hàng / tâm phe).
+    /// APPEND-ONLY (wire theo số): UnderFootAllRows = vầng trải MỖI hàng sống (grammar thế trận row-wide).</summary>
+    public enum FxAnchorKind { SideCenter, RowCenter, UnderFoot, UnderFootAllRows }
 
     /// <summary>
     /// Một FX BỀN (buff giữ liên tục / lửa cháy qua vài hiệp) do SERVER sở hữu. Client diff danh sách này mỗi

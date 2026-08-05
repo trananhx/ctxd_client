@@ -525,6 +525,7 @@ namespace Ctxd.Battle
         private readonly Dictionary<string, GameObject> _activeFx = new Dictionary<string, GameObject>();
         private readonly HashSet<string> _fxSeen = new HashSet<string>();
         private readonly List<string> _fxRemove = new List<string>();
+        private readonly Dictionary<int, (Vector3 sum, int n)> _rowCentres = new Dictionary<int, (Vector3, int)>();   // [thế trận] tâm mỗi hàng sống
 
         /// <summary>
         /// Đồng bộ FX bền theo danh sách server gửi trong snapshot: mục MỚI → spawn FX lặp; CÒN → giữ (và bám
@@ -541,6 +542,39 @@ namespace Ctxd.Battle
                 {
                     if (fx == null || string.IsNullOrEmpty(fx.FxId)) continue;
                     string key = fx.FxId + "#" + fx.RowIndex;
+
+                    // [Thế trận] UnderFootAllRows: MỘT dải MỖI hàng sống (art formation vẽ row-wide) — key theo
+                    // hàng để hàng chết thì dải đó tự huỷ, hàng tiến lên thì dải bám theo.
+                    if (fx.Anchor == FxAnchorKind.UnderFootAllRows)
+                    {
+                        _rowCentres.Clear();
+                        foreach (var cell in _cells.Values)
+                        {
+                            if (cell.dying || cell.anchor == null) continue;
+                            _rowCentres.TryGetValue(cell.rowIndex, out var acc);
+                            _rowCentres[cell.rowIndex] = (acc.sum + cell.anchor.position, acc.n + 1);
+                        }
+                        foreach (var rc in _rowCentres)
+                        {
+                            string rowKey = key + "@" + rc.Key;
+                            _fxSeen.Add(rowKey);
+                            Vector3 rowPos = rc.Value.sum / rc.Value.n + Vector3.up * yOffset;
+                            if (_activeFx.TryGetValue(rowKey, out var rowLive) && rowLive != null)
+                            {
+                                rowLive.transform.position = rowPos;
+                                continue;
+                            }
+                            var rowDef = resolve != null ? resolve(fx.FxId) : null;
+                            if (rowDef == null) continue;
+                            var rowGo = VisualSpawner.SpawnEffect(rowDef, rowPos, transform, fx.SortingOrder, null, loop: true);
+                            if (rowGo == null) continue;
+                            // Dải thế trận cần TO hơn aura buff (art formation mảnh + nằm dưới lính) — nhân 1.8 để lộ rõ.
+                            if (scale > 0f) rowGo.transform.localScale *= scale * 1.8f;
+                            _activeFx[rowKey] = rowGo;
+                        }
+                        continue;
+                    }
+
                     _fxSeen.Add(key);
                     Vector3 pos = PersistentAnchor(fx.Anchor, fx.RowIndex, yOffset);
                     if (_activeFx.TryGetValue(key, out var live) && live != null)
