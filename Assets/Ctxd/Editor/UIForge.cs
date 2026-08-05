@@ -50,11 +50,15 @@ namespace Ctxd.EditorTools
             var root = UIRoot("TestApiPanelUI");
             var rt = (RectTransform)root.transform;
             rt.anchorMin = new Vector2(1, 1); rt.anchorMax = new Vector2(1, 1); rt.pivot = new Vector2(1, 1);
-            rt.anchoredPosition = new Vector2(-12, -100); rt.sizeDelta = new Vector2(344, 600);  // top-right box, below the DEF HUD
-            var bg = root.AddComponent<Image>(); bg.color = new Color(0f, 0f, 0f, 0.5f);
+            // Gọn dưới cụm HUD phải (tránh đè avatar/sao nộ/buff mới).
+            rt.anchoredPosition = new Vector2(-12, -240); rt.sizeDelta = new Vector2(300, 470);
+            var bg = root.AddComponent<Image>(); bg.color = CtxdPalette.PanelBorder;
+            var bgFill = NewRect("Fill", rt, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            bgFill.offsetMin = new Vector2(2, 2); bgFill.offsetMax = new Vector2(-2, -2);
+            var bgFillImg = bgFill.gameObject.AddComponent<Image>(); bgFillImg.color = new Color(0f, 0f, 0f, 0.62f); bgFillImg.raycastTarget = false;
             var ui = root.AddComponent<TestApiPanelUI>();
 
-            Text("Title", rt, new Vector2(0.5f, 1f), new Vector2(0, -30), new Vector2(340, 46), 24, "API CHIẾN ĐẤU (TEST)", CtxdPalette.TxtTitle);
+            Text("Title", rt, new Vector2(0.5f, 1f), new Vector2(0, -22), new Vector2(290, 32), 18, "API CHIẾN ĐẤU (TEST)", CtxdPalette.TxtTitle);
 
             var defs = new (string label, TestApiKind kind, SideRef side)[]
             {
@@ -70,14 +74,14 @@ namespace Ctxd.EditorTools
                 ("Tấn công — ATT", TestApiKind.Attack, SideRef.ATT),
             };
             var arr = new TestApiPanelUI.ApiButton[defs.Length];
-            float y = -78;
+            float y = -56;
             for (int i = 0; i < defs.Length; i++)
             {
                 var d = defs[i];
                 Color c = d.side == SideRef.ATT ? CtxdPalette.BtnBlue : CtxdPalette.BtnCrimson;
-                var btn = Button(rt, d.label, new Vector2(0.5f, 1f), new Vector2(0, y), new Vector2(330, 44), c);
+                var btn = Button(rt, d.label, new Vector2(0.5f, 1f), new Vector2(0, y), new Vector2(280, 36), c, 15);
                 arr[i] = new TestApiPanelUI.ApiButton { button = btn, kind = d.kind, side = d.side };
-                y -= 50;
+                y -= 40;
             }
             SetField(ui, "_buttons", arr);
 
@@ -267,6 +271,7 @@ namespace Ctxd.EditorTools
             var rt = (RectTransform)root.transform; Stretch(rt);
             FullBg(root, CtxdPalette.BgDark);
             var ui = root.AddComponent<LobbyUI>();
+            var lobbyCg = root.AddComponent<CanvasGroup>();
 
             // Hero banner: tranh thủy mặc kỵ binh rip (eff/Recruit/1) trải ngang đỉnh màn.
             var heroRt = NewRect("Hero", rt, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -30), new Vector2(900, 250));
@@ -299,6 +304,7 @@ namespace Ctxd.EditorTools
 
             SetField(ui, "_playerName", pName); SetField(ui, "_level", pLevel); SetField(ui, "_resources", pRes);
             SetField(ui, "_btnCampaign", campaign); SetField(ui, "_btnFormation", formation); SetField(ui, "_stubButtons", stubs);
+            SetField(ui, "_screenGroup", lobbyCg);
 
             var prefab = PrefabUtility.SaveAsPrefabAsset(root, LobbyPath);
             Object.DestroyImmediate(root);
@@ -312,6 +318,7 @@ namespace Ctxd.EditorTools
             var rt = (RectTransform)root.transform; Stretch(rt);
             FullBg(root, CtxdPalette.BgDark);
             var ui = root.AddComponent<SelectGeneralUI>();
+            var selGenCg = root.AddComponent<CanvasGroup>();
 
             Text("Title", rt, new Vector2(0.5f, 1f), new Vector2(0, -56), new Vector2(1400, 60), 40, "CHỌN TƯỚNG — BÀY BINH BỐ TRẬN", CtxdPalette.TxtTitle);
             var hint = Text("Hint", rt, new Vector2(0.5f, 1f), new Vector2(0, -104), new Vector2(1200, 34), 22, "Đã chọn 0/5 tướng", CtxdPalette.TxtBody);
@@ -337,6 +344,7 @@ namespace Ctxd.EditorTools
 
             SetField(ui, "_cards", cards); SetField(ui, "_slots", slots);
             SetField(ui, "_confirm", confirm); SetField(ui, "_back", back); SetField(ui, "_hint", hint);
+            SetField(ui, "_screenGroup", selGenCg);
 
             var prefab = PrefabUtility.SaveAsPrefabAsset(root, SelGenPath);
             Object.DestroyImmediate(root);
@@ -389,6 +397,7 @@ namespace Ctxd.EditorTools
             var rt = (RectTransform)root.transform; Stretch(rt);
             FullBg(root, CtxdPalette.BgDark);
             var ui = root.AddComponent<SelectStageUI>();
+            var selStageCg = root.AddComponent<CanvasGroup>();
 
             Text("Title", rt, new Vector2(0.5f, 1f), new Vector2(0, -56), new Vector2(1200, 60), 40, "CHỌN MÀN — CHINH CHIẾN", CtxdPalette.TxtTitle);
 
@@ -411,6 +420,7 @@ namespace Ctxd.EditorTools
 
             SetField(ui, "_cards", cards); SetField(ui, "_tiers", tiers);
             SetField(ui, "_confirm", confirm); SetField(ui, "_back", back); SetField(ui, "_info", info);
+            SetField(ui, "_screenGroup", selStageCg);
 
             var prefab = PrefabUtility.SaveAsPrefabAsset(root, SelStagePath);
             Object.DestroyImmediate(root);
@@ -450,6 +460,7 @@ namespace Ctxd.EditorTools
             var rt = (RectTransform)root.transform; Stretch(rt);
             FullBg(root, new Color(0.05f, 0.06f, 0.08f, 0.92f));
             var ui = root.AddComponent<ResultUI>();
+            var resultCg = root.AddComponent<CanvasGroup>();
 
             // Cuộn thư pháp rồng vàng (windowBG rip) làm nền kết quả — Image nguyên khối, KHÔNG slice (méo trục gỗ).
             var panel = NewRect("Panel", rt, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 30), new Vector2(900, 527));
@@ -463,6 +474,7 @@ namespace Ctxd.EditorTools
             var cont = Button(rt, "VỀ SẢNH", new Vector2(0.5f, 0.5f), new Vector2(0, -320), new Vector2(320, 80), CtxdPalette.BtnCrimson, 24);
 
             SetField(ui, "_title", title); SetField(ui, "_outcome", outcome); SetField(ui, "_reward", reward); SetField(ui, "_continue", cont);
+            SetField(ui, "_screenGroup", resultCg); SetField(ui, "_panelRt", panel);
 
             var prefab = PrefabUtility.SaveAsPrefabAsset(root, ResultPath);
             Object.DestroyImmediate(root);

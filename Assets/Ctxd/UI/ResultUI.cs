@@ -23,6 +23,8 @@ namespace Ctxd.UI
         [SerializeField] private TMP_Text _outcome;
         [SerializeField] private TMP_Text _reward;
         [SerializeField] private Button _continue;
+        [SerializeField] private CanvasGroup _screenGroup;   // [Reskin] fade-in vào màn
+        [SerializeField] private RectTransform _panelRt;     // [Reskin] cuộn giấy scale-pop 0.94→1
 
         public override UniTask OnCreateAsync(UIContext ctx, CancellationToken ct)
         {
@@ -41,6 +43,7 @@ namespace Ctxd.UI
             }
             if (_outcome != null) { _outcome.text = data.OutcomeText ?? ""; _outcome.color = CtxdPalette.InkOnPaper; }
             if (_reward != null) { _reward.text = data.RewardText ?? ""; _reward.color = CtxdPalette.InkOnPaper; }
+            CtxdUiFx.Enter(_screenGroup, _panelRt);
             return UniTask.CompletedTask;
         }
     }

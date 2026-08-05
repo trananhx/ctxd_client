@@ -49,6 +49,7 @@ namespace Ctxd.UI
         [SerializeField] private Button _confirm;
         [SerializeField] private Button _back;
         [SerializeField] private TMP_Text _info;
+        [SerializeField] private CanvasGroup _screenGroup;   // [Reskin] fade-in vào màn
 
         private readonly List<string> _stageIds = new List<string>();
         private int _selStage = -1;
@@ -99,6 +100,7 @@ namespace Ctxd.UI
                 }
             if (_stageIds.Count > 0) _selStage = 0;   // chọn sẵn màn đầu
             Refresh();
+            CtxdUiFx.Enter(_screenGroup);
             return UniTask.CompletedTask;
         }
 

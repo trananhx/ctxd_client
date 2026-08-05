@@ -226,6 +226,7 @@ GameObject:
   - component: {fileID: 4633900086381290296}
   - component: {fileID: 7175000105166992766}
   - component: {fileID: 322854985101611057}
+  - component: {fileID: 4375650548297341904}
   m_Layer: 0
   m_Name: ResultUI
   m_TagString: Untagged
@@ -308,6 +309,20 @@ MonoBehaviour:
   _outcome: {fileID: 821552907548912460}
   _reward: {fileID: 7135451254501829064}
   _continue: {fileID: 6640983614617603393}
+  _screenGroup: {fileID: 4375650548297341904}
+  _panelRt: {fileID: 1610035842339313266}
+--- !u!225 &4375650548297341904
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2832906454917596073}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &3378116933545670420
 GameObject:
   m_ObjectHideFlags: 0

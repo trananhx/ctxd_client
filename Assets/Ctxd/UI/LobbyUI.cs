@@ -30,6 +30,7 @@ namespace Ctxd.UI
         [SerializeField] private Button _btnCampaign;
         [SerializeField] private Button _btnFormation;
         [SerializeField] private Button[] _stubButtons;   // tạm khoá (Trang bị / Bản đồ / Cửa hàng…)
+        [SerializeField] private CanvasGroup _screenGroup;   // [Reskin] fade-in vào màn
 
         public override UniTask OnCreateAsync(UIContext ctx, CancellationToken ct)
         {
@@ -47,6 +48,7 @@ namespace Ctxd.UI
             if (_playerName != null) _playerName.text = data.PlayerName;
             if (_level != null) _level.text = $"Chủ Công  Lv.{data.Level}";
             if (_resources != null) _resources.text = data.Resources ?? "";
+            CtxdUiFx.Enter(_screenGroup);
             return UniTask.CompletedTask;
         }
     }

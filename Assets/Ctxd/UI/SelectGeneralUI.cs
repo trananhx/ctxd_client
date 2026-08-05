@@ -50,6 +50,7 @@ namespace Ctxd.UI
         [SerializeField] private Button _confirm;
         [SerializeField] private Button _back;
         [SerializeField] private TMP_Text _hint;
+        [SerializeField] private CanvasGroup _screenGroup;   // [Reskin] fade-in vào màn
 
         private readonly List<string> _rosterIds = new List<string>();
         private readonly List<string> _selected = new List<string>();
@@ -103,6 +104,7 @@ namespace Ctxd.UI
                     if (_cards[i].level != null) _cards[i].level.text = $"Lv.{g.Level}";
                 }
             Refresh();
+            CtxdUiFx.Enter(_screenGroup);
             return UniTask.CompletedTask;
         }
 
