@@ -108,7 +108,6 @@ namespace Ctxd.Battle
         private LineupUI _lineup;
         private readonly Queue<ServerMsg> _pending = new Queue<ServerMsg>();
         private bool _playing, _over;
-        private bool _stancePreviewShown;   // FX thế trận phe mình đã vẽ lúc bấm → bỏ qua echo StanceChosen của server
 
         public BattleSnapshot State => _state;
         public bool IsOver => _over;
@@ -188,12 +187,11 @@ namespace Ctxd.Battle
         private void OnDisconnected(string reason) => Say($"Mất kết nối: {reason}", 2f);
 
         // ── commands (UI → server) ───────────────────────────────────────────────
-        /// <summary>Người chơi luôn cầm phe Công. FX thế trận vẽ NGAY lúc bấm (không đợi server) để nút có phản hồi tức thì;
-        /// cờ <see cref="_stancePreviewShown"/> nuốt bản echo <c>StanceChosen</c> của server để khỏi vẽ hai lần.</summary>
+        /// <summary>Người chơi luôn cầm phe Công. FX thế trận KHÔNG vẽ one-shot ở đây nữa — server ghi
+        /// ActiveEffect "stance_*" (UntilRemoved) vào snapshot, SyncPersistentFx render BỀN tới khi đổi thế
+        /// (yêu cầu chủ dự án 2026-08-05: bấm là hiện mãi, đổi thế mới thay).</summary>
         public void SendStance(Stance stance, bool awaken, bool cast = false)
         {
-            PlayUnderFoot(Faction.Offense, StanceFx(stance));
-            _stancePreviewShown = true;
             if (network != null) network.Send(Command.ChooseStance(stance, awaken, cast));
         }
         public void SendTestApi(TestApiKind kind, SideRef side) { if (network != null) network.Send(Command.TestApi(kind, side)); }
@@ -349,12 +347,15 @@ namespace Ctxd.Battle
             field.SyncActiveEffects(side.Effects, id => Fx(PersistentFxFormat(id), side.Faction), underFootY, underFootScale);
         }
 
-        /// <summary>fxId ngắn ("buff"/"fire") map qua Inspector; fxId LẠ được coi là id FX trực tiếp (vd server gửi
-        /// thẳng "warBuff/12" hay "eff/...{f}...") — client hỗ trợ server tối đa, thêm FX mới không cần sửa client.</summary>
+        /// <summary>fxId ngắn ("buff"/"fire"/"stance_*") map qua Inspector; fxId LẠ được coi là id FX trực tiếp (vd server
+        /// gửi thẳng "warBuff/12" hay "eff/...{f}...") — client hỗ trợ server tối đa, thêm FX mới không cần sửa client.</summary>
         private string PersistentFxFormat(string fxId) => fxId switch
         {
             "buff" => persistentBuffFx,
             "fire" => persistentFireFx,
+            "stance_dotkich"  => stanceDotKichFx,    // [FX bền thế trận] server ghi id ngữ nghĩa,
+            "stance_tancong"  => stanceTanCongFx,    // client tự quyết art qua 3 field format sẵn có
+            "stance_phongthu" => stancePhongThuFx,
             _      => fxId,
         };
 
@@ -437,11 +438,8 @@ namespace Ctxd.Battle
                     yield return Wait(eventPace * 0.15f);
                     break;
                 case BattleEventType.RoundBegin:
-                    _stancePreviewShown = false;
                     break;
-                case BattleEventType.StanceChosen:  // vầng sáng thế trận dưới chân phe đã chọn
-                    if (e.Side == Faction.Offense && _stancePreviewShown) _stancePreviewShown = false;   // đã vẽ lúc bấm
-                    else PlayUnderFoot(e.Side, StanceFx(e.Stance));
+                case BattleEventType.StanceChosen:  // vầng thế trận giờ là FX BỀN từ snapshot (SyncPersistentFx) — event chỉ giữ nhịp
                     yield return Wait(eventPace * 0.2f);
                     break;
                 case BattleEventType.Morale:        // đầy nộ / hỗn loạn / đẩy lùi — báo banner nếu có text
@@ -581,13 +579,6 @@ namespace Ctxd.Battle
                 : database.GetEffectVisual(format.Replace("{f}", Facing(side)));
 
         private static string Facing(Faction side) => side == Faction.Offense ? "att" : "def";
-
-        private string StanceFx(Stance stance) => stance switch
-        {
-            Stance.DotKich => stanceDotKichFx,
-            Stance.TanCong => stanceTanCongFx,
-            _              => stancePhongThuFx,
-        };
 
         private void Say(string text, float dur)
         {

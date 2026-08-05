@@ -88,6 +88,10 @@ namespace Ctxd.Battle.Sim
             var defInput = DefenseBrain.Decide(State, Faction.Defense, Rng);
             RecordStance(off, offenseInput.Stance);
             RecordStance(def, defInput.Stance);
+            // [FX bền thế trận] Vầng thế trận sống MÃI (UntilRemoved) tới khi ĐỔI thế khác (SetExclusive thay id)
+            // hoặc server chủ động gỡ — không tự tắt theo lượt (yêu cầu chủ dự án 2026-08-05).
+            State.Offense.SetExclusiveEffect("stance_", StanceFxId(offenseInput.Stance), sorting: 90);
+            State.Defense.SetExclusiveEffect("stance_", StanceFxId(defInput.Stance), sorting: 90);
             ev.Add(StanceEvent(Faction.Offense, off, offenseInput.Stance));
             ev.Add(StanceEvent(Faction.Defense, def, defInput.Stance));
 
@@ -364,6 +368,13 @@ namespace Ctxd.Battle.Sim
         };
 
         private void RecordStance(Combatant c, Stance s) { if (c != null) { c.LastStance = s; c.HasLastStance = true; } }
+        /// <summary>[FX bền thế trận] FxId ngữ nghĩa gửi client — client tự quyết art (PersistentFxFormat map).</summary>
+        private static string StanceFxId(Stance s) => s switch
+        {
+            Stance.DotKich => "stance_dotkich",
+            Stance.TanCong => "stance_tancong",
+            _              => "stance_phongthu",
+        };
         private BattleEvent StanceEvent(Faction side, Combatant c, Stance s) => new BattleEvent
             { Round = State.Round, Type = BattleEventType.StanceChosen, Side = side, ActorId = c?.Id, Stance = s };
         private static void Decrement(Combatant c) { if (c == null) return; if (c.ConfusedTurns > 0) c.ConfusedTurns--; if (c.LuanwuTurns > 0) c.LuanwuTurns--; }

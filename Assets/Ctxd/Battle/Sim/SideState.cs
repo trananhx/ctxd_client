@@ -25,6 +25,16 @@ namespace Ctxd.Battle.Sim
             Effects.Add(new ActiveEffect { FxId = fxId, RemainingRounds = rounds, Anchor = anchor, RowIndex = rowIndex, SortingOrder = sorting });
         }
 
+        /// <summary>[FX] FX bền ĐỘC QUYỀN theo nhóm tiền tố (vd "stance_"): gỡ mọi FX cùng tiền tố khác id rồi
+        /// thêm/refresh id mới. rounds mặc định -1 = UntilRemoved — sống tới khi server thay/gỡ (KHÔNG tự tắt theo hiệp).</summary>
+        public void SetExclusiveEffect(string prefix, string fxId, int rounds = -1, FxAnchorKind anchor = FxAnchorKind.UnderFoot, int sorting = 100)
+        {
+            for (int i = Effects.Count - 1; i >= 0; i--)
+                if (Effects[i].FxId != null && Effects[i].FxId.StartsWith(prefix) && Effects[i].FxId != fxId)
+                    Effects.RemoveAt(i);
+            if (!string.IsNullOrEmpty(fxId)) AddOrRefreshEffect(fxId, rounds, anchor, rowIndex: -1, sorting: sorting);
+        }
+
         public bool HasLiving
         {
             get { for (int i = ActiveIndex; i < Queue.Count; i++) if (Queue[i].Alive) return true; return false; }
