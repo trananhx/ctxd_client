@@ -439,7 +439,11 @@ namespace Ctxd.Battle
                     break;
                 case BattleEventType.RoundBegin:
                     break;
-                case BattleEventType.StanceChosen:  // vầng thế trận giờ là FX BỀN từ snapshot (SyncPersistentFx) — event chỉ giữ nhịp
+                case BattleEventType.StanceChosen:
+                    // [Thế trận] Spawn FX bền NGAY tại event (đứng ĐẦU batch — TRƯỚC mọi animation đánh):
+                    // "FX trước, diễn sau". Snapshot đến cuối batch sẽ thấy cùng khoá diff → giữ, không nháy.
+                    FieldOf(e.Side)?.ApplyPersistentStanceNow(StanceFxId(e.Stance),
+                        id => Fx(PersistentFxFormat(id), e.Side), underFootY, underFootScale);
                     yield return Wait(eventPace * 0.2f);
                     break;
                 case BattleEventType.Morale:        // đầy nộ / hỗn loạn / đẩy lùi — báo banner nếu có text
@@ -579,6 +583,14 @@ namespace Ctxd.Battle
                 : database.GetEffectVisual(format.Replace("{f}", Facing(side)));
 
         private static string Facing(Faction side) => side == Faction.Offense ? "att" : "def";
+
+        /// <summary>FxId thế trận — PHẢI khớp chuỗi server phát (BattleRunner.StanceFxId) để khoá diff trùng nhau.</summary>
+        private static string StanceFxId(Stance stance) => stance switch
+        {
+            Stance.DotKich => "stance_dotkich",
+            Stance.TanCong => "stance_tancong",
+            _              => "stance_phongthu",
+        };
 
         private void Say(string text, float dur)
         {

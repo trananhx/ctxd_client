@@ -547,31 +547,7 @@ namespace Ctxd.Battle
                     // hàng để hàng chết thì dải đó tự huỷ, hàng tiến lên thì dải bám theo.
                     if (fx.Anchor == FxAnchorKind.UnderFootAllRows)
                     {
-                        _rowCentres.Clear();
-                        foreach (var cell in _cells.Values)
-                        {
-                            if (cell.dying || cell.anchor == null) continue;
-                            _rowCentres.TryGetValue(cell.rowIndex, out var acc);
-                            _rowCentres[cell.rowIndex] = (acc.sum + cell.anchor.position, acc.n + 1);
-                        }
-                        foreach (var rc in _rowCentres)
-                        {
-                            string rowKey = key + "@" + rc.Key;
-                            _fxSeen.Add(rowKey);
-                            Vector3 rowPos = rc.Value.sum / rc.Value.n + Vector3.up * yOffset;
-                            if (_activeFx.TryGetValue(rowKey, out var rowLive) && rowLive != null)
-                            {
-                                rowLive.transform.position = rowPos;
-                                continue;
-                            }
-                            var rowDef = resolve != null ? resolve(fx.FxId) : null;
-                            if (rowDef == null) continue;
-                            var rowGo = VisualSpawner.SpawnEffect(rowDef, rowPos, transform, fx.SortingOrder, null, loop: true);
-                            if (rowGo == null) continue;
-                            // Dải thế trận cần TO hơn aura buff (art formation mảnh + nằm dưới lính) — nhân 1.8 để lộ rõ.
-                            if (scale > 0f) rowGo.transform.localScale *= scale * 1.8f;
-                            _activeFx[rowKey] = rowGo;
-                        }
+                        SpawnPersistentPerRow(key, fx.FxId, resolve, yOffset, scale, fx.SortingOrder, markSeen: true);
                         continue;
                     }
 
@@ -601,6 +577,62 @@ namespace Ctxd.Battle
                 var ev = go.GetComponent<EffectVisual>();
                 if (ev != null) ev.StopAndDestroy(); else Destroy(go);
             }
+        }
+
+        /// <summary>Per-row spawn/update cho FX bền trải MỖI hàng sống (dùng chung: sync snapshot + spawn-sớm theo event).</summary>
+        private void SpawnPersistentPerRow(string baseKey, string fxId, System.Func<string, EffectVisualDefinition> resolve,
+                                           float yOffset, float scale, int sorting, bool markSeen)
+        {
+            _rowCentres.Clear();
+            foreach (var cell in _cells.Values)
+            {
+                if (cell.dying || cell.anchor == null) continue;
+                _rowCentres.TryGetValue(cell.rowIndex, out var acc);
+                _rowCentres[cell.rowIndex] = (acc.sum + cell.anchor.position, acc.n + 1);
+            }
+            foreach (var rc in _rowCentres)
+            {
+                string rowKey = baseKey + "@" + rc.Key;
+                if (markSeen) _fxSeen.Add(rowKey);
+                Vector3 rowPos = rc.Value.sum / rc.Value.n + Vector3.up * yOffset;
+                if (_activeFx.TryGetValue(rowKey, out var rowLive) && rowLive != null)
+                {
+                    rowLive.transform.position = rowPos;
+                    continue;
+                }
+                var rowDef = resolve != null ? resolve(fxId) : null;
+                if (rowDef == null) continue;
+                var rowGo = VisualSpawner.SpawnEffect(rowDef, rowPos, transform, sorting, null, loop: true);
+                if (rowGo == null) continue;
+                // Dải thế trận cần TO hơn aura buff (art formation mảnh + nằm dưới lính) — nhân 1.8 để lộ rõ.
+                if (scale > 0f) rowGo.transform.localScale *= scale * 1.8f;
+                _activeFx[rowKey] = rowGo;
+            }
+        }
+
+        /// <summary>
+        /// [Thế trận] Spawn FX bền NGAY khi event <c>StanceChosen</c> tới — TRƯỚC các animation đánh trong batch
+        /// (yêu cầu chủ dự án: FX trước, diễn sau). Dùng CÙNG khoá diff với snapshot ("{fxId}#-1@{row}") nên khi
+        /// <c>StateMsg</c> áp sau đó, <c>SyncActiveEffects</c> thấy key đã sống → GIỮ, không nháy lại.
+        /// Thế cũ (prefix "stance_") bị gỡ tại đây luôn để đổi thế là dải đổi tức thì.
+        /// </summary>
+        public void ApplyPersistentStanceNow(string fxId, System.Func<string, EffectVisualDefinition> resolve,
+                                             float yOffset, float scale, int sorting = 90)
+        {
+            if (string.IsNullOrEmpty(fxId)) return;
+            string baseKey = fxId + "#-1";
+            _fxRemove.Clear();
+            foreach (var kv in _activeFx)
+                if (kv.Key.StartsWith("stance_") && !kv.Key.StartsWith(baseKey + "@")) _fxRemove.Add(kv.Key);
+            foreach (var k in _fxRemove)
+            {
+                var go = _activeFx[k];
+                _activeFx.Remove(k);
+                if (go == null) continue;
+                var ev = go.GetComponent<EffectVisual>();
+                if (ev != null) ev.StopAndDestroy(); else Destroy(go);
+            }
+            SpawnPersistentPerRow(baseKey, fxId, resolve, yOffset, scale, sorting, markSeen: false);
         }
 
         /// <summary>Vị trí neo FX bền: SideCenter = tâm đội; RowIndex ≥ 0 = tâm ĐÚNG hàng đó; -1 = tâm hàng ĐẦU đang sống.</summary>
