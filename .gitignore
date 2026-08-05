@@ -109,3 +109,8 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+# Ảnh chụp verify + folder test tạm (Unity tự sinh meta lại được, không có reference)
+Assets/Screenshots/
+Assets/Screenshots.meta
+Assets/Testing.meta
