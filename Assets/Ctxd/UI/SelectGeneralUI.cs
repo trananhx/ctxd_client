@@ -29,6 +29,7 @@ namespace Ctxd.UI
         {
             public GameObject root;
             public Button button;
+            public Image portrait;      // [Reskin] chân dung rip theo GeneralSummary.Id (ẩn nếu không có art)
             public TMP_Text name;
             public TMP_Text troop;
             public TMP_Text power;
@@ -86,6 +87,12 @@ namespace Ctxd.UI
                     if (!has) continue;
                     var g = roster[i];
                     _rosterIds.Add(g.Id);
+                    if (_cards[i].portrait != null)
+                    {
+                        var sp = CtxdArt.Portrait(g.Id);
+                        _cards[i].portrait.sprite = sp;
+                        _cards[i].portrait.enabled = sp != null;
+                    }
                     if (_cards[i].name != null) _cards[i].name.text = g.DisplayName;
                     if (_cards[i].troop != null)
                     {

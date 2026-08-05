@@ -268,13 +268,26 @@ namespace Ctxd.EditorTools
             FullBg(root, CtxdPalette.BgDark);
             var ui = root.AddComponent<LobbyUI>();
 
-            Text("Title", rt, new Vector2(0.5f, 1f), new Vector2(0, -90), new Vector2(1400, 80), 56, "CÔNG THÀNH XƯNG ĐẾ", CtxdPalette.TxtTitle);
-            Text("Sub", rt, new Vector2(0.5f, 1f), new Vector2(0, -150), new Vector2(1200, 40), 26, "Chiến thuật Tam Quốc theo lượt", CtxdPalette.TxtBody);
+            // Hero banner: tranh thủy mặc kỵ binh rip (eff/Recruit/1) trải ngang đỉnh màn.
+            var heroRt = NewRect("Hero", rt, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -30), new Vector2(900, 250));
+            var hero = heroRt.gameObject.AddComponent<Image>();
+            hero.sprite = SkinIndexForge.FindSprite("eff/Recruit", "1");
+            hero.preserveAspect = true; hero.raycastTarget = false;
+            hero.enabled = hero.sprite != null;
+
+            Text("Title", rt, new Vector2(0.5f, 1f), new Vector2(0, -300), new Vector2(1400, 80), 56, "CÔNG THÀNH XƯNG ĐẾ", CtxdPalette.TxtTitle);
+            Text("Sub", rt, new Vector2(0.5f, 1f), new Vector2(0, -358), new Vector2(1200, 40), 26, "Chiến thuật Tam Quốc theo lượt", CtxdPalette.TxtBody);
 
             var header = Panel("Header", rt, new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1), new Vector2(40, -40), new Vector2(640, 150), CtxdPalette.PanelFill);
-            var pName = TextIn("PName", header, new Vector2(24, 86), new Vector2(-24, -16), 34, "Chủ Công", Color.white, TextAlignmentOptions.Left);
-            var pLevel = TextIn("PLevel", header, new Vector2(24, 46), new Vector2(-24, -62), 24, "Chủ Công Lv.1", new Color(1f, 0.85f, 0.5f), TextAlignmentOptions.Left);
-            var pRes = TextIn("PRes", header, new Vector2(24, 10), new Vector2(-24, -104), 20, "—", new Color(0.8f, 0.86f, 0.8f), TextAlignmentOptions.Left);
+            // Chân dung Lưu Bị (chúa công phe Thục) trang trí góc header.
+            var faceRt = NewRect("Face", header, new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(10, 0), new Vector2(120, 132));
+            var face = faceRt.gameObject.AddComponent<Image>();
+            face.sprite = SkinIndexForge.FindSprite("tacticalGeneralPicMax", "liubei");
+            face.preserveAspect = true; face.raycastTarget = false;
+            face.enabled = face.sprite != null;
+            var pName = TextIn("PName", header, new Vector2(150, 86), new Vector2(-24, -16), 34, "Chủ Công", Color.white, TextAlignmentOptions.Left);
+            var pLevel = TextIn("PLevel", header, new Vector2(150, 46), new Vector2(-24, -62), 24, "Chủ Công Lv.1", new Color(1f, 0.85f, 0.5f), TextAlignmentOptions.Left);
+            var pRes = TextIn("PRes", header, new Vector2(150, 10), new Vector2(-24, -104), 20, "—", new Color(0.8f, 0.86f, 0.8f), TextAlignmentOptions.Left);
 
             var campaign = Button(rt, "XUẤT CHINH", new Vector2(0.5f, 0.5f), new Vector2(0, 40), new Vector2(440, 100), CtxdPalette.BtnCrimson, 26);
             var formation = Button(rt, "ĐỘI HÌNH", new Vector2(0.5f, 0.5f), new Vector2(0, -84), new Vector2(360, 78), CtxdPalette.BtnBlue, 22);
@@ -334,12 +347,16 @@ namespace Ctxd.EditorTools
         {
             var cardRt = Frame($"Card{i}", parent, anchor, anchor, new Vector2(0, 1), pos, size);
             var btn = AddCardButton(cardRt);
-            var name = TextIn("Name", cardRt, new Vector2(16, 84), new Vector2(-16, -8), 26, "—", Color.white, TextAlignmentOptions.Left);
-            var troop = TextIn("Troop", cardRt, new Vector2(16, 48), new Vector2(-16, -52), 20, "—", Color.gray, TextAlignmentOptions.Left);
-            var level = TextIn("Level", cardRt, new Vector2(16, 10), new Vector2(-224, -88), 18, "Lv.—", new Color(0.85f, 0.85f, 0.9f), TextAlignmentOptions.Left);
+            // Chân dung rip bên trái thẻ (sprite gán runtime theo roster — SelectGeneralUI.OnBeforeShowAsync).
+            var portRt = NewRect("Portrait", cardRt, new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(10, 0), new Vector2(108, 116));
+            var portrait = portRt.gameObject.AddComponent<Image>();
+            portrait.preserveAspect = true; portrait.raycastTarget = false; portrait.enabled = false;
+            var name = TextIn("Name", cardRt, new Vector2(128, 84), new Vector2(-16, -8), 26, "—", Color.white, TextAlignmentOptions.Left);
+            var troop = TextIn("Troop", cardRt, new Vector2(128, 48), new Vector2(-16, -52), 20, "—", Color.gray, TextAlignmentOptions.Left);
+            var level = TextIn("Level", cardRt, new Vector2(128, 10), new Vector2(-224, -88), 18, "Lv.—", new Color(0.85f, 0.85f, 0.9f), TextAlignmentOptions.Left);
             var power = TextIn("Power", cardRt, new Vector2(224, 10), new Vector2(-16, -88), 18, "Lực chiến —", new Color(1f, 0.82f, 0.4f), TextAlignmentOptions.Right);
             var mark = Highlight(cardRt);
-            return new SelectGeneralUI.Card { root = cardRt.gameObject, button = btn, name = name, troop = troop, power = power, level = level, selectedMark = mark };
+            return new SelectGeneralUI.Card { root = cardRt.gameObject, button = btn, portrait = portrait, name = name, troop = troop, power = power, level = level, selectedMark = mark };
         }
 
         static SelectGeneralUI.Slot BuildLineupSlot(Transform parent, int i, Vector2 anchor, Vector2 pos, Vector2 size)
@@ -404,11 +421,19 @@ namespace Ctxd.EditorTools
         {
             var cardRt = Frame($"Stage{i}", parent, anchor, anchor, new Vector2(0, 1), pos, size);
             var btn = AddCardButton(cardRt);
-            var name = TextIn("Name", cardRt, new Vector2(20, 74), new Vector2(-20, -10), 28, "—", new Color(1f, 0.9f, 0.7f), TextAlignmentOptions.Left);
-            var terrain = TextIn("Terrain", cardRt, new Vector2(20, 42), new Vector2(-20, -52), 19, "—", new Color(0.7f, 0.85f, 0.95f), TextAlignmentOptions.Left);
-            var desc = TextIn("Desc", cardRt, new Vector2(20, 8), new Vector2(-20, -84), 18, "—", new Color(0.8f, 0.8f, 0.82f), TextAlignmentOptions.Left);
+            // Thumbnail phong cảnh warBG (JPG rip, gán runtime) trong khung viền tối + overlay trầm màu.
+            var thumbFrame = Frame("ThumbFrame", cardRt, new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(12, 0), new Vector2(172, 96), CtxdPalette.BarBorder, CtxdPalette.BarSlot);
+            var thumbRt = NewRect("Thumb", thumbFrame, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            thumbRt.offsetMin = new Vector2(2, 2); thumbRt.offsetMax = new Vector2(-2, -2);
+            var thumb = thumbRt.gameObject.AddComponent<Image>();
+            thumb.raycastTarget = false; thumb.enabled = false;
+            var shade = NewRect("Shade", thumbRt, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            var shadeImg = shade.gameObject.AddComponent<Image>(); shadeImg.color = new Color(0f, 0f, 0f, 0.22f); shadeImg.raycastTarget = false;
+            var name = TextIn("Name", cardRt, new Vector2(200, 74), new Vector2(-20, -10), 28, "—", new Color(1f, 0.9f, 0.7f), TextAlignmentOptions.Left);
+            var terrain = TextIn("Terrain", cardRt, new Vector2(200, 42), new Vector2(-20, -52), 19, "—", new Color(0.7f, 0.85f, 0.95f), TextAlignmentOptions.Left);
+            var desc = TextIn("Desc", cardRt, new Vector2(200, 8), new Vector2(-20, -84), 18, "—", new Color(0.8f, 0.8f, 0.82f), TextAlignmentOptions.Left);
             var mark = Highlight(cardRt);
-            return new SelectStageUI.StageCard { root = cardRt.gameObject, button = btn, name = name, terrain = terrain, desc = desc, selectedMark = mark };
+            return new SelectStageUI.StageCard { root = cardRt.gameObject, button = btn, thumb = thumb, name = name, terrain = terrain, desc = desc, selectedMark = mark };
         }
 
         static SelectStageUI.TierButton BuildTier(Transform parent, int i, string label, Vector2 anchor, Vector2 pos, Vector2 size)
@@ -426,11 +451,16 @@ namespace Ctxd.EditorTools
             FullBg(root, new Color(0.05f, 0.06f, 0.08f, 0.92f));
             var ui = root.AddComponent<ResultUI>();
 
-            var panel = Panel("Panel", rt, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(760, 520), CtxdPalette.PanelFill);
-            var title = TextIn("Title", panel, new Vector2(20, 360), new Vector2(-20, -40), 64, "KẾT QUẢ", CtxdPalette.TxtTitle, TextAlignmentOptions.Center);
-            var outcome = TextIn("Outcome", panel, new Vector2(20, 250), new Vector2(-20, -180), 30, "—", Color.white, TextAlignmentOptions.Center);
-            var reward = TextIn("Reward", panel, new Vector2(20, 120), new Vector2(-20, -300), 24, "—", new Color(0.85f, 0.9f, 0.85f), TextAlignmentOptions.Center);
-            var cont = Button(panel, "VỀ SẢNH", new Vector2(0.5f, 0), new Vector2(0, 60), new Vector2(320, 84), CtxdPalette.BtnCrimson, 24);
+            // Cuộn thư pháp rồng vàng (windowBG rip) làm nền kết quả — Image nguyên khối, KHÔNG slice (méo trục gỗ).
+            var panel = NewRect("Panel", rt, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 30), new Vector2(900, 527));
+            var scroll = panel.gameObject.AddComponent<Image>();
+            scroll.sprite = SkinIndexForge.FindSprite("windowBG", "1");
+            scroll.preserveAspect = true;
+            if (scroll.sprite == null) { scroll.color = CtxdPalette.PanelFill; }   // placeholder nếu thiếu art
+            var title = TextIn("Title", panel, new Vector2(120, 355), new Vector2(-120, -70), 60, "KẾT QUẢ", CtxdPalette.TxtTitle, TextAlignmentOptions.Center);
+            var outcome = TextIn("Outcome", panel, new Vector2(140, 235), new Vector2(-140, -200), 28, "—", CtxdPalette.InkOnPaper, TextAlignmentOptions.Center);
+            var reward = TextIn("Reward", panel, new Vector2(150, 115), new Vector2(-150, -320), 22, "—", CtxdPalette.InkOnPaper, TextAlignmentOptions.Center);
+            var cont = Button(rt, "VỀ SẢNH", new Vector2(0.5f, 0.5f), new Vector2(0, -320), new Vector2(320, 80), CtxdPalette.BtnCrimson, 24);
 
             SetField(ui, "_title", title); SetField(ui, "_outcome", outcome); SetField(ui, "_reward", reward); SetField(ui, "_continue", cont);
 

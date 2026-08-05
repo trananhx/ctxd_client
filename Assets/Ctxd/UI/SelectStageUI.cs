@@ -28,6 +28,7 @@ namespace Ctxd.UI
         {
             public GameObject root;
             public Button button;
+            public Image thumb;         // [Reskin] thumbnail phong cảnh warBG theo stageId/terrain
             public TMP_Text name;
             public TMP_Text terrain;
             public TMP_Text desc;
@@ -86,6 +87,12 @@ namespace Ctxd.UI
                     if (!has) continue;
                     var s = stages[i];
                     _stageIds.Add(s.Id);
+                    if (_cards[i].thumb != null)
+                    {
+                        var sp = CtxdArt.StageBg(s.Id, s.Terrain);
+                        _cards[i].thumb.sprite = sp;
+                        _cards[i].thumb.enabled = sp != null;
+                    }
                     if (_cards[i].name != null) _cards[i].name.text = s.Name;
                     if (_cards[i].terrain != null) _cards[i].terrain.text = $"Địa hình: {TerrainLabel(s.Terrain)}  •  Địch: {s.DefenseNation} ({s.EnemyCount})";
                     if (_cards[i].desc != null) _cards[i].desc.text = s.Desc;

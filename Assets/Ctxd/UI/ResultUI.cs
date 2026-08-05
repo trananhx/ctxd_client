@@ -36,10 +36,11 @@ namespace Ctxd.UI
             if (_title != null)
             {
                 _title.text = data.Win ? "CHIẾN THẮNG" : "THẤT BẠI";
-                _title.color = data.Win ? new Color(1f, 0.85f, 0.35f) : new Color(0.9f, 0.4f, 0.35f);
+                // [Reskin] panel là cuộn giấy windowBG → chữ tông mực trên giấy sáng.
+                _title.color = data.Win ? new Color(0.72f, 0.53f, 0.04f) : new Color(0.55f, 0.18f, 0.14f);
             }
-            if (_outcome != null) _outcome.text = data.OutcomeText ?? "";
-            if (_reward != null) _reward.text = data.RewardText ?? "";
+            if (_outcome != null) { _outcome.text = data.OutcomeText ?? ""; _outcome.color = CtxdPalette.InkOnPaper; }
+            if (_reward != null) { _reward.text = data.RewardText ?? ""; _reward.color = CtxdPalette.InkOnPaper; }
             return UniTask.CompletedTask;
         }
     }

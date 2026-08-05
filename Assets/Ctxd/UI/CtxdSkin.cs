@@ -51,23 +51,30 @@ namespace Ctxd.UI
             return result;
         }
 
-        public static Sprite Portrait(string generalId) => Load($"tacticalGeneralPicMax/{generalId}");
+        public static Sprite Portrait(string generalId)
+        {
+            var s = Load($"tacticalGeneralPicMax/{generalId}");
+            // Nhiều tướng kho rip chỉ có bản đánh số skin (vd huangyueying1) — thử "<id>1" trước khi bó tay.
+            return s != null ? s : Load($"tacticalGeneralPicMax/{generalId}1");
+        }
         public static Sprite AngerStar(int level1to6) => Load($"warFeatAnger/featAnger{Mathf.Clamp(level1to6, 1, 6)}");
 
-        // Map màn → phong cảnh warBG (đã xem mắt: 1=đồng cỏ trại lính, 5=phế tích cháy, 11=sân thành cờ vàng).
+        // Map màn → phong cảnh warBG (đã xem mắt: 1=đồng cỏ trại lính, 3=hẻm núi rừng, 11=sân thành cờ vàng,
+        // silkMap=vịnh nước + trận đồ bát quái — hợp thủy chiến Xích Bích).
         static readonly Dictionary<string, string> StageBgMap = new Dictionary<string, string>
         {
             ["stage_khanhvang"] = "warBG/1", ["stage_fxdemo"] = "warBG/1",
-            ["stage_quando"] = "warBG/11", ["stage_bachho"] = "warBG/5",
-            // stage_xichbich: chốt ở đợt 3 sau khi chọn được ảnh sông nước.
+            ["stage_quando"] = "warBG/11", ["stage_bachho"] = "warBG/3",
+            ["stage_xichbich"] = "warBG/silkMap",
         };
         public static Sprite StageBg(string stageId, string terrain)
         {
             if (stageId != null && StageBgMap.TryGetValue(stageId, out var k)) return Load(k);
             string fb = terrain switch
             {
-                "Mountain" => "warBG/5",
+                "Mountain" => "warBG/3",
                 "Pass" or "City" => "warBG/11",
+                "Water" => "warBG/silkMap",
                 _ => "warBG/1",
             };
             return Load(fb);
