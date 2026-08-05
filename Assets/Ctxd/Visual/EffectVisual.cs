@@ -21,12 +21,20 @@ namespace Ctxd.Visual
         public float lifetime = 1.5f;
         public bool loop = false;   // FX bền: lặp, client-owned lifetime (set từ EffectVisualDefinition.loopUntilRemoved)
 
+        const float PersistentAnimFreezeAt = 0.45f;   // FX bền trên Animator: ghim tại pha rực nhất của clip
+
         private void OnEnable() => Play();
 
         public void Play()
         {
             // spriteRenderer/animator are wired in the prefab by AssetForge — no runtime GetComponent.
-            if (animator != null && animator.runtimeAnimatorController != null) animator.Play(0, 0, 0f);
+            if (animator != null && animator.runtimeAnimatorController != null)
+            {
+                // Clip bake là one-shot "lóe rồi tàn" (frame cuối trống → FX bền thành tàng hình; replay từ 0 thì
+                // nhấp nháy theo chu kỳ). FX bền: GHIM tại pha rực nhất — sáng LIÊN TỤC tới khi owner gỡ.
+                if (loop) { animator.Play(0, 0, PersistentAnimFreezeAt); animator.speed = 0f; }
+                else { animator.speed = 1f; animator.Play(0, 0, 0f); }
+            }
             else if (framePlayer != null)
             {
                 if (loop) { framePlayer.loop = true; framePlayer.destroyOnFinish = false; }

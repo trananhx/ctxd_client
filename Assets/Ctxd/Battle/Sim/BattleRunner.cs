@@ -90,8 +90,9 @@ namespace Ctxd.Battle.Sim
             RecordStance(def, defInput.Stance);
             // [FX bền thế trận] Vầng thế trận sống MÃI (UntilRemoved) tới khi ĐỔI thế khác (SetExclusive thay id)
             // hoặc server chủ động gỡ — không tự tắt theo lượt (yêu cầu chủ dự án 2026-08-05).
-            State.Offense.SetExclusiveEffect("stance_", StanceFxId(offenseInput.Stance), sorting: 90);
-            State.Defense.SetExclusiveEffect("stance_", StanceFxId(defInput.Stance), sorting: 90);
+            // Anchor UnderFootAllRows: client trải vầng MỖI hàng sống (art formation vẽ row-wide).
+            State.Offense.SetExclusiveEffect("stance_", StanceFxId(offenseInput.Stance), anchor: FxAnchorKind.UnderFootAllRows, sorting: 90);
+            State.Defense.SetExclusiveEffect("stance_", StanceFxId(defInput.Stance), anchor: FxAnchorKind.UnderFootAllRows, sorting: 90);
             ev.Add(StanceEvent(Faction.Offense, off, offenseInput.Stance));
             ev.Add(StanceEvent(Faction.Defense, def, defInput.Stance));
 
