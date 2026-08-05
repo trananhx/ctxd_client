@@ -21,7 +21,10 @@ namespace Ctxd.Visual
         public float lifetime = 1.5f;
         public bool loop = false;   // FX bền: lặp, client-owned lifetime (set từ EffectVisualDefinition.loopUntilRemoved)
 
-        const float PersistentAnimFreezeAt = 0.45f;   // FX bền trên Animator: ghim tại pha rực nhất của clip
+        // FX bền trên Animator: clip bake là one-shot "mọc → rực → tàn" (frame cuối trống). Lặp THÂN clip
+        // (đoạn rực) — bỏ pha mọc/tàn — để lửa CHÁY ĐỘNG liên tục, không bao giờ chớp tắt.
+        const float LoopBandStart = 0.25f, LoopBandEnd = 0.80f;
+        private bool _loopAnimator;
 
         private void OnEnable() => Play();
 
@@ -30,10 +33,9 @@ namespace Ctxd.Visual
             // spriteRenderer/animator are wired in the prefab by AssetForge — no runtime GetComponent.
             if (animator != null && animator.runtimeAnimatorController != null)
             {
-                // Clip bake là one-shot "lóe rồi tàn" (frame cuối trống → FX bền thành tàng hình; replay từ 0 thì
-                // nhấp nháy theo chu kỳ). FX bền: GHIM tại pha rực nhất — sáng LIÊN TỤC tới khi owner gỡ.
-                if (loop) { animator.Play(0, 0, PersistentAnimFreezeAt); animator.speed = 0f; }
-                else { animator.speed = 1f; animator.Play(0, 0, 0f); }
+                animator.speed = 1f;
+                animator.Play(0, 0, 0f);          // lần đầu mọc lên tự nhiên từ frame 0
+                _loopAnimator = loop;             // FX bền → Update giữ anim lặp trong LoopBand
             }
             else if (framePlayer != null)
             {
@@ -43,6 +45,13 @@ namespace Ctxd.Visual
 
             CancelInvoke(nameof(SelfDestroy));
             if (!loop && lifetime > 0f) Invoke(nameof(SelfDestroy), lifetime);
+        }
+
+        private void Update()
+        {
+            if (!_loopAnimator || animator == null) return;
+            var st = animator.GetCurrentAnimatorStateInfo(0);
+            if (st.normalizedTime >= LoopBandEnd) animator.Play(0, 0, LoopBandStart);   // hết thân → quay về đầu thân
         }
 
         /// <summary>Re-configure AFTER Instantiate (OnEnable already played): switch to loop and/or override lifetime.</summary>
