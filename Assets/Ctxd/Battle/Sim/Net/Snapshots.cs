@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Ctxd.Battle.Sim.Net
 {
@@ -69,6 +70,8 @@ namespace Ctxd.Battle.Sim.Net
         public int RowIndex = -1;
         public int SortingOrder;
         public int RemainingRounds = -1;
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public FxPhase Phase = FxPhase.PostTurn;   // pha render trong lượt (0 → wire omit)
     }
 
     public sealed class BattleSnapshot
@@ -103,7 +106,7 @@ namespace Ctxd.Battle.Sim.Net
             if (src == null || src.Count == 0) return null;
             var l = new List<ActiveEffectSnapshot>(src.Count);
             foreach (var e in src)
-                l.Add(new ActiveEffectSnapshot { FxId = e.FxId, Anchor = e.Anchor, RowIndex = e.RowIndex, SortingOrder = e.SortingOrder, RemainingRounds = e.RemainingRounds });
+                l.Add(new ActiveEffectSnapshot { FxId = e.FxId, Anchor = e.Anchor, RowIndex = e.RowIndex, SortingOrder = e.SortingOrder, RemainingRounds = e.RemainingRounds, Phase = e.Phase });
             return l;
         }
 

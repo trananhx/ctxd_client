@@ -72,5 +72,52 @@ namespace Ctxd.Tests
             Assert.Contains(back.Offense.Effects, e => e.FxId == "stance_dotkich");
             Assert.True(back.Offense.Effects.Find(e => e.FxId == "stance_dotkich").RemainingRounds < 0);
         }
+
+        // ── [Pool FX theo PHA] server khai báo FX thuộc pha nào của lượt; client render đúng thời điểm ──
+
+        [Fact]
+        public void Stance_Fx_Is_PreTurn_Phase_And_Survives_Wire()
+        {
+            var r = Runner();
+            r.StepRound(new TurnInput(Stance.TanCong));
+
+            var fx = r.State.Offense.Effects.Find(e => e.FxId == "stance_tancong");
+            Assert.Equal(FxPhase.PreTurn, fx.Phase);                       // thế trận = pha TRƯỚC lượt
+
+            var back = Wire.Deserialize<BattleSnapshot>(Wire.Serialize(BattleSnapshot.From(r.State)));
+            Assert.Equal(FxPhase.PreTurn, back.Offense.Effects.Find(e => e.FxId == "stance_tancong").Phase);
+        }
+
+        [Fact]
+        public void Ordinary_Effects_Default_To_PostTurn_And_Wire_Omits_Zero()
+        {
+            var s = new SideState { Faction = Faction.Offense };
+            s.AddOrRefreshEffect("buff", 3);
+            Assert.Equal(FxPhase.PostTurn, s.Effects[0].Phase);            // mặc định = pha SAU lượt (hành vi cũ)
+
+            var state = new BattleState { Offense = s, Defense = new SideState { Faction = Faction.Defense } };
+            string json = Wire.Serialize(BattleSnapshot.From(state));
+            Assert.DoesNotContain("\"Phase\"", json);                      // default 0 → wire omit (0-drift)
+        }
+
+        [Fact]
+        public void StepRound_Emits_PreTurnFx_Event_Before_The_Clash()
+        {
+            var r = Runner();
+            var ev = r.StepRound(new TurnInput(Stance.DotKich));
+
+            int preOff = ev.FindIndex(e => e.Type == BattleEventType.PreTurnFx && e.Side == Faction.Offense);
+            int preDef = ev.FindIndex(e => e.Type == BattleEventType.PreTurnFx && e.Side == Faction.Defense);
+            int clash = ev.FindIndex(e => e.Type == BattleEventType.StanceClash);
+            Assert.True(preOff >= 0 && preDef >= 0);                       // mỗi phe một event pool PreTurn
+            Assert.True(preOff < clash && preDef < clash);                 // đứng TRƯỚC diễn biến đánh
+
+            var offFx = ev[preOff].Effects;
+            Assert.NotNull(offFx);
+            Assert.Contains(offFx, e => e.FxId == "stance_dotkich");       // client render thẳng từ data này
+            // wire round-trip event mang danh sách FX
+            var back = Wire.Deserialize<BattleEvent>(Wire.Serialize(ev[preOff]));
+            Assert.Contains(back.Effects, e => e.FxId == "stance_dotkich");
+        }
     }
 }

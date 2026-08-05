@@ -65,6 +65,8 @@ namespace Ctxd.UI
         private string _offPortraitId, _defPortraitId;   // tránh tra art lại mỗi snapshot
         private bool _giacWasOn;
         private Tween _skillPopTween;
+        private bool _stanceLocked;                       // [theo lượt] đã gửi lệnh — chờ hết turn mới mở
+        private bool _lastCanCast;                        // trạng thái nộ gần nhất (kết hợp với khoá lượt cho GIÁC)
 
         public override UniTask OnCreateAsync(UIContext ctx, CancellationToken ct)
         {
@@ -133,12 +135,26 @@ namespace Ctxd.UI
             }
         }
 
+        /// <summary>
+        /// [Theo lượt] Khoá/mở cụm nút thế trận: bấm là KHOÁ tới khi lượt diễn xong (Director mở lại khi
+        /// snapshot cuối lượt được áp). GIÁC chỉ mở khi vừa hết khoá vừa đủ nộ.
+        /// </summary>
+        public void SetStanceLocked(bool locked)
+        {
+            _stanceLocked = locked;
+            if (_dotKich != null) _dotKich.interactable = !locked;
+            if (_tanCong != null) _tanCong.interactable = !locked;
+            if (_phongThu != null) _phongThu.interactable = !locked;
+            if (_giac != null) _giac.interactable = !locked && _lastCanCast;
+        }
+
         /// <summary>GIÁC bật/tắt + punch scale khi vừa đầy nộ; sao cuối phe ta nhấp nháy chờ thả chiến pháp.</summary>
         private void SetGiac(bool canCast)
         {
+            _lastCanCast = canCast;
             if (_giac != null)
             {
-                _giac.interactable = canCast;
+                _giac.interactable = canCast && !_stanceLocked;
                 if (canCast && !_giacWasOn)
                     ((RectTransform)_giac.transform).DOPunchScale(Vector3.one * 0.12f, 0.35f, 6, 0.7f);
             }

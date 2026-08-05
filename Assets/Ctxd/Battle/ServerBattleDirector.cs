@@ -188,11 +188,13 @@ namespace Ctxd.Battle
 
         // ── commands (UI → server) ───────────────────────────────────────────────
         /// <summary>Người chơi luôn cầm phe Công. FX thế trận KHÔNG vẽ one-shot ở đây nữa — server ghi
-        /// ActiveEffect "stance_*" (UntilRemoved) vào snapshot, SyncPersistentFx render BỀN tới khi đổi thế
-        /// (yêu cầu chủ dự án 2026-08-05: bấm là hiện mãi, đổi thế mới thay).</summary>
+        /// ActiveEffect "stance_*" (UntilRemoved) vào snapshot, SyncPersistentFx render BỀN tới khi đổi thế.
+        /// [Theo lượt] Gửi lệnh xong KHOÁ cụm nút thế trận — mở lại khi lượt diễn xong (case State).</summary>
         public void SendStance(Stance stance, bool awaken, bool cast = false)
         {
-            if (network != null) network.Send(Command.ChooseStance(stance, awaken, cast));
+            if (network == null) return;
+            network.Send(Command.ChooseStance(stance, awaken, cast));
+            if (_hud != null) _hud.SetStanceLocked(true);
         }
         public void SendTestApi(TestApiKind kind, SideRef side) { if (network != null) network.Send(Command.TestApi(kind, side)); }
 
@@ -253,6 +255,8 @@ namespace Ctxd.Battle
                     break;
                 case ServerMsgType.State:
                     _state = msg.Snapshot; RenderFields();
+                    // [Theo lượt] State là msg CUỐI của một lượt (sau batch animation) → lượt diễn xong, mở nút.
+                    if (_hud != null && !_over) _hud.SetStanceLocked(false);
                     break;
                 case ServerMsgType.BattleEnd:
                     _over = true; Finished?.Invoke(msg.Outcome); Say(OutcomeText(msg.Outcome), 3f);
@@ -440,11 +444,12 @@ namespace Ctxd.Battle
                 case BattleEventType.RoundBegin:
                     break;
                 case BattleEventType.StanceChosen:
-                    // [Thế trận] Spawn FX bền NGAY tại event (đứng ĐẦU batch — TRƯỚC mọi animation đánh):
-                    // "FX trước, diễn sau". Snapshot đến cuối batch sẽ thấy cùng khoá diff → giữ, không nháy.
-                    FieldOf(e.Side)?.ApplyPersistentStanceNow(StanceFxId(e.Stance),
-                        id => Fx(PersistentFxFormat(id), e.Side), underFootY, underFootScale);
                     yield return Wait(eventPace * 0.2f);
+                    break;
+                case BattleEventType.PreTurnFx:
+                    // [Pool FX theo pha] Server liệt kê FX pha PreTurn — render NGAY (trước animation đánh),
+                    // hoàn toàn data-driven: server thêm FX PreTurn mới là client tự render, không sửa client.
+                    FieldOf(e.Side)?.SyncPreTurnEffects(e.Effects, id => Fx(PersistentFxFormat(id), e.Side), underFootY, underFootScale);
                     break;
                 case BattleEventType.Morale:        // đầy nộ / hỗn loạn / đẩy lùi — báo banner nếu có text
                 case BattleEventType.Confusion:
@@ -583,14 +588,6 @@ namespace Ctxd.Battle
                 : database.GetEffectVisual(format.Replace("{f}", Facing(side)));
 
         private static string Facing(Faction side) => side == Faction.Offense ? "att" : "def";
-
-        /// <summary>FxId thế trận — PHẢI khớp chuỗi server phát (BattleRunner.StanceFxId) để khoá diff trùng nhau.</summary>
-        private static string StanceFxId(Stance stance) => stance switch
-        {
-            Stance.DotKich => "stance_dotkich",
-            Stance.TanCong => "stance_tancong",
-            _              => "stance_phongthu",
-        };
 
         private void Say(string text, float dur)
         {

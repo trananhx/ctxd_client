@@ -18,21 +18,21 @@ namespace Ctxd.Battle.Sim
         public Combatant Active => (ActiveIndex >= 0 && ActiveIndex < Queue.Count) ? Queue[ActiveIndex] : null;
 
         /// <summary>Thêm/làm mới FX bền: trùng (FxId,RowIndex) thì bump lại hiệp (không nhân đôi); khác thì thêm mới.</summary>
-        public void AddOrRefreshEffect(string fxId, int rounds, FxAnchorKind anchor = FxAnchorKind.UnderFoot, int rowIndex = -1, int sorting = 100)
+        public void AddOrRefreshEffect(string fxId, int rounds, FxAnchorKind anchor = FxAnchorKind.UnderFoot, int rowIndex = -1, int sorting = 100, FxPhase phase = FxPhase.PostTurn)
         {
             foreach (var e in Effects)
-                if (e.FxId == fxId && e.RowIndex == rowIndex) { e.RemainingRounds = rounds; e.Anchor = anchor; e.SortingOrder = sorting; return; }
-            Effects.Add(new ActiveEffect { FxId = fxId, RemainingRounds = rounds, Anchor = anchor, RowIndex = rowIndex, SortingOrder = sorting });
+                if (e.FxId == fxId && e.RowIndex == rowIndex) { e.RemainingRounds = rounds; e.Anchor = anchor; e.SortingOrder = sorting; e.Phase = phase; return; }
+            Effects.Add(new ActiveEffect { FxId = fxId, RemainingRounds = rounds, Anchor = anchor, RowIndex = rowIndex, SortingOrder = sorting, Phase = phase });
         }
 
         /// <summary>[FX] FX bền ĐỘC QUYỀN theo nhóm tiền tố (vd "stance_"): gỡ mọi FX cùng tiền tố khác id rồi
         /// thêm/refresh id mới. rounds mặc định -1 = UntilRemoved — sống tới khi server thay/gỡ (KHÔNG tự tắt theo hiệp).</summary>
-        public void SetExclusiveEffect(string prefix, string fxId, int rounds = -1, FxAnchorKind anchor = FxAnchorKind.UnderFoot, int sorting = 100)
+        public void SetExclusiveEffect(string prefix, string fxId, int rounds = -1, FxAnchorKind anchor = FxAnchorKind.UnderFoot, int sorting = 100, FxPhase phase = FxPhase.PostTurn)
         {
             for (int i = Effects.Count - 1; i >= 0; i--)
                 if (Effects[i].FxId != null && Effects[i].FxId.StartsWith(prefix) && Effects[i].FxId != fxId)
                     Effects.RemoveAt(i);
-            if (!string.IsNullOrEmpty(fxId)) AddOrRefreshEffect(fxId, rounds, anchor, rowIndex: -1, sorting: sorting);
+            if (!string.IsNullOrEmpty(fxId)) AddOrRefreshEffect(fxId, rounds, anchor, rowIndex: -1, sorting: sorting, phase: phase);
         }
 
         public bool HasLiving

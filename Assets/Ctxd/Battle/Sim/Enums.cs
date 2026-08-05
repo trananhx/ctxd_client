@@ -44,6 +44,8 @@ namespace Ctxd.Battle.Sim
         PhantomSpawned, SurroundBegin, SurroundSlam, SurroundEnd,
         // [Stage 2E] công thành / trụ tên / hoả
         TowerShoot, TowerBreak, TowerCountdown, Fire, CityAssaultTactic,
+        // [Pool FX theo pha] server phát pool FX pha PreTurn ĐẦU lượt (trước animation) — Effects trong event.
+        PreTurnFx,
     }
 
     // [Stage 2D] Loại ảo ảnh/giao chiến (khớp battleConstants lua; giá trị THƯA — KHÔNG dùng làm index mảng).

@@ -526,6 +526,8 @@ namespace Ctxd.Battle
         private readonly HashSet<string> _fxSeen = new HashSet<string>();
         private readonly List<string> _fxRemove = new List<string>();
         private readonly Dictionary<int, (Vector3 sum, int n)> _rowCentres = new Dictionary<int, (Vector3, int)>();   // [thế trận] tâm mỗi hàng sống
+        private readonly HashSet<string> _preTurnKeys = new HashSet<string>();   // [pool PreTurn] khoá gốc đã spawn lượt trước
+        private readonly HashSet<string> _preTurnSeen = new HashSet<string>();   // [pool PreTurn] khoá gốc lượt này
 
         /// <summary>
         /// Đồng bộ FX bền theo danh sách server gửi trong snapshot: mục MỚI → spawn FX lặp; CÒN → giữ (và bám
@@ -611,28 +613,54 @@ namespace Ctxd.Battle
         }
 
         /// <summary>
-        /// [Thế trận] Spawn FX bền NGAY khi event <c>StanceChosen</c> tới — TRƯỚC các animation đánh trong batch
-        /// (yêu cầu chủ dự án: FX trước, diễn sau). Dùng CÙNG khoá diff với snapshot ("{fxId}#-1@{row}") nên khi
-        /// <c>StateMsg</c> áp sau đó, <c>SyncActiveEffects</c> thấy key đã sống → GIỮ, không nháy lại.
-        /// Thế cũ (prefix "stance_") bị gỡ tại đây luôn để đổi thế là dải đổi tức thì.
+        /// [Pool FX theo pha] Đồng bộ pool PreTurn từ event <c>PreTurnFx</c> (server phát ĐẦU lượt — TRƯỚC mọi
+        /// animation đánh): "FX trước, diễn sau". Data-driven hoàn toàn: server thêm FX PreTurn mới → client render,
+        /// KHÔNG cần sửa client. Dùng CÙNG khoá diff với snapshot cuối lượt nên State áp sau GIỮ nguyên, không nháy.
+        /// Diff theo <see cref="_preTurnKeys"/>: mục rời pool (đổi thế…) bị gỡ ngay tại đây.
         /// </summary>
-        public void ApplyPersistentStanceNow(string fxId, System.Func<string, EffectVisualDefinition> resolve,
-                                             float yOffset, float scale, int sorting = 90)
+        public void SyncPreTurnEffects(List<ActiveEffectSnapshot> effects,
+                                       System.Func<string, EffectVisualDefinition> resolve, float yOffset, float scale)
         {
-            if (string.IsNullOrEmpty(fxId)) return;
-            string baseKey = fxId + "#-1";
+            _preTurnSeen.Clear();
+            if (effects != null)
+            {
+                foreach (var fx in effects)
+                {
+                    if (fx == null || string.IsNullOrEmpty(fx.FxId)) continue;
+                    string key = fx.FxId + "#" + fx.RowIndex;
+                    if (fx.Anchor == FxAnchorKind.UnderFootAllRows)
+                    {
+                        // per-row: đánh dấu prefix — key hàng cụ thể do SpawnPersistentPerRow tạo ("key@row")
+                        SpawnPersistentPerRow(key, fx.FxId, resolve, yOffset, scale, fx.SortingOrder, markSeen: false);
+                        _preTurnSeen.Add(key);
+                        continue;
+                    }
+                    _preTurnSeen.Add(key);
+                    if (_activeFx.TryGetValue(key, out var live) && live != null) continue;
+                    var def = resolve != null ? resolve(fx.FxId) : null;
+                    if (def == null) continue;
+                    var go = VisualSpawner.SpawnEffect(def, PersistentAnchor(fx.Anchor, fx.RowIndex, yOffset), transform, fx.SortingOrder, null, loop: true);
+                    if (go == null) continue;
+                    if (scale > 0f) go.transform.localScale *= scale;
+                    _activeFx[key] = go;
+                }
+            }
+            // Gỡ mục từng thuộc pool PreTurn nhưng lượt này không còn (vd đổi thế trận).
             _fxRemove.Clear();
-            foreach (var kv in _activeFx)
-                if (kv.Key.StartsWith("stance_") && !kv.Key.StartsWith(baseKey + "@")) _fxRemove.Add(kv.Key);
+            foreach (var known in _preTurnKeys)
+                if (!_preTurnSeen.Contains(known))
+                    foreach (var kv in _activeFx)
+                        if (kv.Key == known || kv.Key.StartsWith(known + "@")) _fxRemove.Add(kv.Key);
             foreach (var k in _fxRemove)
             {
-                var go = _activeFx[k];
+                if (!_activeFx.TryGetValue(k, out var go)) continue;
                 _activeFx.Remove(k);
                 if (go == null) continue;
                 var ev = go.GetComponent<EffectVisual>();
                 if (ev != null) ev.StopAndDestroy(); else Destroy(go);
             }
-            SpawnPersistentPerRow(baseKey, fxId, resolve, yOffset, scale, sorting, markSeen: false);
+            _preTurnKeys.Clear();
+            foreach (var k in _preTurnSeen) _preTurnKeys.Add(k);
         }
 
         /// <summary>Vị trí neo FX bền: SideCenter = tâm đội; RowIndex ≥ 0 = tâm ĐÚNG hàng đó; -1 = tâm hàng ĐẦU đang sống.</summary>

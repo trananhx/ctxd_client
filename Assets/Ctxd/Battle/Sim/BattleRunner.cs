@@ -90,11 +90,14 @@ namespace Ctxd.Battle.Sim
             RecordStance(def, defInput.Stance);
             // [FX bền thế trận] Vầng thế trận sống MÃI (UntilRemoved) tới khi ĐỔI thế khác (SetExclusive thay id)
             // hoặc server chủ động gỡ — không tự tắt theo lượt (yêu cầu chủ dự án 2026-08-05).
-            // Anchor UnderFootAllRows: client trải vầng MỖI hàng sống (art formation vẽ row-wide).
-            State.Offense.SetExclusiveEffect("stance_", StanceFxId(offenseInput.Stance), anchor: FxAnchorKind.UnderFootAllRows, sorting: 90);
-            State.Defense.SetExclusiveEffect("stance_", StanceFxId(defInput.Stance), anchor: FxAnchorKind.UnderFootAllRows, sorting: 90);
+            // Anchor UnderFootAllRows: client trải vầng MỖI hàng sống; Phase PreTurn: hiện TRƯỚC animation đánh.
+            State.Offense.SetExclusiveEffect("stance_", StanceFxId(offenseInput.Stance), anchor: FxAnchorKind.UnderFootAllRows, sorting: 90, phase: FxPhase.PreTurn);
+            State.Defense.SetExclusiveEffect("stance_", StanceFxId(defInput.Stance), anchor: FxAnchorKind.UnderFootAllRows, sorting: 90, phase: FxPhase.PreTurn);
             ev.Add(StanceEvent(Faction.Offense, off, offenseInput.Stance));
             ev.Add(StanceEvent(Faction.Defense, def, defInput.Stance));
+            // [Pool FX theo pha] Phát pool PreTurn mỗi phe NGAY đầu lượt — client render trước diễn biến đánh.
+            ev.Add(PreTurnFxEvent(Faction.Offense, State.Offense));
+            ev.Add(PreTurnFxEvent(Faction.Defense, State.Defense));
 
             int clash = StanceRules.Compare(offenseInput.Stance, defInput.Stance);
             ev.Add(new BattleEvent { Round = State.Round, Type = BattleEventType.StanceClash, Side = Faction.Offense,
@@ -376,6 +379,20 @@ namespace Ctxd.Battle.Sim
             Stance.TanCong => "stance_tancong",
             _              => "stance_phongthu",
         };
+
+        /// <summary>[Pool FX theo pha] Event mang danh sách FX pha PreTurn của phe — client render NGAY đầu lượt,
+        /// CÙNG khoá diff với snapshot cuối lượt (spawn sớm → snapshot giữ, không nháy).</summary>
+        private BattleEvent PreTurnFxEvent(Faction side, SideState s)
+        {
+            List<Net.ActiveEffectSnapshot> list = null;
+            foreach (var e in s.Effects)
+            {
+                if (e.Phase != FxPhase.PreTurn) continue;
+                list ??= new List<Net.ActiveEffectSnapshot>();
+                list.Add(new Net.ActiveEffectSnapshot { FxId = e.FxId, Anchor = e.Anchor, RowIndex = e.RowIndex, SortingOrder = e.SortingOrder, RemainingRounds = e.RemainingRounds, Phase = e.Phase });
+            }
+            return new BattleEvent { Round = State.Round, Type = BattleEventType.PreTurnFx, Side = side, Effects = list };
+        }
         private BattleEvent StanceEvent(Faction side, Combatant c, Stance s) => new BattleEvent
             { Round = State.Round, Type = BattleEventType.StanceChosen, Side = side, ActorId = c?.Id, Stance = s };
         private static void Decrement(Combatant c) { if (c == null) return; if (c.ConfusedTurns > 0) c.ConfusedTurns--; if (c.LuanwuTurns > 0) c.LuanwuTurns--; }

@@ -41,6 +41,10 @@ namespace Ctxd.Battle.Sim
         public bool AnchorWholeGroup;                  // B2: 1 FX ôm cả nhóm thay vì per-hàng/per-nhóm
         public float LifetimeSec = -1f;                // 4b: thời gian tồn tại (giây); <0 = dùng lifetime baked của prefab
 
+        // [Pool FX theo pha] PreTurnFx: danh sách FX bền pha PreTurn của Side — client render NGAY (trước
+        // animation đánh), CÙNG khoá diff với snapshot cuối lượt nên không nháy. null → wire bỏ qua.
+        public System.Collections.Generic.List<Net.ActiveEffectSnapshot> Effects;
+
         public override string ToString()
             => $"[R{Round}] {Type} {Side} {ActorId}->{TargetId} amt={Amount:0} {(Crit ? "CRIT " : "")}{(Miss ? "MISS " : "")}{Text}".Trim();
     }
