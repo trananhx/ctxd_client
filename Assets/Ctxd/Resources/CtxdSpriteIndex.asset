@@ -1,0 +1,1267 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42c64f8f7076b8f4ea4a742e5017ef56, type: 3}
+  m_Name: CtxdSpriteIndex
+  m_EditorClassIdentifier: Assembly-CSharp::Ctxd.UI.CtxdSpriteIndex
+  entries:
+  - Key: tacticalGeneralPicMax/1
+    ResPath: sprite/tacticalGeneralPicMax/1_c78904b767405943
+  - Key: tacticalGeneralPicMax/2
+    ResPath: sprite/tacticalGeneralPicMax/2_6a50331552fe9143
+  - Key: tacticalGeneralPicMax/3
+    ResPath: sprite/tacticalGeneralPicMax/3_9b42452d8a40bd0b
+  - Key: tacticalGeneralPicMax/4
+    ResPath: sprite/tacticalGeneralPicMax/4_18976b2c3d82e050
+  - Key: tacticalGeneralPicMax/5
+    ResPath: sprite/tacticalGeneralPicMax/5_d3fb52d2f19222fc
+  - Key: tacticalGeneralPicMax/6
+    ResPath: sprite/tacticalGeneralPicMax/6_4267443649cc8451
+  - Key: tacticalGeneralPicMax/adn
+    ResPath: sprite/tacticalGeneralPicMax/adn_cccc9a000c2ff9b2
+  - Key: tacticalGeneralPicMax/adou
+    ResPath: sprite/tacticalGeneralPicMax/adou_142af0b03f8d6429
+  - Key: tacticalGeneralPicMax/ajjr1
+    ResPath: sprite/tacticalGeneralPicMax/ajjr1_e41ab8ea3ab7dece
+  - Key: tacticalGeneralPicMax/ajjr2
+    ResPath: sprite/tacticalGeneralPicMax/ajjr2_e41ab8ea3ab7dece
+  - Key: tacticalGeneralPicMax/ayuwang
+    ResPath: sprite/tacticalGeneralPicMax/ayuwang_f86095aa59ec9df8
+  - Key: tacticalGeneralPicMax/baihu
+    ResPath: sprite/tacticalGeneralPicMax/baihu_270b452dffa8870f
+  - Key: tacticalGeneralPicMax/beimihu
+    ResPath: sprite/tacticalGeneralPicMax/beimihu_3032e575ba075c85
+  - Key: tacticalGeneralPicMax/caishen
+    ResPath: sprite/tacticalGeneralPicMax/caishen_14168cd1f45ec528
+  - Key: tacticalGeneralPicMax/caiyang
+    ResPath: sprite/tacticalGeneralPicMax/caiyang_c4fb390179aad429
+  - Key: tacticalGeneralPicMax/caocao1
+    ResPath: sprite/tacticalGeneralPicMax/caocao1_460d68b8f040a22e
+  - Key: tacticalGeneralPicMax/caocao2
+    ResPath: sprite/tacticalGeneralPicMax/caocao2_6faec6ea6dd6a8c4
+  - Key: tacticalGeneralPicMax/caocao3
+    ResPath: sprite/tacticalGeneralPicMax/caocao3_226cebf6cd649be3
+  - Key: tacticalGeneralPicMax/caocao4
+    ResPath: sprite/tacticalGeneralPicMax/caocao4_7aac186ea98fb8c6
+  - Key: tacticalGeneralPicMax/caocao
+    ResPath: sprite/tacticalGeneralPicMax/caocao_a075511ff228deae
+  - Key: tacticalGeneralPicMax/caocaojx
+    ResPath: sprite/tacticalGeneralPicMax/caocaojx_7aac186ea98fb8c6
+  - Key: tacticalGeneralPicMax/caocaozhuanshu
+    ResPath: sprite/tacticalGeneralPicMax/caocaozhuanshu_f40b4d3e64a50d27
+  - Key: tacticalGeneralPicMax/caopi
+    ResPath: sprite/tacticalGeneralPicMax/caopi_4f74f3ae7ef9ba72
+  - Key: tacticalGeneralPicMax/caoren
+    ResPath: sprite/tacticalGeneralPicMax/caoren_b605491f98819659
+  - Key: tacticalGeneralPicMax/caozhi1
+    ResPath: sprite/tacticalGeneralPicMax/caozhi1_d7d7f1698177ddbc
+  - Key: tacticalGeneralPicMax/caozhi2
+    ResPath: sprite/tacticalGeneralPicMax/caozhi2_5dfd1b975590da39
+  - Key: tacticalGeneralPicMax/caozhi3
+    ResPath: sprite/tacticalGeneralPicMax/caozhi3_a0037e61d38d19f7
+  - Key: tacticalGeneralPicMax/caozhi4
+    ResPath: sprite/tacticalGeneralPicMax/caozhi4_039503473320b60c
+  - Key: tacticalGeneralPicMax/caozhi
+    ResPath: sprite/tacticalGeneralPicMax/caozhi_71a4b3b042789c61
+  - Key: tacticalGeneralPicMax/caozhijx
+    ResPath: sprite/tacticalGeneralPicMax/caozhijx_039503473320b60c
+  - Key: tacticalGeneralPicMax/chanyu
+    ResPath: sprite/tacticalGeneralPicMax/chanyu_0978dbb63892dfd7
+  - Key: tacticalGeneralPicMax/chengong
+    ResPath: sprite/tacticalGeneralPicMax/chengong_4d1a44ce10389a2d
+  - Key: tacticalGeneralPicMax/chengyu
+    ResPath: sprite/tacticalGeneralPicMax/chengyu_00e02b01df816041
+  - Key: tacticalGeneralPicMax/chiyou
+    ResPath: sprite/tacticalGeneralPicMax/chiyou_bef9059e90f410d6
+  - Key: tacticalGeneralPicMax/chuanqizhaoyun1
+    ResPath: sprite/tacticalGeneralPicMax/chuanqizhaoyun1_4de2690422df6d1e
+  - Key: tacticalGeneralPicMax/chuanqizhaoyunzhuanshu1
+    ResPath: sprite/tacticalGeneralPicMax/chuanqizhaoyunzhuanshu1_21116672daa52748
+  - Key: tacticalGeneralPicMax/chuanqizhaoyunzhuanshu2
+    ResPath: sprite/tacticalGeneralPicMax/chuanqizhaoyunzhuanshu2_4483a65c9e98f146
+  - Key: tacticalGeneralPicMax/chunyuqiong
+    ResPath: sprite/tacticalGeneralPicMax/chunyuqiong_0e99c8cb960c2777
+  - Key: tacticalGeneralPicMax/daerzi
+    ResPath: sprite/tacticalGeneralPicMax/daerzi_5bae2029859528d0
+  - Key: tacticalGeneralPicMax/dianwei1
+    ResPath: sprite/tacticalGeneralPicMax/dianwei1_29496f81217465f6
+  - Key: tacticalGeneralPicMax/dianwei2
+    ResPath: sprite/tacticalGeneralPicMax/dianwei2_af0855ca23cdd6a4
+  - Key: tacticalGeneralPicMax/dianwei3
+    ResPath: sprite/tacticalGeneralPicMax/dianwei3_8f026721dda23902
+  - Key: tacticalGeneralPicMax/dianwei4
+    ResPath: sprite/tacticalGeneralPicMax/dianwei4_c4931289882706d6
+  - Key: tacticalGeneralPicMax/dianwei
+    ResPath: sprite/tacticalGeneralPicMax/dianwei_17547722ea23d0b6
+  - Key: tacticalGeneralPicMax/dianweijx
+    ResPath: sprite/tacticalGeneralPicMax/dianweijx_3cba977d8f134b1e
+  - Key: tacticalGeneralPicMax/dianweizhuanshu
+    ResPath: sprite/tacticalGeneralPicMax/dianweizhuanshu_e8cd665b5dc61369
+  - Key: tacticalGeneralPicMax/diaochan1
+    ResPath: sprite/tacticalGeneralPicMax/diaochan1_c9db73d2b0bd925f
+  - Key: tacticalGeneralPicMax/diaochan2
+    ResPath: sprite/tacticalGeneralPicMax/diaochan2_8dadabd4731854da
+  - Key: tacticalGeneralPicMax/diaochan3
+    ResPath: sprite/tacticalGeneralPicMax/diaochan3_b0544daf4f49b5ca
+  - Key: tacticalGeneralPicMax/diaochan4
+    ResPath: sprite/tacticalGeneralPicMax/diaochan4_1f349248a12bb250
+  - Key: tacticalGeneralPicMax/diaochan
+    ResPath: sprite/tacticalGeneralPicMax/diaochan_dad961def40fb58d
+  - Key: tacticalGeneralPicMax/diaochanjx2
+    ResPath: sprite/tacticalGeneralPicMax/diaochanjx2_0cf5bb20f1b59cef
+  - Key: tacticalGeneralPicMax/diaochanjx
+    ResPath: sprite/tacticalGeneralPicMax/diaochanjx_1f349248a12bb250
+  - Key: tacticalGeneralPicMax/dongyingjingying
+    ResPath: sprite/tacticalGeneralPicMax/dongyingjingying_9dc53434adbb72e5
+  - Key: tacticalGeneralPicMax/dongyingputong
+    ResPath: sprite/tacticalGeneralPicMax/dongyingputong_92592670e38e4235
+  - Key: tacticalGeneralPicMax/dongzhuo1
+    ResPath: sprite/tacticalGeneralPicMax/dongzhuo1_0d942e2a1533117d
+  - Key: tacticalGeneralPicMax/dongzhuo
+    ResPath: sprite/tacticalGeneralPicMax/dongzhuo_0d942e2a1533117d
+  - Key: tacticalGeneralPicMax/fazheng
+    ResPath: sprite/tacticalGeneralPicMax/fazheng_a5564804101de370
+  - Key: tacticalGeneralPicMax/fengji
+    ResPath: sprite/tacticalGeneralPicMax/fengji_2ad244328964da4e
+  - Key: tacticalGeneralPicMax/fengyi
+    ResPath: sprite/tacticalGeneralPicMax/fengyi_373907d1422d0b0f
+  - Key: tacticalGeneralPicMax/ganning
+    ResPath: sprite/tacticalGeneralPicMax/ganning_e99853ce2acc14c4
+  - Key: tacticalGeneralPicMax/gaoliputong
+    ResPath: sprite/tacticalGeneralPicMax/gaoliputong_ae2076fc3875c7c1
+  - Key: tacticalGeneralPicMax/guanyu1
+    ResPath: sprite/tacticalGeneralPicMax/guanyu1_5f73c3ed83e09fdd
+  - Key: tacticalGeneralPicMax/guanyu2
+    ResPath: sprite/tacticalGeneralPicMax/guanyu2_9588fd617688912c
+  - Key: tacticalGeneralPicMax/guanyu3
+    ResPath: sprite/tacticalGeneralPicMax/guanyu3_47ec4238ba62c774
+  - Key: tacticalGeneralPicMax/guanyu4
+    ResPath: sprite/tacticalGeneralPicMax/guanyu4_4d33b5e9f1da2ffe
+  - Key: tacticalGeneralPicMax/guanyu
+    ResPath: sprite/tacticalGeneralPicMax/guanyu_210013261cc7aee8
+  - Key: tacticalGeneralPicMax/guanyujx
+    ResPath: sprite/tacticalGeneralPicMax/guanyujx_4d33b5e9f1da2ffe
+  - Key: tacticalGeneralPicMax/guojia
+    ResPath: sprite/tacticalGeneralPicMax/guojia_6baab51c72ade1b4
+  - Key: tacticalGeneralPicMax/guosi
+    ResPath: sprite/tacticalGeneralPicMax/guosi_573cda7060292bfe
+  - Key: tacticalGeneralPicMax/hande
+    ResPath: sprite/tacticalGeneralPicMax/hande_2edd7923259f20d9
+  - Key: tacticalGeneralPicMax/hanqi
+    ResPath: sprite/tacticalGeneralPicMax/hanqi_08298f2fa5441de7
+  - Key: tacticalGeneralPicMax/hansui
+    ResPath: sprite/tacticalGeneralPicMax/hansui_573cda7060292bfe
+  - Key: tacticalGeneralPicMax/hanxin
+    ResPath: sprite/tacticalGeneralPicMax/hanxin_83594f21df2ce9f1
+  - Key: tacticalGeneralPicMax/hanying
+    ResPath: sprite/tacticalGeneralPicMax/hanying_f428a211cd95e337
+  - Key: tacticalGeneralPicMax/hejin
+    ResPath: sprite/tacticalGeneralPicMax/hejin_c6cf6b2a6a16d850
+  - Key: tacticalGeneralPicMax/huang
+    ResPath: sprite/tacticalGeneralPicMax/huang_4f74f3ae7ef9ba72
+  - Key: tacticalGeneralPicMax/huanggai
+    ResPath: sprite/tacticalGeneralPicMax/huanggai_56ca19d5e5485fc3
+  - Key: tacticalGeneralPicMax/huanggaijx
+    ResPath: sprite/tacticalGeneralPicMax/huanggaijx_74fdc7d3f2d75db0
+  - Key: tacticalGeneralPicMax/huanggaimj
+    ResPath: sprite/tacticalGeneralPicMax/huanggaimj_468718052d6ec9c5
+  - Key: tacticalGeneralPicMax/huanggaizhuanshu
+    ResPath: sprite/tacticalGeneralPicMax/huanggaizhuanshu_6ff64be271826b3a
+  - Key: tacticalGeneralPicMax/huangquan
+    ResPath: sprite/tacticalGeneralPicMax/huangquan_573cda7060292bfe
+  - Key: tacticalGeneralPicMax/huangsao
+    ResPath: sprite/tacticalGeneralPicMax/huangsao_4eff75b2a7beff6c
+  - Key: tacticalGeneralPicMax/huangyueying1
+    ResPath: sprite/tacticalGeneralPicMax/huangyueying1_6f0849d5a3152211
+  - Key: tacticalGeneralPicMax/huangyueying2
+    ResPath: sprite/tacticalGeneralPicMax/huangyueying2_b301383ec9fb3369
+  - Key: tacticalGeneralPicMax/huangyueying2j
+    ResPath: sprite/tacticalGeneralPicMax/huangyueying2j_11416fb1772ee619
+  - Key: tacticalGeneralPicMax/huangyueying3
+    ResPath: sprite/tacticalGeneralPicMax/huangyueying3_e8657655dec50415
+  - Key: tacticalGeneralPicMax/huangyueying4
+    ResPath: sprite/tacticalGeneralPicMax/huangyueying4_ea7cab1deed60d52
+  - Key: tacticalGeneralPicMax/huangyueying
+    ResPath: sprite/tacticalGeneralPicMax/huangyueying_9a519e13aa10310a
+  - Key: tacticalGeneralPicMax/huangyueyingjx2
+    ResPath: sprite/tacticalGeneralPicMax/huangyueyingjx2_0152158fa4d94d7e
+  - Key: tacticalGeneralPicMax/huangyueyingjx
+    ResPath: sprite/tacticalGeneralPicMax/huangyueyingjx_ea7cab1deed60d52
+  - Key: tacticalGeneralPicMax/huangzhong1
+    ResPath: sprite/tacticalGeneralPicMax/huangzhong1_830ac3bb28b486cb
+  - Key: tacticalGeneralPicMax/huangzhong2
+    ResPath: sprite/tacticalGeneralPicMax/huangzhong2_ee036e29754bb8d2
+  - Key: tacticalGeneralPicMax/huangzhong3
+    ResPath: sprite/tacticalGeneralPicMax/huangzhong3_c46b5171a5a0fbae
+  - Key: tacticalGeneralPicMax/huangzhong4
+    ResPath: sprite/tacticalGeneralPicMax/huangzhong4_0ecbc187116ee46c
+  - Key: tacticalGeneralPicMax/huangzhong
+    ResPath: sprite/tacticalGeneralPicMax/huangzhong_96fe3b46a28c1ac5
+  - Key: tacticalGeneralPicMax/huangzhongjx
+    ResPath: sprite/tacticalGeneralPicMax/huangzhongjx_0ecbc187116ee46c
+  - Key: tacticalGeneralPicMax/huangzhongzhuanshu
+    ResPath: sprite/tacticalGeneralPicMax/huangzhongzhuanshu_5231a2ff852dc97f
+  - Key: tacticalGeneralPicMax/huaxiong
+    ResPath: sprite/tacticalGeneralPicMax/huaxiong_c772d4338dd2d47c
+  - Key: tacticalGeneralPicMax/huchong
+    ResPath: sprite/tacticalGeneralPicMax/huchong_6eea47fa745c5996
+  - Key: tacticalGeneralPicMax/jiangwei1
+    ResPath: sprite/tacticalGeneralPicMax/jiangwei1_a5bf4d2dc50b883f
+  - Key: tacticalGeneralPicMax/jiangwei2
+    ResPath: sprite/tacticalGeneralPicMax/jiangwei2_d06e26d8e6e4a899
+  - Key: tacticalGeneralPicMax/jiangwei3
+    ResPath: sprite/tacticalGeneralPicMax/jiangwei3_45cf95a37ed4a1b2
+  - Key: tacticalGeneralPicMax/jiangwei4
+    ResPath: sprite/tacticalGeneralPicMax/jiangwei4_21ab13301f7ea0f4
+  - Key: tacticalGeneralPicMax/jiangwei
+    ResPath: sprite/tacticalGeneralPicMax/jiangwei_364dd8d90f1132d8
+  - Key: tacticalGeneralPicMax/jiangweijx
+    ResPath: sprite/tacticalGeneralPicMax/jiangweijx_21ab13301f7ea0f4
+  - Key: tacticalGeneralPicMax/jianta
+    ResPath: sprite/tacticalGeneralPicMax/jianta_00dc9a28a21d920b
+  - Key: tacticalGeneralPicMax/jiaxu
+    ResPath: sprite/tacticalGeneralPicMax/jiaxu_e1ed625085441f64
+  - Key: tacticalGeneralPicMax/jiling
+    ResPath: sprite/tacticalGeneralPicMax/jiling_27fcfcde445b168f
+  - Key: tacticalGeneralPicMax/jinlongjun
+    ResPath: sprite/tacticalGeneralPicMax/jinlongjun_39f778a37a2b4b1d
+  - Key: tacticalGeneralPicMax/jinweijun
+    ResPath: sprite/tacticalGeneralPicMax/jinweijun_7547b359d5027fc5
+  - Key: tacticalGeneralPicMax/jinzhaoyin
+    ResPath: sprite/tacticalGeneralPicMax/jinzhaoyin_2ad244328964da4e
+  - Key: tacticalGeneralPicMax/jushimalv
+    ResPath: sprite/tacticalGeneralPicMax/jushimalv_5e5de4141003d8f5
+  - Key: tacticalGeneralPicMax/jxlvmengzhuanshu
+    ResPath: sprite/tacticalGeneralPicMax/jxlvmengzhuanshu_d03356f61c3bf81b
+  - Key: tacticalGeneralPicMax/kaisa
+    ResPath: sprite/tacticalGeneralPicMax/kaisa_1bfb2ebeba8c884a
+  - Key: tacticalGeneralPicMax/kaiser
+    ResPath: sprite/tacticalGeneralPicMax/kaiser_10d0b067e06c4efa
+  - Key: tacticalGeneralPicMax/kongrong
+    ResPath: sprite/tacticalGeneralPicMax/kongrong_043e1e4323444e84
+  - Key: tacticalGeneralPicMax/ksdd
+    ResPath: sprite/tacticalGeneralPicMax/ksdd_39f778a37a2b4b1d
+  - Key: tacticalGeneralPicMax/kuafu
+    ResPath: sprite/tacticalGeneralPicMax/kuafu_bac9ffa6907cdde0
+  - Key: tacticalGeneralPicMax/laoshang
+    ResPath: sprite/tacticalGeneralPicMax/laoshang_55e2464ec0d0bab8
+  - Key: tacticalGeneralPicMax/legendzhaoyun1
+    ResPath: sprite/tacticalGeneralPicMax/legendzhaoyun1_f73bf84e7c076c8f
+  - Key: tacticalGeneralPicMax/legendzhaoyun2
+    ResPath: sprite/tacticalGeneralPicMax/legendzhaoyun2_c4e1c4946d933875
+  - Key: tacticalGeneralPicMax/legendzhaoyun3
+    ResPath: sprite/tacticalGeneralPicMax/legendzhaoyun3_04cffb0bd6635365
+  - Key: tacticalGeneralPicMax/lijue
+    ResPath: sprite/tacticalGeneralPicMax/lijue_573cda7060292bfe
+  - Key: tacticalGeneralPicMax/lilvshui
+    ResPath: sprite/tacticalGeneralPicMax/lilvshui_889438b34f8aff68
+  - Key: tacticalGeneralPicMax/liubang
+    ResPath: sprite/tacticalGeneralPicMax/liubang_ab4eab230b449448
+  - Key: tacticalGeneralPicMax/liubei2
+    ResPath: sprite/tacticalGeneralPicMax/liubei2_be8f1b71eae061e0
+  - Key: tacticalGeneralPicMax/liubei
+    ResPath: sprite/tacticalGeneralPicMax/liubei_7097f286ca624f1e
+  - Key: tacticalGeneralPicMax/liuguanzhang
+    ResPath: sprite/tacticalGeneralPicMax/liuguanzhang_ea3fa307f434d746
+  - Key: tacticalGeneralPicMax/liuqiuwang
+    ResPath: sprite/tacticalGeneralPicMax/liuqiuwang_1c0c8c3fdbcb22c6
+  - Key: tacticalGeneralPicMax/liuxiu
+    ResPath: sprite/tacticalGeneralPicMax/liuxiu_50cf99e8368bfb76
+  - Key: tacticalGeneralPicMax/liuzhang
+    ResPath: sprite/tacticalGeneralPicMax/liuzhang_b2974f34213c4ccb
+  - Key: tacticalGeneralPicMax/lkls
+    ResPath: sprite/tacticalGeneralPicMax/lkls_6ccc79380d73d1d3
+  - Key: tacticalGeneralPicMax/luanshijuanlvzhuanshu2
+    ResPath: sprite/tacticalGeneralPicMax/luanshijuanlvzhuanshu2_053f2ae26d51c42c
+  - Key: tacticalGeneralPicMax/luanshijuanlvzhuanshu3
+    ResPath: sprite/tacticalGeneralPicMax/luanshijuanlvzhuanshu3_d2443e9b0f07badb
+  - Key: tacticalGeneralPicMax/luanshijuanlvzhuanshu
+    ResPath: sprite/tacticalGeneralPicMax/luanshijuanlvzhuanshu_e54184dc2f4c7c2f
+  - Key: tacticalGeneralPicMax/luban
+    ResPath: sprite/tacticalGeneralPicMax/luban_f08e40290ff918e2
+  - Key: tacticalGeneralPicMax/lujing
+    ResPath: sprite/tacticalGeneralPicMax/lujing_e39c38437372cfd3
+  - Key: tacticalGeneralPicMax/lusu
+    ResPath: sprite/tacticalGeneralPicMax/lusu_95a394d064e05b4f
+  - Key: tacticalGeneralPicMax/luxun
+    ResPath: sprite/tacticalGeneralPicMax/luxun_62b6441db42f4422
+  - Key: tacticalGeneralPicMax/lvbu1
+    ResPath: sprite/tacticalGeneralPicMax/lvbu1_0290e69797775675
+  - Key: tacticalGeneralPicMax/lvbu2
+    ResPath: sprite/tacticalGeneralPicMax/lvbu2_e4b7e1e27930fcb3
+  - Key: tacticalGeneralPicMax/lvbu3
+    ResPath: sprite/tacticalGeneralPicMax/lvbu3_b8025f9301739826
+  - Key: tacticalGeneralPicMax/lvbu4
+    ResPath: sprite/tacticalGeneralPicMax/lvbu4_ca8b70470ca36203
+  - Key: tacticalGeneralPicMax/lvbu
+    ResPath: sprite/tacticalGeneralPicMax/lvbu_e93697fa780fcbdc
+  - Key: tacticalGeneralPicMax/lvbudiaochanjx2
+    ResPath: sprite/tacticalGeneralPicMax/lvbudiaochanjx2_1892ceffb915ebc1
+  - Key: tacticalGeneralPicMax/lvbudiaochanjx3
+    ResPath: sprite/tacticalGeneralPicMax/lvbudiaochanjx3_ce61aa94567092b5
+  - Key: tacticalGeneralPicMax/lvbudiaochanjx
+    ResPath: sprite/tacticalGeneralPicMax/lvbudiaochanjx_fe95c8130cc57fdf
+  - Key: tacticalGeneralPicMax/lvbujx2
+    ResPath: sprite/tacticalGeneralPicMax/lvbujx2_3ce61f12e0d60c16
+  - Key: tacticalGeneralPicMax/lvbujx
+    ResPath: sprite/tacticalGeneralPicMax/lvbujx_ca8b70470ca36203
+  - Key: tacticalGeneralPicMax/lvmeng
+    ResPath: sprite/tacticalGeneralPicMax/lvmeng_e010e8f340f16d20
+  - Key: tacticalGeneralPicMax/lvmengjx
+    ResPath: sprite/tacticalGeneralPicMax/lvmengjx_cd5eae5cc7e46b31
+  - Key: tacticalGeneralPicMax/machao1
+    ResPath: sprite/tacticalGeneralPicMax/machao1_7f9d30db15e21938
+  - Key: tacticalGeneralPicMax/machao2
+    ResPath: sprite/tacticalGeneralPicMax/machao2_fb379e2b42ae7c98
+  - Key: tacticalGeneralPicMax/machao3
+    ResPath: sprite/tacticalGeneralPicMax/machao3_480fcc69e7251d0f
+  - Key: tacticalGeneralPicMax/machao4
+    ResPath: sprite/tacticalGeneralPicMax/machao4_2c503c796ffefaf9
+  - Key: tacticalGeneralPicMax/machao
+    ResPath: sprite/tacticalGeneralPicMax/machao_992d2b832d89e51a
+  - Key: tacticalGeneralPicMax/machaojx2
+    ResPath: sprite/tacticalGeneralPicMax/machaojx2_345b2904b8365714
+  - Key: tacticalGeneralPicMax/machaojx
+    ResPath: sprite/tacticalGeneralPicMax/machaojx_2c503c796ffefaf9
+  - Key: tacticalGeneralPicMax/madai
+    ResPath: sprite/tacticalGeneralPicMax/madai_fae5ea583fa2b86f
+  - Key: tacticalGeneralPicMax/manzihaiya
+    ResPath: sprite/tacticalGeneralPicMax/manzihaiya_94fede0942971afe
+  - Key: tacticalGeneralPicMax/manzu
+    ResPath: sprite/tacticalGeneralPicMax/manzu_42d898d325f31522
+  - Key: tacticalGeneralPicMax/mateng
+    ResPath: sprite/tacticalGeneralPicMax/mateng_573cda7060292bfe
+  - Key: tacticalGeneralPicMax/menghuo1
+    ResPath: sprite/tacticalGeneralPicMax/menghuo1_de236b958b595ab8
+  - Key: tacticalGeneralPicMax/menghuo2
+    ResPath: sprite/tacticalGeneralPicMax/menghuo2_819009063692defa
+  - Key: tacticalGeneralPicMax/menghuo3
+    ResPath: sprite/tacticalGeneralPicMax/menghuo3_210c770ecd5fd2b8
+  - Key: tacticalGeneralPicMax/menghuo4
+    ResPath: sprite/tacticalGeneralPicMax/menghuo4_d8280fb13b0f0c2a
+  - Key: tacticalGeneralPicMax/menghuo
+    ResPath: sprite/tacticalGeneralPicMax/menghuo_edd6b786e62ac997
+  - Key: tacticalGeneralPicMax/menghuojx
+    ResPath: sprite/tacticalGeneralPicMax/menghuojx_f3f14de90248fdba
+  - Key: tacticalGeneralPicMax/menghuozhuanshu
+    ResPath: sprite/tacticalGeneralPicMax/menghuozhuanshu_7d1b6e6a1840ccaa
+  - Key: tacticalGeneralPicMax/modu
+    ResPath: sprite/tacticalGeneralPicMax/modu_c8150c843fa6c4f1
+  - Key: tacticalGeneralPicMax/nanzhaojiangling
+    ResPath: sprite/tacticalGeneralPicMax/nanzhaojiangling_4ac1af1bd805534c
+  - Key: tacticalGeneralPicMax/nanzhaowang
+    ResPath: sprite/tacticalGeneralPicMax/nanzhaowang_a8ee3c4ae8e8e319
+  - Key: tacticalGeneralPicMax/nanzhongzhizhu2
+    ResPath: sprite/tacticalGeneralPicMax/nanzhongzhizhu2_bd4106370ccbf0a5
+  - Key: tacticalGeneralPicMax/nanzhongzhizhu3
+    ResPath: sprite/tacticalGeneralPicMax/nanzhongzhizhu3_37c7042f70d7c804
+  - Key: tacticalGeneralPicMax/nanzhongzhizhu
+    ResPath: sprite/tacticalGeneralPicMax/nanzhongzhizhu_b394862d5d883e6b
+  - Key: tacticalGeneralPicMax/nbk
+    ResPath: sprite/tacticalGeneralPicMax/nbk_07aba4358017dfaf
+  - Key: tacticalGeneralPicMax/noPic
+    ResPath: sprite/tacticalGeneralPicMax/noPic_2cc23951889f612f
+  - Key: tacticalGeneralPicMax/nzzzzs
+    ResPath: sprite/tacticalGeneralPicMax/nzzzzs_3eca29dfcf6db9e8
+  - Key: tacticalGeneralPicMax/nzzzzsnzzzzs
+    ResPath: sprite/tacticalGeneralPicMax/nzzzzsnzzzzs_10b06a8116e94472
+  - Key: tacticalGeneralPicMax/pangde
+    ResPath: sprite/tacticalGeneralPicMax/pangde_d54bb912b70790bc
+  - Key: tacticalGeneralPicMax/pangtong
+    ResPath: sprite/tacticalGeneralPicMax/pangtong_1aa24953aae17c73
+  - Key: tacticalGeneralPicMax/qinlong
+    ResPath: sprite/tacticalGeneralPicMax/qinlong_f43e012b08ef9e93
+  - Key: tacticalGeneralPicMax/qinshihuang
+    ResPath: sprite/tacticalGeneralPicMax/qinshihuang_b396e8ef87637714
+  - Key: tacticalGeneralPicMax/qiongqi
+    ResPath: sprite/tacticalGeneralPicMax/qiongqi_9687c0ef3ee9291a
+  - Key: tacticalGeneralPicMax/romulus
+    ResPath: sprite/tacticalGeneralPicMax/romulus_f2325572bc2bc4a0
+  - Key: tacticalGeneralPicMax/sfks
+    ResPath: sprite/tacticalGeneralPicMax/sfks_45f86f4fd55b6f52
+  - Key: tacticalGeneralPicMax/shaonianlvbu
+    ResPath: sprite/tacticalGeneralPicMax/shaonianlvbu_f1439fda9e31c50d
+  - Key: tacticalGeneralPicMax/shenzhangfei
+    ResPath: sprite/tacticalGeneralPicMax/shenzhangfei_1d6df3bc68d5f357
+  - Key: tacticalGeneralPicMax/simahui
+    ResPath: sprite/tacticalGeneralPicMax/simahui_39bf69001e47bc77
+  - Key: tacticalGeneralPicMax/simayi1
+    ResPath: sprite/tacticalGeneralPicMax/simayi1_74017764678e3e56
+  - Key: tacticalGeneralPicMax/simayi2
+    ResPath: sprite/tacticalGeneralPicMax/simayi2_27a220ba5a5929f4
+  - Key: tacticalGeneralPicMax/simayi3
+    ResPath: sprite/tacticalGeneralPicMax/simayi3_cc91f13cee6f46b1
+  - Key: tacticalGeneralPicMax/simayi4
+    ResPath: sprite/tacticalGeneralPicMax/simayi4_d860017bd02163f2
+  - Key: tacticalGeneralPicMax/simayi
+    ResPath: sprite/tacticalGeneralPicMax/simayi_db5b5ee9d9115cf9
+  - Key: tacticalGeneralPicMax/simayijx
+    ResPath: sprite/tacticalGeneralPicMax/simayijx_d860017bd02163f2
+  - Key: tacticalGeneralPicMax/simazhao
+    ResPath: sprite/tacticalGeneralPicMax/simazhao_62b68fe718c607ea
+  - Key: tacticalGeneralPicMax/songxian
+    ResPath: sprite/tacticalGeneralPicMax/songxian_25a6061ac1e5822e
+  - Key: tacticalGeneralPicMax/sunce
+    ResPath: sprite/tacticalGeneralPicMax/sunce_908b96cf10a4d5da
+  - Key: tacticalGeneralPicMax/suncejx
+    ResPath: sprite/tacticalGeneralPicMax/suncejx_22fb770ed635943f
+  - Key: tacticalGeneralPicMax/suncezhuanshu
+    ResPath: sprite/tacticalGeneralPicMax/suncezhuanshu_b371f19537977c41
+  - Key: tacticalGeneralPicMax/sunjian
+    ResPath: sprite/tacticalGeneralPicMax/sunjian_389f9407cc1b6d32
+  - Key: tacticalGeneralPicMax/sunjin
+    ResPath: sprite/tacticalGeneralPicMax/sunjin_37ddbdc24dfd8a08
+  - Key: tacticalGeneralPicMax/sunquan2
+    ResPath: sprite/tacticalGeneralPicMax/sunquan2_c40aa42dd35fc0b5
+  - Key: tacticalGeneralPicMax/sunquan
+    ResPath: sprite/tacticalGeneralPicMax/sunquan_e40a8fef930afb61
+  - Key: tacticalGeneralPicMax/sunshangxiang1
+    ResPath: sprite/tacticalGeneralPicMax/sunshangxiang1_787dc746f0a2818c
+  - Key: tacticalGeneralPicMax/sunshangxiang2
+    ResPath: sprite/tacticalGeneralPicMax/sunshangxiang2_ccd51a1a80b8d67c
+  - Key: tacticalGeneralPicMax/sunshangxiang3
+    ResPath: sprite/tacticalGeneralPicMax/sunshangxiang3_b82ca9d24b572d69
+  - Key: tacticalGeneralPicMax/sunshangxiang4
+    ResPath: sprite/tacticalGeneralPicMax/sunshangxiang4_f8fbb6fd1a308108
+  - Key: tacticalGeneralPicMax/sunshangxiang
+    ResPath: sprite/tacticalGeneralPicMax/sunshangxiang_b7bd4c89807d269c
+  - Key: tacticalGeneralPicMax/sunshangxiangjx
+    ResPath: sprite/tacticalGeneralPicMax/sunshangxiangjx_f8fbb6fd1a308108
+  - Key: tacticalGeneralPicMax/sunshangxiangmj
+    ResPath: sprite/tacticalGeneralPicMax/sunshangxiangmj_0a51fa32c9de6b51
+  - Key: tacticalGeneralPicMax/sunshangxiangzhuanshu1
+    ResPath: sprite/tacticalGeneralPicMax/sunshangxiangzhuanshu1_a1ef1cd22e645614
+  - Key: tacticalGeneralPicMax/sunshangxiangzhuanshu2
+    ResPath: sprite/tacticalGeneralPicMax/sunshangxiangzhuanshu2_93c2bbab677d32d5
+  - Key: tacticalGeneralPicMax/suworulu
+    ResPath: sprite/tacticalGeneralPicMax/suworulu_5cb40c972f1caf9c
+  - Key: tacticalGeneralPicMax/taishi
+    ResPath: sprite/tacticalGeneralPicMax/taishi_7cf9be5ea07096e6
+  - Key: tacticalGeneralPicMax/taishici
+    ResPath: sprite/tacticalGeneralPicMax/taishici_b9bb1004f8a3b1eb
+  - Key: tacticalGeneralPicMax/taoyuanzhishi1
+    ResPath: sprite/tacticalGeneralPicMax/taoyuanzhishi1_7b181788383af443
+  - Key: tacticalGeneralPicMax/taoyuanzhishizhuanshu2
+    ResPath: sprite/tacticalGeneralPicMax/taoyuanzhishizhuanshu2_95f895e9eba10753
+  - Key: tacticalGeneralPicMax/taoyuanzhishizhuanshu
+    ResPath: sprite/tacticalGeneralPicMax/taoyuanzhishizhuanshu_e0807c391a16cd62
+  - Key: tacticalGeneralPicMax/tianfeng
+    ResPath: sprite/tacticalGeneralPicMax/tianfeng_1aeedfab8cd19889
+  - Key: tacticalGeneralPicMax/touman
+    ResPath: sprite/tacticalGeneralPicMax/touman_387bc40a62741104
+  - Key: tacticalGeneralPicMax/toushiche
+    ResPath: sprite/tacticalGeneralPicMax/toushiche_51b33617a38c6fa2
+  - Key: tacticalGeneralPicMax/tufei
+    ResPath: sprite/tacticalGeneralPicMax/tufei_42ae6beceed428d6
+  - Key: tacticalGeneralPicMax/wangzhongxian
+    ResPath: sprite/tacticalGeneralPicMax/wangzhongxian_f851d14f696c01d7
+  - Key: tacticalGeneralPicMax/wdw
+    ResPath: sprite/tacticalGeneralPicMax/wdw_24ee520b7adc3a7d
+  - Key: tacticalGeneralPicMax/weixu
+    ResPath: sprite/tacticalGeneralPicMax/weixu_cb5f0d21d66fbbbb
+  - Key: tacticalGeneralPicMax/weiyan1
+    ResPath: sprite/tacticalGeneralPicMax/weiyan1_9b264a55ac45f557
+  - Key: tacticalGeneralPicMax/weiyan2
+    ResPath: sprite/tacticalGeneralPicMax/weiyan2_e277d76fa5d57624
+  - Key: tacticalGeneralPicMax/weiyan3
+    ResPath: sprite/tacticalGeneralPicMax/weiyan3_549aee6a14f8bdaf
+  - Key: tacticalGeneralPicMax/weiyan4
+    ResPath: sprite/tacticalGeneralPicMax/weiyan4_c7804e35ab5e887e
+  - Key: tacticalGeneralPicMax/weiyan
+    ResPath: sprite/tacticalGeneralPicMax/weiyan_ca114627d4938c9b
+  - Key: tacticalGeneralPicMax/weiyanjx
+    ResPath: sprite/tacticalGeneralPicMax/weiyanjx_c7804e35ab5e887e
+  - Key: tacticalGeneralPicMax/wenchou
+    ResPath: sprite/tacticalGeneralPicMax/wenchou_fb47aaf41df3467c
+  - Key: tacticalGeneralPicMax/wjt
+    ResPath: sprite/tacticalGeneralPicMax/wjt_3acc2154ad9b26c5
+  - Key: tacticalGeneralPicMax/wuyan
+    ResPath: sprite/tacticalGeneralPicMax/wuyan_20669e39ef1c41aa
+  - Key: tacticalGeneralPicMax/xiahoudun
+    ResPath: sprite/tacticalGeneralPicMax/xiahoudun_86637a709113e46a
+  - Key: tacticalGeneralPicMax/xiahoudun_xiahouyuanjx1
+    ResPath: sprite/tacticalGeneralPicMax/xiahoudun_xiahouyuanjx1_d7f2aebf9febba27
+  - Key: tacticalGeneralPicMax/xiahouen
+    ResPath: sprite/tacticalGeneralPicMax/xiahouen_c4fb390179aad429
+  - Key: tacticalGeneralPicMax/xiahoumao
+    ResPath: sprite/tacticalGeneralPicMax/xiahoumao_eddf7d07589ee678
+  - Key: tacticalGeneralPicMax/xiahouxiongdi
+    ResPath: sprite/tacticalGeneralPicMax/xiahouxiongdi_5837ec2140389fc3
+  - Key: tacticalGeneralPicMax/xiahouxiongdizhuanshu
+    ResPath: sprite/tacticalGeneralPicMax/xiahouxiongdizhuanshu_52d0e688e7cd3ecd
+  - Key: tacticalGeneralPicMax/xiahouxiongdizhuanshuxiahouxiongdizhuanshu
+    ResPath: sprite/tacticalGeneralPicMax/xiahouxiongdizhuanshuxiahouxiongdizhuanshu_39997fa0ab1ac0dc
+  - Key: tacticalGeneralPicMax/xiahouyuan
+    ResPath: sprite/tacticalGeneralPicMax/xiahouyuan_90ca0e7a9e897617
+  - Key: tacticalGeneralPicMax/xiangyu
+    ResPath: sprite/tacticalGeneralPicMax/xiangyu_dfad97bad365379f
+  - Key: tacticalGeneralPicMax/xiangzhuang
+    ResPath: sprite/tacticalGeneralPicMax/xiangzhuang_9201bc64f98d69f7
+  - Key: tacticalGeneralPicMax/xiaobing
+    ResPath: sprite/tacticalGeneralPicMax/xiaobing_ab56b968e5cbc4c9
+  - Key: tacticalGeneralPicMax/xiaoerzi
+    ResPath: sprite/tacticalGeneralPicMax/xiaoerzi_c568568e1762330f
+  - Key: tacticalGeneralPicMax/xiaoqiao
+    ResPath: sprite/tacticalGeneralPicMax/xiaoqiao_789e2c22d2fedea1
+  - Key: tacticalGeneralPicMax/xingtian
+    ResPath: sprite/tacticalGeneralPicMax/xingtian_8d9f359db4670d93
+  - Key: tacticalGeneralPicMax/xnjr
+    ResPath: sprite/tacticalGeneralPicMax/xnjr_defc74e527c6b2ed
+  - Key: tacticalGeneralPicMax/xuanwu
+    ResPath: sprite/tacticalGeneralPicMax/xuanwu_102216807d24029b
+  - Key: tacticalGeneralPicMax/xuchu1
+    ResPath: sprite/tacticalGeneralPicMax/xuchu1_077d625b5406aa6a
+  - Key: tacticalGeneralPicMax/xuchu2
+    ResPath: sprite/tacticalGeneralPicMax/xuchu2_e73de12437b315a2
+  - Key: tacticalGeneralPicMax/xuchu3
+    ResPath: sprite/tacticalGeneralPicMax/xuchu3_1c5a010af14d857f
+  - Key: tacticalGeneralPicMax/xuchu4
+    ResPath: sprite/tacticalGeneralPicMax/xuchu4_d0290de248cfac3f
+  - Key: tacticalGeneralPicMax/xuchu
+    ResPath: sprite/tacticalGeneralPicMax/xuchu_14c2c1dfc1b1fe1d
+  - Key: tacticalGeneralPicMax/xuchujx
+    ResPath: sprite/tacticalGeneralPicMax/xuchujx_d0290de248cfac3f
+  - Key: tacticalGeneralPicMax/xueying
+    ResPath: sprite/tacticalGeneralPicMax/xueying_2085705b3a620ac4
+  - Key: tacticalGeneralPicMax/xuhuang
+    ResPath: sprite/tacticalGeneralPicMax/xuhuang_ad8fa2b44fc2fea9
+  - Key: tacticalGeneralPicMax/xunyou
+    ResPath: sprite/tacticalGeneralPicMax/xunyou_f1fede84d19feb0c
+  - Key: tacticalGeneralPicMax/xunyu2
+    ResPath: sprite/tacticalGeneralPicMax/xunyu2_4ca713f1109012c4
+  - Key: tacticalGeneralPicMax/xunyu
+    ResPath: sprite/tacticalGeneralPicMax/xunyu_f1fede84d19feb0c
+  - Key: tacticalGeneralPicMax/xushu
+    ResPath: sprite/tacticalGeneralPicMax/xushu_2ad244328964da4e
+  - Key: tacticalGeneralPicMax/xuyou
+    ResPath: sprite/tacticalGeneralPicMax/xuyou_c8c85f3c143cffa0
+  - Key: tacticalGeneralPicMax/xuzuozhinan
+    ResPath: sprite/tacticalGeneralPicMax/xuzuozhinan_73ba7eae83dd7597
+  - Key: tacticalGeneralPicMax/xvzhu
+    ResPath: sprite/tacticalGeneralPicMax/xvzhu_f5a25de35175010a
+  - Key: tacticalGeneralPicMax/yandi
+    ResPath: sprite/tacticalGeneralPicMax/yandi_8af9702deae079d5
+  - Key: tacticalGeneralPicMax/yanliang
+    ResPath: sprite/tacticalGeneralPicMax/yanliang_63d54a91b84d61d2
+  - Key: tacticalGeneralPicMax/yanyan
+    ResPath: sprite/tacticalGeneralPicMax/yanyan_908cac3cc27034c4
+  - Key: tacticalGeneralPicMax/yiji
+    ResPath: sprite/tacticalGeneralPicMax/yiji_e39c38437372cfd3
+  - Key: tacticalGeneralPicMax/yuanshao
+    ResPath: sprite/tacticalGeneralPicMax/yuanshao_ed8c8efc29625abc
+  - Key: tacticalGeneralPicMax/yuanzhengjun
+    ResPath: sprite/tacticalGeneralPicMax/yuanzhengjun_6a2ff0244e24ed80
+  - Key: tacticalGeneralPicMax/yugong
+    ResPath: sprite/tacticalGeneralPicMax/yugong_ec2fa9c29167cbaf
+  - Key: tacticalGeneralPicMax/zangba
+    ResPath: sprite/tacticalGeneralPicMax/zangba_573cda7060292bfe
+  - Key: tacticalGeneralPicMax/zhangbao1
+    ResPath: sprite/tacticalGeneralPicMax/zhangbao1_b178c5dedea96d8f
+  - Key: tacticalGeneralPicMax/zhangfei1
+    ResPath: sprite/tacticalGeneralPicMax/zhangfei1_97adafa77421c8bb
+  - Key: tacticalGeneralPicMax/zhangfei2
+    ResPath: sprite/tacticalGeneralPicMax/zhangfei2_1ba9d0d4d3f4126c
+  - Key: tacticalGeneralPicMax/zhangfei3
+    ResPath: sprite/tacticalGeneralPicMax/zhangfei3_32b609de9623a5a7
+  - Key: tacticalGeneralPicMax/zhangfei4
+    ResPath: sprite/tacticalGeneralPicMax/zhangfei4_c74b6e9394d68738
+  - Key: tacticalGeneralPicMax/zhangfei
+    ResPath: sprite/tacticalGeneralPicMax/zhangfei_3fa74b23fa143a58
+  - Key: tacticalGeneralPicMax/zhangfeijx
+    ResPath: sprite/tacticalGeneralPicMax/zhangfeijx_c74b6e9394d68738
+  - Key: tacticalGeneralPicMax/zhanghe
+    ResPath: sprite/tacticalGeneralPicMax/zhanghe_f9b147b579c4bdf0
+  - Key: tacticalGeneralPicMax/zhangjiao1
+    ResPath: sprite/tacticalGeneralPicMax/zhangjiao1_1c5a203589b748a8
+  - Key: tacticalGeneralPicMax/zhangjiao
+    ResPath: sprite/tacticalGeneralPicMax/zhangjiao_1c5a203589b748a8
+  - Key: tacticalGeneralPicMax/zhangliang
+    ResPath: sprite/tacticalGeneralPicMax/zhangliang_d7d4d4a3acd881a2
+  - Key: tacticalGeneralPicMax/zhangliao
+    ResPath: sprite/tacticalGeneralPicMax/zhangliao_5df0c9a5dc205c8a
+  - Key: tacticalGeneralPicMax/zhangrang
+    ResPath: sprite/tacticalGeneralPicMax/zhangrang_bc81fa396405bcf1
+  - Key: tacticalGeneralPicMax/zhangti
+    ResPath: sprite/tacticalGeneralPicMax/zhangti_922d8381e655301c
+  - Key: tacticalGeneralPicMax/zhangzhao
+    ResPath: sprite/tacticalGeneralPicMax/zhangzhao_9132cc0a39e39223
+  - Key: tacticalGeneralPicMax/zhanshoudianweizhuanshu
+    ResPath: sprite/tacticalGeneralPicMax/zhanshoudianweizhuanshu_3cba977d8f134b1e
+  - Key: tacticalGeneralPicMax/zhaoyun1
+    ResPath: sprite/tacticalGeneralPicMax/zhaoyun1_4432a3ed3d3a1fe7
+  - Key: tacticalGeneralPicMax/zhaoyun2
+    ResPath: sprite/tacticalGeneralPicMax/zhaoyun2_3dcb7db0168edaa2
+  - Key: tacticalGeneralPicMax/zhaoyun3
+    ResPath: sprite/tacticalGeneralPicMax/zhaoyun3_346bb9aa5ed24d54
+  - Key: tacticalGeneralPicMax/zhaoyun4
+    ResPath: sprite/tacticalGeneralPicMax/zhaoyun4_e7b0fca54b81815e
+  - Key: tacticalGeneralPicMax/zhaoyun
+    ResPath: sprite/tacticalGeneralPicMax/zhaoyun_04112b8e58e6dec0
+  - Key: tacticalGeneralPicMax/zhaoyunjx
+    ResPath: sprite/tacticalGeneralPicMax/zhaoyunjx_e7b0fca54b81815e
+  - Key: tacticalGeneralPicMax/zhendengai
+    ResPath: sprite/tacticalGeneralPicMax/zhendengai_fbf04e1ddb9549d7
+  - Key: tacticalGeneralPicMax/zhenganning1
+    ResPath: sprite/tacticalGeneralPicMax/zhenganning1_b1147eb04d4d2864
+  - Key: tacticalGeneralPicMax/zhenganning2
+    ResPath: sprite/tacticalGeneralPicMax/zhenganning2_b3bc77461203328d
+  - Key: tacticalGeneralPicMax/zhenganning3
+    ResPath: sprite/tacticalGeneralPicMax/zhenganning3_fd7ddff936ea59b1
+  - Key: tacticalGeneralPicMax/zhenganning4
+    ResPath: sprite/tacticalGeneralPicMax/zhenganning4_0f2259e6e5a0afa9
+  - Key: tacticalGeneralPicMax/zhenganning
+    ResPath: sprite/tacticalGeneralPicMax/zhenganning_50cf88d7bf6a1a6d
+  - Key: tacticalGeneralPicMax/zhenganningjx
+    ResPath: sprite/tacticalGeneralPicMax/zhenganningjx_0f2259e6e5a0afa9
+  - Key: tacticalGeneralPicMax/zhenji
+    ResPath: sprite/tacticalGeneralPicMax/zhenji_fabfbc4499a14f1e
+  - Key: tacticalGeneralPicMax/zhensunce1
+    ResPath: sprite/tacticalGeneralPicMax/zhensunce1_f2037f98d9246c7a
+  - Key: tacticalGeneralPicMax/zhensunce2
+    ResPath: sprite/tacticalGeneralPicMax/zhensunce2_5cb3754bed98b84d
+  - Key: tacticalGeneralPicMax/zhensunce3
+    ResPath: sprite/tacticalGeneralPicMax/zhensunce3_7b8546381f75ef16
+  - Key: tacticalGeneralPicMax/zhensunce4
+    ResPath: sprite/tacticalGeneralPicMax/zhensunce4_22fb770ed635943f
+  - Key: tacticalGeneralPicMax/zhensunce
+    ResPath: sprite/tacticalGeneralPicMax/zhensunce_32ece68e7c1b3cb3
+  - Key: tacticalGeneralPicMax/zhenxiahoudun1
+    ResPath: sprite/tacticalGeneralPicMax/zhenxiahoudun1_f25387f903141be9
+  - Key: tacticalGeneralPicMax/zhenxiahoudun2
+    ResPath: sprite/tacticalGeneralPicMax/zhenxiahoudun2_38eab6d64922684c
+  - Key: tacticalGeneralPicMax/zhenxiahoudun3
+    ResPath: sprite/tacticalGeneralPicMax/zhenxiahoudun3_6b307670aa6275ba
+  - Key: tacticalGeneralPicMax/zhenxiahoudun4
+    ResPath: sprite/tacticalGeneralPicMax/zhenxiahoudun4_82497f46177634c6
+  - Key: tacticalGeneralPicMax/zhenxiahoudun
+    ResPath: sprite/tacticalGeneralPicMax/zhenxiahoudun_dabfd2c00db41909
+  - Key: tacticalGeneralPicMax/zhenxiahoudunjx
+    ResPath: sprite/tacticalGeneralPicMax/zhenxiahoudunjx_82497f46177634c6
+  - Key: tacticalGeneralPicMax/zhenxiahouyuan1
+    ResPath: sprite/tacticalGeneralPicMax/zhenxiahouyuan1_655ea4ae17ca49d9
+  - Key: tacticalGeneralPicMax/zhenxiahouyuan2
+    ResPath: sprite/tacticalGeneralPicMax/zhenxiahouyuan2_a1b11a09137d66c5
+  - Key: tacticalGeneralPicMax/zhenxiahouyuan3
+    ResPath: sprite/tacticalGeneralPicMax/zhenxiahouyuan3_e5ec63a3f980e891
+  - Key: tacticalGeneralPicMax/zhenxiahouyuan4
+    ResPath: sprite/tacticalGeneralPicMax/zhenxiahouyuan4_5e1574acad5526ce
+  - Key: tacticalGeneralPicMax/zhenxiahouyuan
+    ResPath: sprite/tacticalGeneralPicMax/zhenxiahouyuan_35fb78ef190aaf22
+  - Key: tacticalGeneralPicMax/zhenxiahouyuanjx
+    ResPath: sprite/tacticalGeneralPicMax/zhenxiahouyuanjx_5e1574acad5526ce
+  - Key: tacticalGeneralPicMax/zhenzhangliao1
+    ResPath: sprite/tacticalGeneralPicMax/zhenzhangliao1_4e46f0b115ea2ee2
+  - Key: tacticalGeneralPicMax/zhenzhangliao2
+    ResPath: sprite/tacticalGeneralPicMax/zhenzhangliao2_5ed3bae208600c81
+  - Key: tacticalGeneralPicMax/zhenzhangliao3
+    ResPath: sprite/tacticalGeneralPicMax/zhenzhangliao3_765c67a78ad3fc58
+  - Key: tacticalGeneralPicMax/zhenzhangliao4
+    ResPath: sprite/tacticalGeneralPicMax/zhenzhangliao4_6c0fe768bbafc087
+  - Key: tacticalGeneralPicMax/zhenzhangliao
+    ResPath: sprite/tacticalGeneralPicMax/zhenzhangliao_5df0c9a5dc205c8a
+  - Key: tacticalGeneralPicMax/zhenzhangliaojx
+    ResPath: sprite/tacticalGeneralPicMax/zhenzhangliaojx_6c0fe768bbafc087
+  - Key: tacticalGeneralPicMax/zhenzhurong
+    ResPath: sprite/tacticalGeneralPicMax/zhenzhurong_29a48954a4404553
+  - Key: tacticalGeneralPicMax/zhoucang
+    ResPath: sprite/tacticalGeneralPicMax/zhoucang_5fb97dd3a46336a7
+  - Key: tacticalGeneralPicMax/zhouchu
+    ResPath: sprite/tacticalGeneralPicMax/zhouchu_61a403b42da55873
+  - Key: tacticalGeneralPicMax/zhoumouwang
+    ResPath: sprite/tacticalGeneralPicMax/zhoumouwang_d9fecd28d8a12bdc
+  - Key: tacticalGeneralPicMax/zhoutai1
+    ResPath: sprite/tacticalGeneralPicMax/zhoutai1_d74bbb35e7eb5ad8
+  - Key: tacticalGeneralPicMax/zhoutai2
+    ResPath: sprite/tacticalGeneralPicMax/zhoutai2_c9e8c7ad631abfb1
+  - Key: tacticalGeneralPicMax/zhoutai3
+    ResPath: sprite/tacticalGeneralPicMax/zhoutai3_aed814373e17bd6f
+  - Key: tacticalGeneralPicMax/zhoutai4
+    ResPath: sprite/tacticalGeneralPicMax/zhoutai4_8b5c542f34b09527
+  - Key: tacticalGeneralPicMax/zhoutai
+    ResPath: sprite/tacticalGeneralPicMax/zhoutai_1370ff1403474e22
+  - Key: tacticalGeneralPicMax/zhoutaijx2
+    ResPath: sprite/tacticalGeneralPicMax/zhoutaijx2_061fcec41f61401b
+  - Key: tacticalGeneralPicMax/zhoutaijx
+    ResPath: sprite/tacticalGeneralPicMax/zhoutaijx_8b5c542f34b09527
+  - Key: tacticalGeneralPicMax/zhouyu1
+    ResPath: sprite/tacticalGeneralPicMax/zhouyu1_bcedf7ddf500cfb7
+  - Key: tacticalGeneralPicMax/zhouyu2
+    ResPath: sprite/tacticalGeneralPicMax/zhouyu2_1366658255f3bcad
+  - Key: tacticalGeneralPicMax/zhouyu3
+    ResPath: sprite/tacticalGeneralPicMax/zhouyu3_22c6286d2471aebe
+  - Key: tacticalGeneralPicMax/zhouyu4
+    ResPath: sprite/tacticalGeneralPicMax/zhouyu4_4427914a5e3160f2
+  - Key: tacticalGeneralPicMax/zhouyu
+    ResPath: sprite/tacticalGeneralPicMax/zhouyu_99156f9a54a6daf2
+  - Key: tacticalGeneralPicMax/zhouyujx
+    ResPath: sprite/tacticalGeneralPicMax/zhouyujx_4427914a5e3160f2
+  - Key: tacticalGeneralPicMax/zhouyujx_zhugeliangjx2
+    ResPath: sprite/tacticalGeneralPicMax/zhouyujx_zhugeliangjx2_c5c9c7855cdc6fec
+  - Key: tacticalGeneralPicMax/zhouyujx_zhugeliangjx
+    ResPath: sprite/tacticalGeneralPicMax/zhouyujx_zhugeliangjx_5aa6f90fee7c5df0
+  - Key: tacticalGeneralPicMax/zhouzhuzhuanshu
+    ResPath: sprite/tacticalGeneralPicMax/zhouzhuzhuanshu_8bcc354afed205bd
+  - Key: tacticalGeneralPicMax/zhugeliang1
+    ResPath: sprite/tacticalGeneralPicMax/zhugeliang1_13bb02c19da66f1d
+  - Key: tacticalGeneralPicMax/zhugeliang2
+    ResPath: sprite/tacticalGeneralPicMax/zhugeliang2_80a28cc932f9f828
+  - Key: tacticalGeneralPicMax/zhugeliang3
+    ResPath: sprite/tacticalGeneralPicMax/zhugeliang3_e988dcd67c4097ed
+  - Key: tacticalGeneralPicMax/zhugeliang4
+    ResPath: sprite/tacticalGeneralPicMax/zhugeliang4_f829697c94361ef7
+  - Key: tacticalGeneralPicMax/zhugeliang
+    ResPath: sprite/tacticalGeneralPicMax/zhugeliang_f01a5eeb538b55bd
+  - Key: tacticalGeneralPicMax/zhugeliangjx
+    ResPath: sprite/tacticalGeneralPicMax/zhugeliangjx_f829697c94361ef7
+  - Key: tacticalGeneralPicMax/zhuque
+    ResPath: sprite/tacticalGeneralPicMax/zhuque_8669b64f4cf56770
+  - Key: tacticalGeneralPicMax/zhurong
+    ResPath: sprite/tacticalGeneralPicMax/zhurong_349d6627f45a9ffb
+  - Key: tacticalGeneralPicMax/zhuyan
+    ResPath: sprite/tacticalGeneralPicMax/zhuyan_a05920452e698da6
+  - Key: tacticalGeneralPicMax/zumao
+    ResPath: sprite/tacticalGeneralPicMax/zumao_94fede0942971afe
+  - Key: warBuff/10001
+    ResPath: sprite/warBuff/10001_4c45be76d078b049
+  - Key: warBuff/10
+    ResPath: sprite/warBuff/10_467f1de1f02e8638
+  - Key: warBuff/11
+    ResPath: sprite/warBuff/11_45e6cb0dbf0bf201
+  - Key: warBuff/12
+    ResPath: sprite/warBuff/12_badad1ced74cab66
+  - Key: warBuff/13
+    ResPath: sprite/warBuff/13_fbd46efbf27308c8
+  - Key: warBuff/14
+    ResPath: sprite/warBuff/14_5db3357051022ce1
+  - Key: warBuff/15
+    ResPath: sprite/warBuff/15_1cd9e6825442140d
+  - Key: warBuff/16
+    ResPath: sprite/warBuff/16_a3ab2ab221d8daa6
+  - Key: warBuff/17
+    ResPath: sprite/warBuff/17_cf715e08ae806b64
+  - Key: warBuff/18
+    ResPath: sprite/warBuff/18_35c9af402ee49c72
+  - Key: warBuff/19
+    ResPath: sprite/warBuff/19_71af3b9971b5bea4
+  - Key: warBuff/1
+    ResPath: sprite/warBuff/1_906232a9f3190ffe
+  - Key: warBuff/20
+    ResPath: sprite/warBuff/20_52d920528435a89a
+  - Key: warBuff/21
+    ResPath: sprite/warBuff/21_3fddb85a357be760
+  - Key: warBuff/22
+    ResPath: sprite/warBuff/22_7e66564325d4207c
+  - Key: warBuff/23
+    ResPath: sprite/warBuff/23_38ced4e55b0064eb
+  - Key: warBuff/24
+    ResPath: sprite/warBuff/24_38ced4e55b0064eb
+  - Key: warBuff/25
+    ResPath: sprite/warBuff/25_16ff212f8f23a80c
+  - Key: warBuff/26
+    ResPath: sprite/warBuff/26_06add1758a7d0480
+  - Key: warBuff/27
+    ResPath: sprite/warBuff/27_591fd0512f2a9259
+  - Key: warBuff/28
+    ResPath: sprite/warBuff/28_430a7a0b62342272
+  - Key: warBuff/29
+    ResPath: sprite/warBuff/29_ad8f21ee4507f34c
+  - Key: warBuff/2
+    ResPath: sprite/warBuff/2_906232a9f3190ffe
+  - Key: warBuff/30
+    ResPath: sprite/warBuff/30_c0e0b6249edd056d
+  - Key: warBuff/31
+    ResPath: sprite/warBuff/31_682a6d2423c930d7
+  - Key: warBuff/32
+    ResPath: sprite/warBuff/32_bd082168c3577a2c
+  - Key: warBuff/34
+    ResPath: sprite/warBuff/34_c968ad1d68551c24
+  - Key: warBuff/35
+    ResPath: sprite/warBuff/35_ffd928a0f879c76b
+  - Key: warBuff/36
+    ResPath: sprite/warBuff/36_61e0fcf5155af780
+  - Key: warBuff/37
+    ResPath: sprite/warBuff/37_82c9e1186542c75a
+  - Key: warBuff/38
+    ResPath: sprite/warBuff/38_97e3ad9a92fae53c
+  - Key: warBuff/39
+    ResPath: sprite/warBuff/39_d26e914dc617db41
+  - Key: warBuff/3
+    ResPath: sprite/warBuff/3_906232a9f3190ffe
+  - Key: warBuff/40
+    ResPath: sprite/warBuff/40_82c9e1186542c75a
+  - Key: warBuff/42
+    ResPath: sprite/warBuff/42_97e3ad9a92fae53c
+  - Key: warBuff/44
+    ResPath: sprite/warBuff/44_35241a1f4d6517d8
+  - Key: warBuff/45
+    ResPath: sprite/warBuff/45_eb6d140670914803
+  - Key: warBuff/46
+    ResPath: sprite/warBuff/46_958563fecf573998
+  - Key: warBuff/47
+    ResPath: sprite/warBuff/47_4e56d925f615c1c8
+  - Key: warBuff/48
+    ResPath: sprite/warBuff/48_cf3a3d25312bfe0d
+  - Key: warBuff/49
+    ResPath: sprite/warBuff/49_8398604037015ef4
+  - Key: warBuff/4
+    ResPath: sprite/warBuff/4_b9a5e29549bec776
+  - Key: warBuff/50
+    ResPath: sprite/warBuff/50_b5b3dfbe767667cc
+  - Key: warBuff/51
+    ResPath: sprite/warBuff/51_1f442f6ce074339d
+  - Key: warBuff/52
+    ResPath: sprite/warBuff/52_6bf66dfcf2ecf505
+  - Key: warBuff/53
+    ResPath: sprite/warBuff/53_53d2438f0247747b
+  - Key: warBuff/54
+    ResPath: sprite/warBuff/54_edda638940ed01a2
+  - Key: warBuff/55
+    ResPath: sprite/warBuff/55_0e51bc7431f097ea
+  - Key: warBuff/56
+    ResPath: sprite/warBuff/56_1117c46fabe0cecb
+  - Key: warBuff/57
+    ResPath: sprite/warBuff/57_1b9d0995740bdd51
+  - Key: warBuff/58
+    ResPath: sprite/warBuff/58_72acd1cb31cc1218
+  - Key: warBuff/59
+    ResPath: sprite/warBuff/59_b5b3dfbe767667cc
+  - Key: warBuff/5
+    ResPath: sprite/warBuff/5_906232a9f3190ffe
+  - Key: warBuff/60
+    ResPath: sprite/warBuff/60_319bfaaff0e7a281
+  - Key: warBuff/62
+    ResPath: sprite/warBuff/62_9e0457663c672c9d
+  - Key: warBuff/63
+    ResPath: sprite/warBuff/63_9e0457663c672c9d
+  - Key: warBuff/64
+    ResPath: sprite/warBuff/64_9e0457663c672c9d
+  - Key: warBuff/65
+    ResPath: sprite/warBuff/65_9e0457663c672c9d
+  - Key: warBuff/66
+    ResPath: sprite/warBuff/66_9e0457663c672c9d
+  - Key: warBuff/6
+    ResPath: sprite/warBuff/6_b9a5e29549bec776
+  - Key: warBuff/70
+    ResPath: sprite/warBuff/70_c75bf55113027905
+  - Key: warBuff/71
+    ResPath: sprite/warBuff/71_f6f606e9c6ec5f72
+  - Key: warBuff/72
+    ResPath: sprite/warBuff/72_58870f2ee60e572c
+  - Key: warBuff/73
+    ResPath: sprite/warBuff/73_82b5ba0172d2dc3e
+  - Key: warBuff/74
+    ResPath: sprite/warBuff/74_b312780a94531b1d
+  - Key: warBuff/75
+    ResPath: sprite/warBuff/75_1235a1bde9e65fa3
+  - Key: warBuff/76
+    ResPath: sprite/warBuff/76_5fc09729da51358b
+  - Key: warBuff/77
+    ResPath: sprite/warBuff/77_f028a404eec7ea24
+  - Key: warBuff/78
+    ResPath: sprite/warBuff/78_430a7a0b62342272
+  - Key: warBuff/79
+    ResPath: sprite/warBuff/79_d784277e0b845fa4
+  - Key: warBuff/7
+    ResPath: sprite/warBuff/7_ca85e4d73d92f04c
+  - Key: warBuff/80
+    ResPath: sprite/warBuff/80_930478d5fc397c01
+  - Key: warBuff/81
+    ResPath: sprite/warBuff/81_a2721b6fa530e526
+  - Key: warBuff/82
+    ResPath: sprite/warBuff/82_2f1ecb9f5cb0088f
+  - Key: warBuff/83
+    ResPath: sprite/warBuff/83_90c839941f83ae28
+  - Key: warBuff/84
+    ResPath: sprite/warBuff/84_39f84d78d0017132
+  - Key: warBuff/85
+    ResPath: sprite/warBuff/85_32e4653a9b379ef6
+  - Key: warBuff/86
+    ResPath: sprite/warBuff/86_638406e8db1aafdd
+  - Key: warBuff/87
+    ResPath: sprite/warBuff/87_1e5225f79463eaee
+  - Key: warBuff/88
+    ResPath: sprite/warBuff/88_34e917f188d18680
+  - Key: warBuff/89
+    ResPath: sprite/warBuff/89_c7017faf63562405
+  - Key: warBuff/8
+    ResPath: sprite/warBuff/8_1be13430c1955886
+  - Key: warBuff/9
+    ResPath: sprite/warBuff/9_69ee3ee8308e6cc6
+  - Key: warBuff/chaofeng
+    ResPath: sprite/warBuff/chaofeng_00a5f29f9daef44e
+  - Key: warBuff/fc1
+    ResPath: sprite/warBuff/fc1_447906b21181eb70
+  - Key: warBuff/fc2
+    ResPath: sprite/warBuff/fc2_af25e217b8dd6126
+  - Key: warBuff/fc3
+    ResPath: sprite/warBuff/fc3_e2f3d92e6c84f3c1
+  - Key: warBuff/fc4
+    ResPath: sprite/warBuff/fc4_807460262acd4338
+  - Key: warSkillName/1001
+    ResPath: sprite/warSkillName/1001_76db690d5a42e5eb
+  - Key: warSkillName/1002
+    ResPath: sprite/warSkillName/1002_4f29e7b853e6563f
+  - Key: warSkillName/1003
+    ResPath: sprite/warSkillName/1003_4cc778d02d6b83b4
+  - Key: warSkillName/1004
+    ResPath: sprite/warSkillName/1004_2e2c3c0711c56442
+  - Key: warSkillName/1005
+    ResPath: sprite/warSkillName/1005_4f15d4f09e0c0a00
+  - Key: warSkillName/1006
+    ResPath: sprite/warSkillName/1006_7c0ddf581f286f35
+  - Key: warSkillName/1007
+    ResPath: sprite/warSkillName/1007_11f5366963bffa5a
+  - Key: warSkillName/1008
+    ResPath: sprite/warSkillName/1008_e98632099ad3df3f
+  - Key: warSkillName/1009
+    ResPath: sprite/warSkillName/1009_786cc3fb2d339f2f
+  - Key: warSkillName/100
+    ResPath: sprite/warSkillName/100_6c1d4ddd5b29eae2
+  - Key: warSkillName/1010
+    ResPath: sprite/warSkillName/1010_7740a8caf8cd9dd3
+  - Key: warSkillName/1011
+    ResPath: sprite/warSkillName/1011_73960bb100853bef
+  - Key: warSkillName/1012
+    ResPath: sprite/warSkillName/1012_c1934407b44a0ec2
+  - Key: warSkillName/1013
+    ResPath: sprite/warSkillName/1013_83c009c42b54dacf
+  - Key: warSkillName/1014
+    ResPath: sprite/warSkillName/1014_55d37bc41f981caf
+  - Key: warSkillName/1015
+    ResPath: sprite/warSkillName/1015_3432252b7af5f5f3
+  - Key: warSkillName/1016
+    ResPath: sprite/warSkillName/1016_44379b548658c6d7
+  - Key: warSkillName/1017
+    ResPath: sprite/warSkillName/1017_0e76dc5275fafe4d
+  - Key: warSkillName/1018
+    ResPath: sprite/warSkillName/1018_9eeab7146d2e1365
+  - Key: warSkillName/1019
+    ResPath: sprite/warSkillName/1019_318c8a3e9a466abc
+  - Key: warSkillName/101
+    ResPath: sprite/warSkillName/101_59f2480f18b6a8d0
+  - Key: warSkillName/1020
+    ResPath: sprite/warSkillName/1020_b2035504b24712ae
+  - Key: warSkillName/1021
+    ResPath: sprite/warSkillName/1021_6958e674dec97f7b
+  - Key: warSkillName/1022
+    ResPath: sprite/warSkillName/1022_8e2ad80218a6af06
+  - Key: warSkillName/1023
+    ResPath: sprite/warSkillName/1023_b10e12404d5dcc3e
+  - Key: warSkillName/1024
+    ResPath: sprite/warSkillName/1024_5363f3ee67648fcd
+  - Key: warSkillName/1025
+    ResPath: sprite/warSkillName/1025_e3a966e4896a50f0
+  - Key: warSkillName/1026
+    ResPath: sprite/warSkillName/1026_ae95a8611ace4935
+  - Key: warSkillName/1027
+    ResPath: sprite/warSkillName/1027_00791623e8446e8e
+  - Key: warSkillName/1028
+    ResPath: sprite/warSkillName/1028_0f6b8ba4a88bbc50
+  - Key: warSkillName/1029
+    ResPath: sprite/warSkillName/1029_e1343ca731a5399a
+  - Key: warSkillName/102
+    ResPath: sprite/warSkillName/102_4aafece3dd224e70
+  - Key: warSkillName/1030
+    ResPath: sprite/warSkillName/1030_e5f62f8d40878203
+  - Key: warSkillName/1031
+    ResPath: sprite/warSkillName/1031_cd43bfde9ec5bf8f
+  - Key: warSkillName/1032
+    ResPath: sprite/warSkillName/1032_332b1b93c50feaa3
+  - Key: warSkillName/1033
+    ResPath: sprite/warSkillName/1033_faa65b9a59b6220e
+  - Key: warSkillName/1034
+    ResPath: sprite/warSkillName/1034_60ac62339724555d
+  - Key: warSkillName/1035
+    ResPath: sprite/warSkillName/1035_dcb32a19f0c98475
+  - Key: warSkillName/1036
+    ResPath: sprite/warSkillName/1036_fdfb825b5877f410
+  - Key: warSkillName/1037
+    ResPath: sprite/warSkillName/1037_9eb6f16306c74819
+  - Key: warSkillName/1038
+    ResPath: sprite/warSkillName/1038_16268e17f38599c0
+  - Key: warSkillName/1039
+    ResPath: sprite/warSkillName/1039_1c8e4d440eaecec1
+  - Key: warSkillName/103
+    ResPath: sprite/warSkillName/103_096eb33c76b3c95a
+  - Key: warSkillName/1040
+    ResPath: sprite/warSkillName/1040_bcd0226f6b8d9767
+  - Key: warSkillName/1041
+    ResPath: sprite/warSkillName/1041_bdf09a3c7be5d915
+  - Key: warSkillName/104
+    ResPath: sprite/warSkillName/104_b83d137966ed3da7
+  - Key: warSkillName/105
+    ResPath: sprite/warSkillName/105_bbaa6659a8dc5329
+  - Key: warSkillName/106
+    ResPath: sprite/warSkillName/106_7f1bf94a27ef55e6
+  - Key: warSkillName/107
+    ResPath: sprite/warSkillName/107_0dd4b891d2112990
+  - Key: warSkillName/108
+    ResPath: sprite/warSkillName/108_d01bfcd1ec581afb
+  - Key: warSkillName/10
+    ResPath: sprite/warSkillName/10_3e7ffe9b5d1c3236
+  - Key: warSkillName/11
+    ResPath: sprite/warSkillName/11_87faaa1719ec50b6
+  - Key: warSkillName/12
+    ResPath: sprite/warSkillName/12_749ba3829156ef62
+  - Key: warSkillName/13
+    ResPath: sprite/warSkillName/13_4f0ceca99116396c
+  - Key: warSkillName/14
+    ResPath: sprite/warSkillName/14_634f94f4b0ee3f97
+  - Key: warSkillName/1501
+    ResPath: sprite/warSkillName/1501_1793c41ed88cb52d
+  - Key: warSkillName/15
+    ResPath: sprite/warSkillName/15_db7d73d48bfbda78
+  - Key: warSkillName/16
+    ResPath: sprite/warSkillName/16_8b5fef3332136209
+  - Key: warSkillName/17
+    ResPath: sprite/warSkillName/17_28cb0ab158219f2a
+  - Key: warSkillName/18
+    ResPath: sprite/warSkillName/18_36e8ac8f6df37a6b
+  - Key: warSkillName/19
+    ResPath: sprite/warSkillName/19_a50c43dea22b5d90
+  - Key: warSkillName/1
+    ResPath: sprite/warSkillName/1_e862a5c1ae4ab784
+  - Key: warSkillName/20
+    ResPath: sprite/warSkillName/20_6d20d3b587c2e5c6
+  - Key: warSkillName/21
+    ResPath: sprite/warSkillName/21_6d20d3b587c2e5c6
+  - Key: warSkillName/22
+    ResPath: sprite/warSkillName/22_3e7ffe9b5d1c3236
+  - Key: warSkillName/23
+    ResPath: sprite/warSkillName/23_87faaa1719ec50b6
+  - Key: warSkillName/24
+    ResPath: sprite/warSkillName/24_daef01eccc58ce83
+  - Key: warSkillName/25
+    ResPath: sprite/warSkillName/25_352fda6a3068c10e
+  - Key: warSkillName/26
+    ResPath: sprite/warSkillName/26_ebda237ae1145d06
+  - Key: warSkillName/27
+    ResPath: sprite/warSkillName/27_2fa52e0df1aee90f
+  - Key: warSkillName/28
+    ResPath: sprite/warSkillName/28_29cc8303f4074bdb
+  - Key: warSkillName/29
+    ResPath: sprite/warSkillName/29_bb79dd519b63e633
+  - Key: warSkillName/2
+    ResPath: sprite/warSkillName/2_4d7c53169ddcb2f7
+  - Key: warSkillName/30
+    ResPath: sprite/warSkillName/30_a89cd798ead82ce6
+  - Key: warSkillName/31
+    ResPath: sprite/warSkillName/31_a60642928c000ee1
+  - Key: warSkillName/32
+    ResPath: sprite/warSkillName/32_76af8f3d66c5cb72
+  - Key: warSkillName/33
+    ResPath: sprite/warSkillName/33_ebef44d70b104c90
+  - Key: warSkillName/34
+    ResPath: sprite/warSkillName/34_62be94a5128047e9
+  - Key: warSkillName/35
+    ResPath: sprite/warSkillName/35_b18e356b9b567e7a
+  - Key: warSkillName/36
+    ResPath: sprite/warSkillName/36_2793c61ed99cb51d
+  - Key: warSkillName/37
+    ResPath: sprite/warSkillName/37_260ee93fab04467e
+  - Key: warSkillName/38
+    ResPath: sprite/warSkillName/38_4ec649dd395003b0
+  - Key: warSkillName/3
+    ResPath: sprite/warSkillName/3_2c3f31ffcbc18327
+  - Key: warSkillName/41
+    ResPath: sprite/warSkillName/41_a50bbae6cdcbd7bd
+  - Key: warSkillName/42
+    ResPath: sprite/warSkillName/42_21570d8a02041346
+  - Key: warSkillName/43
+    ResPath: sprite/warSkillName/43_59c36c6b91f7853a
+  - Key: warSkillName/44
+    ResPath: sprite/warSkillName/44_fc91582097bd4bb4
+  - Key: warSkillName/45
+    ResPath: sprite/warSkillName/45_b4bc2629aa28e88b
+  - Key: warSkillName/46
+    ResPath: sprite/warSkillName/46_002e1d8d7f1ce902
+  - Key: warSkillName/47
+    ResPath: sprite/warSkillName/47_a91b72c3cc9bbda4
+  - Key: warSkillName/48
+    ResPath: sprite/warSkillName/48_6348f877e39bb9d6
+  - Key: warSkillName/49
+    ResPath: sprite/warSkillName/49_587da68d14d7eeae
+  - Key: warSkillName/4
+    ResPath: sprite/warSkillName/4_a5aa0e58337476ba
+  - Key: warSkillName/50
+    ResPath: sprite/warSkillName/50_efdeda9b69be1840
+  - Key: warSkillName/52
+    ResPath: sprite/warSkillName/52_ccc8e6f84ddc5f69
+  - Key: warSkillName/53
+    ResPath: sprite/warSkillName/53_73e44a12ead1208d
+  - Key: warSkillName/54
+    ResPath: sprite/warSkillName/54_ff13ae8ab9d4aacc
+  - Key: warSkillName/55
+    ResPath: sprite/warSkillName/55_9f3cf1d60ae5ca9e
+  - Key: warSkillName/56
+    ResPath: sprite/warSkillName/56_895582330f01d507
+  - Key: warSkillName/57
+    ResPath: sprite/warSkillName/57_d98bd8aa3299776e
+  - Key: warSkillName/58
+    ResPath: sprite/warSkillName/58_8283874eed29426b
+  - Key: warSkillName/5
+    ResPath: sprite/warSkillName/5_3be1be830283880f
+  - Key: warSkillName/61
+    ResPath: sprite/warSkillName/61_512bcdddf8b01c3d
+  - Key: warSkillName/62
+    ResPath: sprite/warSkillName/62_fa62e52db3c68d78
+  - Key: warSkillName/63
+    ResPath: sprite/warSkillName/63_466ded88d4f81f9f
+  - Key: warSkillName/64
+    ResPath: sprite/warSkillName/64_a0401b3fd8c3010f
+  - Key: warSkillName/65
+    ResPath: sprite/warSkillName/65_7ce8454739093feb
+  - Key: warSkillName/66
+    ResPath: sprite/warSkillName/66_69bc4bb9c7d60998
+  - Key: warSkillName/67
+    ResPath: sprite/warSkillName/67_9a59929821cc92ab
+  - Key: warSkillName/68
+    ResPath: sprite/warSkillName/68_a25f4e99aab4ab78
+  - Key: warSkillName/69
+    ResPath: sprite/warSkillName/69_09bb839f7d98ab94
+  - Key: warSkillName/6
+    ResPath: sprite/warSkillName/6_059ac07c4c7370ee
+  - Key: warSkillName/70
+    ResPath: sprite/warSkillName/70_034fca7876467291
+  - Key: warSkillName/73
+    ResPath: sprite/warSkillName/73_48999babffaa3f4d
+  - Key: warSkillName/74
+    ResPath: sprite/warSkillName/74_bc97357a1a42d3be
+  - Key: warSkillName/75
+    ResPath: sprite/warSkillName/75_ff896bbbb42b5a75
+  - Key: warSkillName/77
+    ResPath: sprite/warSkillName/77_2793c61ed99cb51d
+  - Key: warSkillName/78
+    ResPath: sprite/warSkillName/78_734ded3fa208bf3e
+  - Key: warSkillName/79
+    ResPath: sprite/warSkillName/79_33b7ce2d1bad0585
+  - Key: warSkillName/7
+    ResPath: sprite/warSkillName/7_581d95b165a73c42
+  - Key: warSkillName/80001
+    ResPath: sprite/warSkillName/80001_9d83dd82b74f326c
+  - Key: warSkillName/80002
+    ResPath: sprite/warSkillName/80002_f6093646573e1a47
+  - Key: warSkillName/8003
+    ResPath: sprite/warSkillName/8003_8c07a13c8613e596
+  - Key: warSkillName/80
+    ResPath: sprite/warSkillName/80_45580a6495916133
+  - Key: warSkillName/81
+    ResPath: sprite/warSkillName/81_bcdce55acb78c64b
+  - Key: warSkillName/82
+    ResPath: sprite/warSkillName/82_e739c69ee68625a3
+  - Key: warSkillName/83
+    ResPath: sprite/warSkillName/83_aad81d88fef32794
+  - Key: warSkillName/84
+    ResPath: sprite/warSkillName/84_dcb518f3ee142219
+  - Key: warSkillName/85
+    ResPath: sprite/warSkillName/85_04780252d0304cda
+  - Key: warSkillName/86
+    ResPath: sprite/warSkillName/86_f71a4ee7188a5368
+  - Key: warSkillName/87
+    ResPath: sprite/warSkillName/87_195203a9554f07d0
+  - Key: warSkillName/88
+    ResPath: sprite/warSkillName/88_b6e8a3e1e848208e
+  - Key: warSkillName/89
+    ResPath: sprite/warSkillName/89_a495679ca7e138f4
+  - Key: warSkillName/8
+    ResPath: sprite/warSkillName/8_6cbf863838c08978
+  - Key: warSkillName/90
+    ResPath: sprite/warSkillName/90_4f2612d100b161fa
+  - Key: warSkillName/91
+    ResPath: sprite/warSkillName/91_b84a72d1670d853c
+  - Key: warSkillName/92
+    ResPath: sprite/warSkillName/92_d76000ed9d589cb5
+  - Key: warSkillName/93
+    ResPath: sprite/warSkillName/93_a364ce474b78f2ea
+  - Key: warSkillName/94
+    ResPath: sprite/warSkillName/94_c0c6be74868f289a
+  - Key: warSkillName/95
+    ResPath: sprite/warSkillName/95_d7ae274afa2f521d
+  - Key: warSkillName/96
+    ResPath: sprite/warSkillName/96_8f51162bc09d20b1
+  - Key: warSkillName/97
+    ResPath: sprite/warSkillName/97_b1b74e41ccde3449
+  - Key: warSkillName/98
+    ResPath: sprite/warSkillName/98_b8e36ffdd0f4c282
+  - Key: warSkillName/99
+    ResPath: sprite/warSkillName/99_7658d504f007ba81
+  - Key: warSkillName/9
+    ResPath: sprite/warSkillName/9_05fe7c3ccd0e1ac4
+  - Key: warFeatAnger/featAnger1
+    ResPath: sprite/warFeatAnger/featAnger1_690fb627d4a6342d
+  - Key: warFeatAnger/featAnger2
+    ResPath: sprite/warFeatAnger/featAnger2_288c8bd85a3a399f
+  - Key: warFeatAnger/featAnger3
+    ResPath: sprite/warFeatAnger/featAnger3_bece1c9e166926d0
+  - Key: warFeatAnger/featAnger4
+    ResPath: sprite/warFeatAnger/featAnger4_a8080d3c08ead5ea
+  - Key: warFeatAnger/featAnger5
+    ResPath: sprite/warFeatAnger/featAnger5_eb8166e1f9b07e39
+  - Key: warFeatAnger/featAnger6
+    ResPath: sprite/warFeatAnger/featAnger6_b571ebea5842d683
+  - Key: warState/bw
+    ResPath: sprite/warState/bw_9e3fe0b445503482
+  - Key: warState/cw
+    ResPath: sprite/warState/cw_3076db1ee198197e
+  - Key: warState/fs
+    ResPath: sprite/warState/fs_9d88e75ab580dc0e
+  - Key: warvsicon/0
+    ResPath: sprite/warvsicon/0_0a10f06c013256aa
+  - Key: warvsicon/1
+    ResPath: sprite/warvsicon/1_0a10f06c013256aa
+  - Key: warvsicon/2
+    ResPath: sprite/warvsicon/2_62f124382be84066
+  - Key: warvsicon/3
+    ResPath: sprite/warvsicon/3_4e26db13cd24123c
+  - Key: warvsicon/4
+    ResPath: sprite/warvsicon/4_8d24c23b02cab03a
+  - Key: warvsicon/5
+    ResPath: sprite/warvsicon/5_3c26c9f05bcfb339
+  - Key: warvsicon/7
+    ResPath: sprite/warvsicon/7_ad8f21ee4507f34c
+  - Key: windowBG/1
+    ResPath: sprite/windowBG/1_436c7409a0f7a611
+  - Key: warBG/1001
+    ResPath: sprite/warBG/1001_a5adcf0ae5ba3c73
+  - Key: warBG/1002
+    ResPath: sprite/warBG/1002_9161896e0651286a
+  - Key: warBG/1003
+    ResPath: sprite/warBG/1003_397daaed010b7f09
+  - Key: warBG/1004
+    ResPath: sprite/warBG/1004_397daaed010b7f09
+  - Key: warBG/100
+    ResPath: sprite/warBG/100_e1a4e105506fb76a
+  - Key: warBG/101
+    ResPath: sprite/warBG/101_a516365affa15f51
+  - Key: warBG/10
+    ResPath: sprite/warBG/10_8be824e3b35719ee
+  - Key: warBG/11
+    ResPath: sprite/warBG/11_2019faa3ad833b57
+  - Key: warBG/1
+    ResPath: sprite/warBG/1_7387915e6c8cd059
+  - Key: warBG/2
+    ResPath: sprite/warBG/2_7b9f881a04327d5a
+  - Key: warBG/3
+    ResPath: sprite/warBG/3_79c22be122e31d73
+  - Key: warBG/4
+    ResPath: sprite/warBG/4_0d50e6ee55674b71
+  - Key: warBG/5
+    ResPath: sprite/warBG/5_311e6ae1d32d771d
+  - Key: warBG/6
+    ResPath: sprite/warBG/6_2cea80e19dd08143
+  - Key: warBG/7
+    ResPath: sprite/warBG/7_8199b9f5e1bbd7f4
+  - Key: warBG/8
+    ResPath: sprite/warBG/8_81536140509e9f35
+  - Key: warBG/9
+    ResPath: sprite/warBG/9_f4730473a6382964
+  - Key: warBG/silkMap
+    ResPath: sprite/warBG/silkMap_bd1ac9df97fd9b16
