@@ -46,7 +46,7 @@ namespace Ctxd.UI
         [SerializeField] private RectTransform _defSegRow;
         [SerializeField] private GameObject _segTemplate;        // con inactive của _offSegRow
         [SerializeField] private int _troopsPerSegment = 2000;   // 1 đốt = bao nhiêu quân (Inspector chỉnh được)
-        [SerializeField] private float _segGap = 2f;
+        [SerializeField] private float _segGap = 5f;             // khe giữa đốt — đủ dày để MẮT THƯỜNG thấy tách đốt
         [SerializeField] private Image[] _offStars = new Image[6];
         [SerializeField] private Image[] _defStars = new Image[6];
         [SerializeField] private RectTransform _offBuffRow;
