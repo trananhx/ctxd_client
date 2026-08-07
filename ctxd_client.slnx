@@ -1,3 +1,7 @@
 ﻿<Solution>
   <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="Assembly-CSharp-firstpass.csproj" />
+  <Project Path="LuzartUI.csproj" />
+  <Project Path="LuzartUI.Addressables.csproj" />
 </Solution>
