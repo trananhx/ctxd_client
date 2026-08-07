@@ -131,8 +131,8 @@ namespace Ctxd.EditorTools
             var giac = Button(rt, "GIÁC", new Vector2(0.5f, 0), new Vector2(0, 80), new Vector2(110, 56), CtxdPalette.BtnGold);
 
             SetField(ui, "_offName", offC.name); SetField(ui, "_defName", defC.name);
-            SetField(ui, "_offSegRow", offC.segRow); SetField(ui, "_defSegRow", defC.segRow);
-            SetField(ui, "_segTemplate", offC.segTemplate);
+            SetField(ui, "_offHp", offC.hp); SetField(ui, "_defHp", defC.hp);
+            // _offSegRow/_defSegRow/_segTemplate KHÔNG wire — SetSegmentBar tự skip (đốt chỉ ở thanh world).
             SetField(ui, "_offTroops", offC.troops); SetField(ui, "_defTroops", defC.troops);
             SetField(ui, "_offPortrait", offC.portrait); SetField(ui, "_defPortrait", defC.portrait);
             SetField(ui, "_offStars", offC.stars); SetField(ui, "_defStars", defC.stars);
@@ -150,10 +150,10 @@ namespace Ctxd.EditorTools
         struct GeneralCorner
         {
             public TextMeshProUGUI name, troops;
-            public Image portrait;
+            public Image hp, portrait;
             public Image[] stars;
-            public RectTransform buffRow, segRow;
-            public GameObject buffTemplate, segTemplate;   // chỉ phe trái tạo template (dùng chung)
+            public RectTransform buffRow;
+            public GameObject buffTemplate;   // chỉ phe trái tạo template (dùng chung)
         }
 
         /// <summary>Cụm HUD 1 tướng: khung avatar 96×96 + tên + BarLabeled máu + 6 sao nộ + hàng buff. Phe phải đối xứng.</summary>
@@ -176,31 +176,9 @@ namespace Ctxd.EditorTools
                 left ? new Color(0.7f, 0.85f, 1f) : new Color(1f, 0.7f, 0.7f), left ? TextAlignmentOptions.Left : TextAlignmentOptions.Right);
             ((RectTransform)c.name.transform).pivot = new Vector2(left ? 0f : 1f, 0.5f);
 
-            // Thanh máu ĐỐT: khung viền → rãnh tối → container Segs (đốt sinh RUNTIME theo MaxTroops của tướng
-            // active — BattleHudUI.SetSegmentBar; template đốt = Image Filled + vệt bóng nửa trên).
-            var hpFrame = NewRect(p + "Hp", rt, anchor, anchor, new Vector2(anchor.x, 0.5f), new Vector2(sx * 132, -62), new Vector2(240, 20));
-            var hpBorder = hpFrame.gameObject.AddComponent<Image>(); hpBorder.color = CtxdPalette.BarBorder;
-            var hpSlot = NewRect("Slot", hpFrame, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
-            hpSlot.offsetMin = new Vector2(1, 1); hpSlot.offsetMax = new Vector2(-1, -1);
-            hpSlot.gameObject.AddComponent<Image>().color = CtxdPalette.BarSlot;
-            c.segRow = NewRect("Segs", hpSlot, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
-            c.segRow.offsetMin = new Vector2(1, 1); c.segRow.offsetMax = new Vector2(-1, -1);
-            if (left)
-            {
-                var seg = NewRect("Seg", c.segRow, new Vector2(0, 0), new Vector2(0, 1), new Vector2(0, 0.5f), Vector2.zero, new Vector2(14, 0));
-                var segImg = seg.gameObject.AddComponent<Image>();
-                segImg.sprite = Builtin(); segImg.type = Image.Type.Filled;
-                segImg.fillMethod = Image.FillMethod.Horizontal; segImg.fillOrigin = (int)Image.OriginHorizontal.Left;
-                segImg.raycastTarget = false;
-                var shine = NewRect("Shine", seg, new Vector2(0, 0.5f), Vector2.one, new Vector2(0.5f, 1f), Vector2.zero, Vector2.zero);
-                var shineImg = shine.gameObject.AddComponent<Image>();
-                shineImg.color = new Color(1f, 1f, 1f, 0.22f); shineImg.raycastTarget = false;
-                seg.gameObject.SetActive(false);
-                c.segTemplate = seg.gameObject;
-            }
-            c.troops = Text(p + "HpNum", hpFrame, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(240, 20), 13, "—", Color.white);
-            var tnRt = (RectTransform)c.troops.transform;
-            tnRt.anchorMin = Vector2.zero; tnRt.anchorMax = Vector2.one; tnRt.offsetMin = Vector2.zero; tnRt.offsetMax = Vector2.zero;
+            // Thanh máu HUD: FILL LIỀN (chỉ đạo 2026-08-07 — ĐỐT chỉ dùng cho thanh world trên chiến trường).
+            c.hp = BarLabeled(p + "Hp", rt, anchor, new Vector2(sx * 132, -62), new Vector2(240, 20),
+                left ? CtxdPalette.HpAlly : CtxdPalette.HpEnemy, out c.troops, "—");
 
             // 6 sao nộ (sprite featAnger gán runtime — SetStars).
             c.stars = new Image[6];
