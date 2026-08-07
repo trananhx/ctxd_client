@@ -40,6 +40,13 @@ namespace Ctxd.UI
         [SerializeField] private Image _defPortrait;
         [SerializeField] private TMP_Text _offTroops;
         [SerializeField] private TMP_Text _defTroops;
+
+        [Header("Thanh máu ĐỐT (càng nhiều quân càng nhiều đốt)")]
+        [SerializeField] private RectTransform _offSegRow;
+        [SerializeField] private RectTransform _defSegRow;
+        [SerializeField] private GameObject _segTemplate;        // con inactive của _offSegRow
+        [SerializeField] private int _troopsPerSegment = 2000;   // 1 đốt = bao nhiêu quân (Inspector chỉnh được)
+        [SerializeField] private float _segGap = 2f;
         [SerializeField] private Image[] _offStars = new Image[6];
         [SerializeField] private Image[] _defStars = new Image[6];
         [SerializeField] private RectTransform _offBuffRow;
@@ -92,9 +99,10 @@ namespace Ctxd.UI
             {
                 // FiveStar → tên nhuộm vàng (KHÔNG dùng ký tự ★ — font Saira thiếu glyph, hiện tofu).
                 if (_offName) { _offName.text = off.DisplayName; if (off.FiveStar) _offName.color = CtxdPalette.TxtTitle; }
-                if (_offHp) _offHp.fillAmount = Ratio(off.Troops, off.MaxTroops);
+                if (_offHp) _offHp.fillAmount = Ratio(off.Troops, off.MaxTroops);   // legacy fill (bản đốt không wire)
                 if (_offMorale) _offMorale.fillAmount = Mathf.Clamp01(off.Morale / (float)Mathf.Max(1, off.MoraleFull));
                 if (_offTroops) _offTroops.text = CtxdArt.FormatTroops(off.Troops, off.MaxTroops);
+                SetSegmentBar(_offSegRow, off.Troops, off.MaxTroops, CtxdPalette.HpAlly);
                 SetPortrait(_offPortrait, off.DefId, ref _offPortraitId);
                 SetStars(_offStars, off.Morale, off.MoraleFull);
                 SetGiac(off.CanCast);
@@ -102,11 +110,59 @@ namespace Ctxd.UI
             if (def != null)
             {
                 if (_defName) { _defName.text = def.DisplayName; if (def.FiveStar) _defName.color = CtxdPalette.TxtTitle; }
-                if (_defHp) _defHp.fillAmount = Ratio(def.Troops, def.MaxTroops);
+                if (_defHp) _defHp.fillAmount = Ratio(def.Troops, def.MaxTroops);   // legacy fill (bản đốt không wire)
                 if (_defMorale) _defMorale.fillAmount = Mathf.Clamp01(def.Morale / (float)Mathf.Max(1, def.MoraleFull));
                 if (_defTroops) _defTroops.text = CtxdArt.FormatTroops(def.Troops, def.MaxTroops);
+                SetSegmentBar(_defSegRow, def.Troops, def.MaxTroops, CtxdPalette.HpEnemy);
                 SetPortrait(_defPortrait, def.DefId, ref _defPortraitId);
                 SetStars(_defStars, def.Morale, def.MoraleFull);
+            }
+        }
+
+        /// <summary>
+        /// Thanh máu ĐỐT kiểu game gốc: số đốt = MaxTroops/_troopsPerSegment (clamp 3..14) — tướng càng đông quân
+        /// càng nhiều đốt; đốt biên tụt dần bằng fillAmount (tổng các đốt luôn = MaxTroops). Rebuild chỉ khi số đốt đổi.
+        /// </summary>
+        private void SetSegmentBar(RectTransform row, int troops, int max, Color color)
+        {
+            if (row == null || _segTemplate == null || max <= 0) return;
+            int segCount = Mathf.Clamp(Mathf.CeilToInt(max / (float)Mathf.Max(1, _troopsPerSegment)), 3, 14);
+
+            int liveSegs = 0;
+            for (int i = 0; i < row.childCount; i++) if (row.GetChild(i).gameObject != _segTemplate) liveSegs++;
+            if (liveSegs != segCount)
+            {
+                for (int i = row.childCount - 1; i >= 0; i--)
+                {
+                    var c = row.GetChild(i).gameObject;
+                    if (c != _segTemplate) Destroy(c);
+                }
+                float rowW = row.rect.width > 1f ? row.rect.width : 236f;   // canvas chưa layout frame đầu → fallback
+                float w = (rowW - _segGap * (segCount - 1)) / segCount;
+                for (int i = 0; i < segCount; i++)
+                {
+                    var go = Instantiate(_segTemplate, row);
+                    go.SetActive(true);
+                    var rt = (RectTransform)go.transform;
+                    rt.anchorMin = new Vector2(0, 0); rt.anchorMax = new Vector2(0, 1); rt.pivot = new Vector2(0, 0.5f);
+                    rt.anchoredPosition = new Vector2(i * (w + _segGap), 0);
+                    rt.sizeDelta = new Vector2(w, 0);
+                }
+            }
+
+            float perSeg = max / (float)segCount;
+            int idx = 0;
+            for (int i = 0; i < row.childCount; i++)
+            {
+                var c = row.GetChild(i).gameObject;
+                if (c == _segTemplate) continue;
+                var img = c.GetComponent<Image>();
+                if (img != null)
+                {
+                    img.color = color;
+                    img.fillAmount = Mathf.Clamp01((troops - idx * perSeg) / perSeg);
+                }
+                idx++;
             }
         }
 
