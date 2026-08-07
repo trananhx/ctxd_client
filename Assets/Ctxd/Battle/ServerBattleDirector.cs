@@ -74,8 +74,9 @@ namespace Ctxd.Battle
         [Header("Thanh máu nhóm (chỉ hiện khi nhóm mất máu)")]
         [Tooltip("Màu thanh máu phe Công — sprite att là giáp XANH")] public Color offenseBarColor = new Color(0.25f, 0.62f, 1f, 0.95f);
         [Tooltip("Màu thanh máu phe Thủ — sprite def là giáp ĐỎ")] public Color defenseBarColor = new Color(0.90f, 0.20f, 0.18f, 0.95f);
-        [Tooltip("[C1] Bật = thanh máu CHIA NGĂN từng ngăn; tắt = fill liền như cũ")] public bool barSegmented = false;
-        [Tooltip("[C1] Số ngăn khi bật chia ngăn")] public int barSegments = 10;
+        [Tooltip("[C1] Bật = thanh máu CHIA NGĂN từng ngăn; tắt = fill liền như cũ")] public bool barSegmented = true;
+        [Tooltip("[C1] Số ngăn khi bật chia ngăn (legacy — chỉ dùng khi barTroopsPerSegment ≤ 0)")] public int barSegments = 10;
+        [Tooltip("[ĐỐT theo quân] 1 đốt = bao nhiêu lính (số đốt = ceil(quân nhóm/giá trị) clamp 2..12); ≤0 = dùng barSegments cố định")] public int barTroopsPerSegment = 500;
         [Tooltip("[C2] Giây chờ SAU animation chết rồi hàng sau mới tiến lên (demo pacing; ≥ 0.4 để xác kịp biến mất)")]
         public float advanceDelay = 0.6f;
 
@@ -411,7 +412,7 @@ namespace Ctxd.Battle
             return n;
         }
 
-        private FieldLayout Layout() => new FieldLayout { rowSpacing = rowSpacing, groupSpacing = groupSpacing, spriteSpacing = spriteSpacing, unitScale = unitScale, offenseBarColor = offenseBarColor, defenseBarColor = defenseBarColor, barSegmented = barSegmented, barSegments = barSegments, advanceDelay = advanceDelay, bowDepth = bowDepth, wingOffset = wingOffset };
+        private FieldLayout Layout() => new FieldLayout { rowSpacing = rowSpacing, groupSpacing = groupSpacing, spriteSpacing = spriteSpacing, unitScale = unitScale, offenseBarColor = offenseBarColor, defenseBarColor = defenseBarColor, barSegmented = barSegmented, barSegments = barSegments, barTroopsPerSegment = barTroopsPerSegment, advanceDelay = advanceDelay, bowDepth = bowDepth, wingOffset = wingOffset };
 
         private IEnumerator PlayEvent(BattleEvent e)
         {

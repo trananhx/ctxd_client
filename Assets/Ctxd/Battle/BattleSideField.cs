@@ -19,7 +19,8 @@ namespace Ctxd.Battle
         public Color offenseBarColor; // HP bar tint for Công (att sprites are blue-armoured)
         public Color defenseBarColor; // HP bar tint for Thủ (def sprites are red-armoured)
         public bool barSegmented;     // [C1] thanh máu CHIA NGĂN thay vì fill liền
-        public int barSegments;       // số ngăn khi segmented
+        public int barSegments;       // số ngăn khi segmented (legacy — dùng khi barTroopsPerSegment ≤ 0)
+        public int barTroopsPerSegment; // [ĐỐT theo quân] 1 đốt = bao nhiêu lính; >0 → số đốt ceil(maxSoldiers/giá trị) clamp 2..12
         public float advanceDelay;    // [C2] giây chờ SAU anim chết trước khi hàng sau tiến lên (0 = như cũ)
         public float bowDepth;        // [G2] độ nhô của tâm hàng CanhCung về phía địch (0 = tắt cong)
         public float wingOffset;      // [cánh] độ lệch NGANG (đơn vị groupAxis) của hàng CanhTrai/CanhPhai so với trục giữa
@@ -28,7 +29,8 @@ namespace Ctxd.Battle
             rowSpacing = 1.5f, groupSpacing = 1.1f, spriteSpacing = 2.0f, unitScale = 0.7f,
             offenseBarColor = new Color(0.25f, 0.62f, 1f, 0.95f),
             defenseBarColor = new Color(0.90f, 0.20f, 0.18f, 0.95f),
-            barSegmented = false, barSegments = 10, advanceDelay = 0f, bowDepth = 0.55f, wingOffset = 2.4f,
+            barSegmented = true, barSegments = 10, barTroopsPerSegment = 500,   // đốt BẬT mặc định, theo quân số
+            advanceDelay = 0f, bowDepth = 0.55f, wingOffset = 2.4f,
         };
     }
 
@@ -287,7 +289,7 @@ namespace Ctxd.Battle
                 float barY = maxY + BarGapAboveSprite * Mathf.Max(1f, scale);
                 cell.bar = HealthBar.Create(cell.anchor, new Vector3((minX + maxX) * 0.5f, barY, 0f),
                                             width, BarColor(), BarSortingOrder, BarThickness * Mathf.Max(1f, scale),
-                                            _layout.barSegmented, _layout.barSegments);   // [C1] mode chia ngăn
+                                            _layout.barSegmented, SegmentsFor(cell.maxSoldiers));   // [C1] đốt theo QUÂN SỐ nhóm
             }
             RefreshBar(cell);
 
@@ -347,6 +349,17 @@ namespace Ctxd.Battle
             => _faction == Faction.Offense ? _layout.offenseBarColor : _layout.defenseBarColor;
 
         /// <summary>Bar is visible ONLY while the group is damaged but alive — full-strength groups stay clean.</summary>
+        /// <summary>[ĐỐT theo quân] Số đốt thanh máu nhóm: ceil(maxSoldiers/barTroopsPerSegment) clamp 2..12 —
+        /// nhóm càng đông lính càng nhiều đốt (yêu cầu chủ dự án); barTroopsPerSegment ≤ 0 → dùng barSegments cũ.</summary>
+        private int SegmentsFor(int maxSoldiers)
+            => _layout.barTroopsPerSegment > 0
+                ? Mathf.Clamp(Mathf.CeilToInt(maxSoldiers / (float)_layout.barTroopsPerSegment), 2, 12)
+                : _layout.barSegments;
+
+        /// <summary>Dải thế trận (prefix "stance_") vẽ TO hơn aura buff (art formation mảnh, nằm dưới lính).</summary>
+        private static float FxScaleFor(string fxId, float scale)
+            => !string.IsNullOrEmpty(fxId) && fxId.StartsWith("stance_") ? scale * 1.8f : scale;
+
         private static void RefreshBar(Cell cell)
         {
             if (cell.bar == null) return;
@@ -564,7 +577,7 @@ namespace Ctxd.Battle
                     if (def == null) continue;
                     var go = VisualSpawner.SpawnEffect(def, pos, transform, fx.SortingOrder, null, loop: true);
                     if (go == null) continue;
-                    if (scale > 0f) go.transform.localScale *= scale;
+                    if (scale > 0f) go.transform.localScale *= FxScaleFor(fx.FxId, scale);
                     _activeFx[key] = go;
                 }
             }
@@ -606,8 +619,7 @@ namespace Ctxd.Battle
                 if (rowDef == null) continue;
                 var rowGo = VisualSpawner.SpawnEffect(rowDef, rowPos, transform, sorting, null, loop: true);
                 if (rowGo == null) continue;
-                // Dải thế trận cần TO hơn aura buff (art formation mảnh + nằm dưới lính) — nhân 1.8 để lộ rõ.
-                if (scale > 0f) rowGo.transform.localScale *= scale * 1.8f;
+                if (scale > 0f) rowGo.transform.localScale *= FxScaleFor(fxId, scale);
                 _activeFx[rowKey] = rowGo;
             }
         }
@@ -641,7 +653,7 @@ namespace Ctxd.Battle
                     if (def == null) continue;
                     var go = VisualSpawner.SpawnEffect(def, PersistentAnchor(fx.Anchor, fx.RowIndex, yOffset), transform, fx.SortingOrder, null, loop: true);
                     if (go == null) continue;
-                    if (scale > 0f) go.transform.localScale *= scale;
+                    if (scale > 0f) go.transform.localScale *= FxScaleFor(fx.FxId, scale);
                     _activeFx[key] = go;
                 }
             }

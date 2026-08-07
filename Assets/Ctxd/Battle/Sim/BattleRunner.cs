@@ -90,9 +90,10 @@ namespace Ctxd.Battle.Sim
             RecordStance(def, defInput.Stance);
             // [FX bền thế trận] Vầng thế trận sống MÃI (UntilRemoved) tới khi ĐỔI thế khác (SetExclusive thay id)
             // hoặc server chủ động gỡ — không tự tắt theo lượt (yêu cầu chủ dự án 2026-08-05).
-            // Anchor UnderFootAllRows: client trải vầng MỖI hàng sống; Phase PreTurn: hiện TRƯỚC animation đánh.
-            State.Offense.SetExclusiveEffect("stance_", StanceFxId(offenseInput.Stance), anchor: FxAnchorKind.UnderFootAllRows, sorting: 90, phase: FxPhase.PreTurn);
-            State.Defense.SetExclusiveEffect("stance_", StanceFxId(defInput.Stance), anchor: FxAnchorKind.UnderFootAllRows, sorting: 90, phase: FxPhase.PreTurn);
+            // Anchor UnderFoot: MỘT dải ở tâm hàng ĐẦU đang sống (chỉ đạo 2026-08-07 — trước là UnderFootAllRows
+            // trải mỗi hàng); Phase PreTurn: hiện TRƯỚC animation đánh. Đổi kiểu trải = chỉ đổi anchor ở ĐÂY.
+            State.Offense.SetExclusiveEffect("stance_", StanceFxId(offenseInput.Stance), anchor: FxAnchorKind.UnderFoot, sorting: 90, phase: FxPhase.PreTurn);
+            State.Defense.SetExclusiveEffect("stance_", StanceFxId(defInput.Stance), anchor: FxAnchorKind.UnderFoot, sorting: 90, phase: FxPhase.PreTurn);
             ev.Add(StanceEvent(Faction.Offense, off, offenseInput.Stance));
             ev.Add(StanceEvent(Faction.Defense, def, defInput.Stance));
             // [Pool FX theo pha] Phát pool PreTurn mỗi phe NGAY đầu lượt — client render trước diễn biến đánh.

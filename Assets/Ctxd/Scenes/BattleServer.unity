@@ -261,8 +261,9 @@ MonoBehaviour:
   clashFx: skill/{f}/skill_01
   offenseBarColor: {r: 0.25, g: 0.62, b: 1, a: 0.95}
   defenseBarColor: {r: 0.9, g: 0.2, b: 0.18, a: 0.95}
-  barSegmented: 0
+  barSegmented: 1
   barSegments: 10
+  barTroopsPerSegment: 500
   advanceDelay: 0.6
   bowDepth: 0.55
   wingOffset: 2.4

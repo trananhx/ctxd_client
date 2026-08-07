@@ -31,7 +31,7 @@ namespace Ctxd.Tests
             var offFx = r.State.Offense.Effects.Find(e => e.FxId == "stance_tancong");
             Assert.NotNull(offFx);
             Assert.True(offFx.UntilRemoved);                                            // KHÔNG hết hạn theo hiệp
-            Assert.Equal(FxAnchorKind.UnderFootAllRows, offFx.Anchor);                  // vầng trải MỖI hàng sống (grammar thế trận)
+            Assert.Equal(FxAnchorKind.UnderFoot, offFx.Anchor);                         // MỘT dải ở hàng đầu (chỉ đạo 2026-08-07)
             Assert.Contains(r.State.Defense.Effects, e => e.FxId.StartsWith("stance_"));// phe thủ (AI) cũng có thế trận
         }
 
