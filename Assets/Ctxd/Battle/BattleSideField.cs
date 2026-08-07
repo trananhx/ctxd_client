@@ -541,6 +541,10 @@ namespace Ctxd.Battle
         private readonly Dictionary<int, (Vector3 sum, int n)> _rowCentres = new Dictionary<int, (Vector3, int)>();   // [thế trận] tâm mỗi hàng sống
         private readonly HashSet<string> _preTurnKeys = new HashSet<string>();   // [pool PreTurn] khoá gốc đã spawn lượt trước
         private readonly HashSet<string> _preTurnSeen = new HashSet<string>();   // [pool PreTurn] khoá gốc lượt này
+        // [Bám đội hình] meta để LateUpdate tính lại vị trí MỖI FRAME — hàng chết/dồn lên là FX trượt theo ngay,
+        // không đợi tới sync đầu/cuối lượt (bug: dải thế trận đứng ở vị trí hàng cũ khi hàng đầu tử trận).
+        private readonly Dictionary<string, (FxAnchorKind anchor, int rowIndex)> _fxMeta = new Dictionary<string, (FxAnchorKind, int)>();
+        private float _fxYOffset;
 
         /// <summary>
         /// Đồng bộ FX bền theo danh sách server gửi trong snapshot: mục MỚI → spawn FX lặp; CÒN → giữ (và bám
@@ -551,6 +555,7 @@ namespace Ctxd.Battle
                                       System.Func<string, EffectVisualDefinition> resolve, float yOffset, float scale)
         {
             _fxSeen.Clear();
+            _fxYOffset = yOffset;
             if (effects != null)
             {
                 foreach (var fx in effects)
@@ -579,6 +584,7 @@ namespace Ctxd.Battle
                     if (go == null) continue;
                     if (scale > 0f) go.transform.localScale *= FxScaleFor(fx.FxId, scale);
                     _activeFx[key] = go;
+                    _fxMeta[key] = (fx.Anchor, fx.RowIndex);
                 }
             }
 
@@ -588,9 +594,39 @@ namespace Ctxd.Battle
             {
                 var go = _activeFx[k];
                 _activeFx.Remove(k);
+                _fxMeta.Remove(k);
                 if (go == null) continue;
                 var ev = go.GetComponent<EffectVisual>();
                 if (ev != null) ev.StopAndDestroy(); else Destroy(go);
+            }
+        }
+
+        /// <summary>
+        /// [Bám đội hình] FX bền tính lại vị trí MỖI FRAME theo anchor — hàng đầu tử trận / quân dồn lên (tween)
+        /// là dải trượt theo tức thì, không đợi sync đầu/cuối lượt. Hàng của dải per-row không còn cell sống →
+        /// giữ vị trí, diff của lần sync kế sẽ gỡ.
+        /// </summary>
+        private void LateUpdate()
+        {
+            if (_fxMeta.Count == 0) return;
+            foreach (var kv in _fxMeta)
+            {
+                if (!_activeFx.TryGetValue(kv.Key, out var go) || go == null) continue;
+                var (anchor, rowIndex) = kv.Value;
+                if (anchor == FxAnchorKind.UnderFootAllRows)
+                {
+                    Vector3 sum = Vector3.zero; int n = 0;
+                    foreach (var cell in _cells.Values)
+                    {
+                        if (cell.dying || cell.anchor == null || cell.rowIndex != rowIndex) continue;
+                        sum += cell.anchor.position; n++;
+                    }
+                    if (n > 0) go.transform.position = sum / n + Vector3.up * _fxYOffset;
+                }
+                else
+                {
+                    go.transform.position = PersistentAnchor(anchor, rowIndex, _fxYOffset);
+                }
             }
         }
 
@@ -621,6 +657,7 @@ namespace Ctxd.Battle
                 if (rowGo == null) continue;
                 if (scale > 0f) rowGo.transform.localScale *= FxScaleFor(fxId, scale);
                 _activeFx[rowKey] = rowGo;
+                _fxMeta[rowKey] = (FxAnchorKind.UnderFootAllRows, rc.Key);   // bám tâm HÀNG này mỗi frame
             }
         }
 
@@ -634,6 +671,7 @@ namespace Ctxd.Battle
                                        System.Func<string, EffectVisualDefinition> resolve, float yOffset, float scale)
         {
             _preTurnSeen.Clear();
+            _fxYOffset = yOffset;
             if (effects != null)
             {
                 foreach (var fx in effects)
@@ -655,6 +693,7 @@ namespace Ctxd.Battle
                     if (go == null) continue;
                     if (scale > 0f) go.transform.localScale *= FxScaleFor(fx.FxId, scale);
                     _activeFx[key] = go;
+                    _fxMeta[key] = (fx.Anchor, fx.RowIndex);
                 }
             }
             // Gỡ mục từng thuộc pool PreTurn nhưng lượt này không còn (vd đổi thế trận).
@@ -667,6 +706,7 @@ namespace Ctxd.Battle
             {
                 if (!_activeFx.TryGetValue(k, out var go)) continue;
                 _activeFx.Remove(k);
+                _fxMeta.Remove(k);
                 if (go == null) continue;
                 var ev = go.GetComponent<EffectVisual>();
                 if (ev != null) ev.StopAndDestroy(); else Destroy(go);
